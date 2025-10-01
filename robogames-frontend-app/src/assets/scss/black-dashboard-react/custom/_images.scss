@@ -1,0 +1,22 @@
+img{
+    max-width: 100%;
+    border-radius: $border-radius-sm;
+}
+.img-raised{
+    box-shadow: $box-shadow-raised;
+}
+
+.logo-box {
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.logo-box img {
+  max-width: 210px;
+  max-height: 100%;
+  object-fit: contain;
+  background-color: #ffffff;
+}

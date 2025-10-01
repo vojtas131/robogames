@@ -1,0 +1,57 @@
+.dark-content {
+    .card-body{
+        color: $gray-400;
+    }
+
+    .text-muted{
+        color: $gray-500 !important;
+    }
+
+    .btn-secondary{
+        background-image: linear-gradient(to bottom left, #40558e, #2b3852, #344675) !important;
+    }
+
+    form label{
+        color: $gray-400;
+    }
+
+    .form-control {
+        color: $gray-400 !important;
+        border-color: #50628f !important;
+    }
+
+    .modal-content{
+        background: $card-black-background;
+
+        h4, h5{
+            color: $white !important;
+        }
+
+        label{
+            color: $gray-400;
+        }
+    }
+
+    .card-playground{
+        border: 1px solid #50628f !important;
+    }
+
+    .btn-success.btn-simple{
+        color: #00f2c3;
+        border-color: #00f2c3;
+    }
+
+    .btn-warning.btn-simple{
+        color: #ff8d72;
+        border-color: #ff8d72;
+    }
+
+    nav.bg-dark{
+        background: #27293d !important;
+        box-shadow: 0px 10px 50px 0px rgba(0, 0, 0, 0.2);
+
+        button {
+            color: $white !important;
+        }
+    }
+}
