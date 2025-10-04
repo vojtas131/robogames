@@ -243,8 +243,7 @@ function RobotRegistration() {
                 <Card key={robot.id} className="mb-3" style={{ border: '1px solid lightgray' }}>
 
                   <CardBody>
-                    <CardTitle tag="h3">{robot.name}
-                    </CardTitle>
+                    <CardTitle tag="h3">{robot.name}</CardTitle>
 
                     <CardText>
                       <hr></hr>
@@ -256,34 +255,32 @@ function RobotRegistration() {
 
                       {t("categoryData", { data: robot.category === "HIGH_AGE_CATEGORY" ? t("students") : t("pupils") })}<br />
 
-                      {t("discData", {
-                        data:
-                          robot.disciplineID && robot.disciplineID > 0 ? (
-                            <>
-                              <span class='text-info'>{robot.diciplineName}</span>
-                              {!robot.confirmed && (
-                                <Alert color='warning' style={{ marginTop: '10px' }}>{t("robotRegistered")}</Alert>
-                              )}
+                      {t("disc_colon")} {robot.disciplineID && robot.disciplineID > 0 ? (
+                        <>
+                          <span class='text-info'>{robot.diciplineName}</span>
 
-                              {!robot.confirmed && (
-                                <Button color="danger" onClick={() => handleUnregisterDiscipline(robot.id)}>{t("regCancel")}</Button>
-                              )}
-                            </>
-                          ) : (
-                            <Dropdown isOpen={robot.dropdownOpen} toggle={() => toggleDropdown(robot.id)}>
-                              <DropdownToggle caret>
-                                {robot.disciplineName || t("robotRegister")}
-                              </DropdownToggle>
-                              <DropdownMenu>
-                                {disciplines.map(d => (
-                                  <DropdownItem key={d.id} onClick={() => handleSelectDiscipline(robot.id, d.id, d.name)}>
-                                    {d.name}
-                                  </DropdownItem>
-                                ))}
-                              </DropdownMenu>
-                            </Dropdown>
-                          )
-                      })}
+                          {!robot.confirmed && (
+                            <Alert color='warning' style={{ marginTop: '10px' }}>{t("robotRegistered")}</Alert>
+                          )}
+
+                          {!robot.confirmed && (
+                            <Button color="danger" onClick={() => handleUnregisterDiscipline(robot.id)}>{t("regCancel")}</Button>
+                          )}
+                        </>
+                      ) : (
+                        <Dropdown isOpen={robot.dropdownOpen} toggle={() => toggleDropdown(robot.id)}>
+                          <DropdownToggle caret>
+                            {robot.disciplineName || t("robotRegister")}
+                          </DropdownToggle>
+                          <DropdownMenu>
+                            {disciplines.map(d => (
+                              <DropdownItem key={d.id} onClick={() => handleSelectDiscipline(robot.id, d.id, d.name)}>
+                                {d.name}
+                              </DropdownItem>
+                            ))}
+                          </DropdownMenu>
+                        </Dropdown>
+                      )}
                     </CardText>
                   </CardBody>
                   {!robot.confirmed && (

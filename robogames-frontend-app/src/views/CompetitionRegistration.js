@@ -123,7 +123,6 @@ function CompetitionRegistration() {
     const fetchCompetitions = async () => {
       setIsLoading(true);
 
-      console.log("token: ",token)
       try {
         const responses = await Promise.all([
           fetch(`${process.env.REACT_APP_API_URL}api/competition/all`, {
@@ -141,11 +140,8 @@ function CompetitionRegistration() {
             }
           })
         ]);
-
-        console.log("responses: ", responses[1]);
-
         const [competitionsData, registrationsData] = await Promise.all(responses.map(res => res.json()));
-        // if (tokenExpired(responses.status)) { return; }
+        if (tokenExpired(responses.status)) { return; }
 
         if (responses[0].ok && responses[1].ok) {
           setCompetitions(competitionsData.data);

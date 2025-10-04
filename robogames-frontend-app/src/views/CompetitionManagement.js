@@ -186,7 +186,7 @@ function CompetitionManagement() {
             const result = await response.json();
             setCompetitions([...competitions, result.data]);
             toggleModal();
-            // window.location.reload();
+            window.location.reload();
           } else {
             const error = await response.json();
             console.error('Failed to create competition:', error);
