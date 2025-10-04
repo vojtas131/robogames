@@ -58,17 +58,18 @@ function CompetitionRegistration() {
 
       const data = await response.json();
       if (response.ok) {
-        if (data.type === 'Error') {
-          alert(t("dataError",{data: data.data}));
+        if (data.type === 'ERROR') {
+          if (data.data === 'failure, team have a robot that is already confirmed') {
+            alert(t("unregImpossible"));
+          } else {
+            alert(t("dataError", { data: data.data }));
+          }
         } else {
-
-
           window.location.reload();
-
         }
       } else {
         console.error('Failed to unregister team:', data);
-        alert(t("unregFail",{message: data.message || t("unknownError")}));
+        alert(t("unregFail", { message: data.message || t("unknownError") }));
       }
     } catch (error) {
       console.error('Error unregistering team:', error);
@@ -102,7 +103,7 @@ function CompetitionRegistration() {
       const data = await response.json();
       if (response.ok) {
         if (data.type === 'Error') {
-          alert(t("dataError",{data: data.data})); // display error message from the server
+          alert(t("dataError", { data: data.data })); // display error message from the server
         } else {
           alert(t("regSuccess"));
           window.location.reload();
@@ -110,7 +111,7 @@ function CompetitionRegistration() {
         }
       } else {
         console.error('Failed to register team:', data);
-        alert(t("regFail",{message: data.message || t("unknownError")}));
+        alert(t("regFail", { message: data.message || t("unknownError") }));
       }
     } catch (error) {
       console.error('Error registering team:', error);
@@ -180,7 +181,7 @@ function CompetitionRegistration() {
                     <Card key={competition.id} style={{ border: '1px solid lightgray' }}>
 
                       <CardHeader>
-                        <CardTitle tag="h3">{t("robogamesYear",{year: competition.year})}</CardTitle>
+                        <CardTitle tag="h3">{t("robogamesYear", { year: competition.year })}</CardTitle>
                         <hr></hr>
                       </CardHeader>
                       <CardBody>
@@ -195,7 +196,7 @@ function CompetitionRegistration() {
 
                             <Button color="info" onClick={() => handleManageRobots(competition.year)}>
                               <i className="tim-icons icon-double-right" />
-                                {t("manageRobots")}
+                              {t("manageRobots")}
                               <i className="tim-icons icon-double-left" />
                             </Button>
 

@@ -61,6 +61,7 @@
     "unreg":"Opravdu chcete zrušit registraci?",
     "dataError":"Chyba: {{data}}",
     "unknownError":"Nastala neznámá chyba",
+    "unregImpossible":"Nebylo možné zrušit registraci: některý z robotů týmu již byl potvrzen.",
     "unregFail":"Nebylo možné zrušit registraci: {{message}}",
     "unregError":"Během rušení registrace týmu nastala chyba.",
     "regConfirm":"Opravdu se chcete zaregistrovat?",

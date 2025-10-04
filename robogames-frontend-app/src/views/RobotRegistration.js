@@ -257,7 +257,7 @@ function RobotRegistration() {
 
                       {t("disc_colon")} {robot.disciplineID && robot.disciplineID > 0 ? (
                         <>
-                          <span class='text-info'>{robot.diciplineName}</span>
+                          <span className='text-info'>{robot.diciplineName}</span>
 
                           {!robot.confirmed && (
                             <Alert color='warning' style={{ marginTop: '10px' }}>{t("robotRegistered")}</Alert>

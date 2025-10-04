@@ -61,6 +61,7 @@
     "unreg": "Are you sure you want to cancel the registration?",
     "dataError": "Error: {{data}}",
     "unknownError": "An unknown error occurred",
+    "unregImpossible":"Cancellation of registration was not possible: a team robot has already been confirmed.",
     "unregFail": "Could not cancel the registration: {{message}}",
     "unregError": "An error occurred while canceling the team's registration.",
     "regConfirm": "Do you really want to register?",
