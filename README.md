@@ -18,13 +18,13 @@ cd robogames
 ```
 
 ### Backend:
-To build backend do not use Windows PowerShell, it does not work.
+To build backend do not use Windows PowerShell, it does not work there.
 ```
 cd RoboCupMS
 gradlew.bat build  //windows
 gradlew build      //linux
 ```
-Build location: robogames\RoboCupMS\build\libs\RoboCupMS-2.3.0.jar
+Build location: robogames\RoboCupMS\build\libs\
 
 ### Frontend:
 ```
@@ -44,15 +44,14 @@ GRANT all ON robocup.* TO 'robocup_root'@'%';
 ## Run
 
 ### Backend:
-It is recommended to move builded .jar file to RoboCupMS folder.
 ```
-cd RoboCupMS
-java -jar RoboCupMS-2.3.0.jar
+cd robogames/RoboCupMS
+java -jar /build/libs/RoboCupMS-2.3.0.jar
 ```
 
 ### Frontend:
 ```
-cd robogames-frontend-app
+cd robogames/robogames-frontend-app
 npm start
 ```
 
