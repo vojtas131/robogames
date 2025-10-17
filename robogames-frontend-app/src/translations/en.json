@@ -265,6 +265,8 @@
     "robotFillName": "Please enter the robot name.",
     "robotExists": "A robot with this name already exists. Choose another name.",
     "robotAddFail": "Failed to add robot: {{data}}",
+    "robotRenameFail":"Robot rename failed.",
+    "robotRenamed":"Robot renamed successfully.",
     "robotYearOverview": "Robots overview for {{year}}",
     "robotAdd": "Add robot",
     "robotNum_colon": "Robot number: {{id}}",

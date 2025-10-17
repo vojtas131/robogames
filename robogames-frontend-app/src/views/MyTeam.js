@@ -126,8 +126,7 @@ function MyTeam() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ name: newTeamName })
+        }
       });
       if (tokenExpired(response.status)) { return; }
 
@@ -345,9 +344,13 @@ function MyTeam() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle tag="h2">{team.name}</CardTitle>
+                <CardTitle tag="h2" style={{ display: 'inline' }}>{team.name}</CardTitle>
                 {(team.leaderID === parseInt(userID, 10) &&
-                  <Button color="primary" onClick={() => setCreateModal(true)}>{t("teamRename")}</Button>
+                  <i class="fa-solid fa-pencil ml-2"
+                    style={{ cursor: 'pointer', fontSize: '0.9rem' }}
+                    onClick={() => setCreateModal(true)}
+                    title={t("rename")}
+                  />
                 )}
                 <Modal isOpen={createModal} toggle={() => setCreateModal(!createModal)}>
                   <ModalHeader toggle={() => setCreateModal(false)}>{t("teamRename")}</ModalHeader>

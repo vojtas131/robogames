@@ -265,6 +265,8 @@
     "robotFillName":"Zadejte prosím název robota.",
     "robotExists":"Robot s\u00a0tímto jménem již existuje. Vyberte jiné jméno.",
     "robotAddFail":"Nepodařilo se přidat robota: {{data}}",
+    "robotRenameFail":"Nebylo možné přejmenovat robota.",
+    "robotRenamed":"Robot byl úspěšně přejmenován.",
     "robotYearOverview":"Přehled robotů pro rok {{year}}",
     "robotAdd":"Přidat robota",
     "robotNum_colon":"Číslo robota: {{id}}",

@@ -36,6 +36,10 @@ function RobotRegistration() {
   const [modal, setModal] = useState(false);
   const [robotName, setRobotName] = useState('');
 
+  const [editMode, setEditMode] = useState(false);
+  const [renameRobotId, setRenameRobotId] = useState(null);
+
+
   const searchParams = new URLSearchParams(location.search);
   const year = searchParams.get('year');
 
@@ -167,8 +171,6 @@ function RobotRegistration() {
     }
   }
 
-
-
   async function handleUnregisterDiscipline(robotId) {
     const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/unregister?id=${robotId}`, {
       method: 'PUT',
@@ -224,6 +226,35 @@ function RobotRegistration() {
     }
   }
 
+  const handleRenameRobot = async (year, robotId, newName) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${year}&id=${robotId}&name=${newName}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (tokenExpired(response.status)) { return; }
+
+      if (!response.ok) throw new Error(t("robotRenameFail"));
+
+      const data = await response.json();
+      if (data.type !== "ERROR") {
+        console.log('Uložení se podařilo:', data);
+        alert(t("robotRenamed"));
+        window.location.reload();
+      } else if (data.type === "ERROR" && data.data.includes("already exists")) {
+        alert(t("robotExists"));  // Robot name is already in database
+      } else {
+        console.log('Chyba při ukládání dat:', data);
+        alert(t("dataError", { data: data.data }));
+      }
+    } catch (error) {
+      console.error('Update selhal:', error);
+      alert(t("dataSaveFail"));
+    }
+  }
 
   return (
     <div className="content">
@@ -232,7 +263,10 @@ function RobotRegistration() {
           <Card>
             <CardHeader>
               <CardTitle tag="h2">{t("robotYearOverview", { year: year })}</CardTitle>
-              <Button color="primary" onClick={toggleModal}>{t("robotAdd")}</Button>
+              <Button color="primary" onClick={() => {
+                setEditMode(false);
+                toggleModal();
+              }}> {t("robotAdd")} </Button>
             </CardHeader>
             <CardBody>
               {isLoading ? (
@@ -243,7 +277,18 @@ function RobotRegistration() {
                 <Card key={robot.id} className="mb-3" style={{ border: '1px solid lightgray' }}>
 
                   <CardBody>
-                    <CardTitle tag="h3">{robot.name}</CardTitle>
+                    <CardTitle tag="h3" style={{ display: 'inline' }}>{robot.name}</CardTitle>
+
+                    <i class="fa-solid fa-pencil ml-2"
+                      style={{ cursor: 'pointer', fontSize: '1rem' }}
+                      onClick={() => {
+                        setEditMode(true);
+                        setRenameRobotId(robot.id);
+                        setRobotName(robot.name);
+                        toggleModal();
+                      }}
+                      title={t("rename")}
+                    />
 
                     <CardText>
                       <hr></hr>
@@ -297,18 +342,29 @@ function RobotRegistration() {
         </Col>
       </Row>
       <Modal isOpen={modal} toggle={toggleModal}>
-        <ModalHeader toggle={toggleModal}>{t("robotAdd")}</ModalHeader>
+        <ModalHeader toggle={toggleModal}> {editMode ? t("robotRename") : t("robotAdd")} </ModalHeader>
         <ModalBody>
           <Form>
             <FormGroup>
-              <Label for="robotName">{t("robotName")}</Label>
-              <Input type="text" name="name" id="robotName" placeholder={t("robotEnterName")} value={robotName} onChange={(e) => setRobotName(e.target.value)} style={{ color: 'black' }} />
+              <Label for="robotName"> {editMode ? t("newName") : t("robotName")} </Label>
+              <Input type="text" name="name" id="robotName" placeholder={t("robotEnterName")}
+                value={robotName} onChange={(e) => setRobotName(e.target.value)} style={{ color: 'black' }}
+              />
             </FormGroup>
           </Form>
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={handleAddRobot} style={{ margin: '10px' }}>{t("send")}</Button>
-          <Button color="secondary" onClick={toggleModal} style={{ margin: '10px' }}>{t("cancel")}</Button>
+          <Button color="primary" style={{ margin: '10px' }}
+            onClick={() => {
+              if (editMode) {
+                handleRenameRobot(year, renameRobotId, robotName);
+              } else {
+                handleAddRobot();
+              }
+              toggleModal();
+            }}
+          > {t("save")} </Button>
+          <Button color="secondary" onClick={toggleModal} style={{ margin: '10px' }}> {t("cancel")} </Button>
         </ModalFooter>
       </Modal>
     </div>
