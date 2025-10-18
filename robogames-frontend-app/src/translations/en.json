@@ -228,6 +228,9 @@
 
     "mailInvalid": "Invalid e-mail format.",
     "passwordsDiffer": "Passwords do not match.",
+    "invalidAge":"Invalid date of birth.",
+    "tooYoung":"User must be at least {{age}} years old.",
+    "tooOld":"User cannot be older than {{age}} years.",
     "userExists": "A user with this e-mail already exists.",
     "regError": "Registration error: {{message}}",
     "regMistakes": "Please correct the errors in the form.",

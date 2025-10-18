@@ -228,6 +228,9 @@
 
     "mailInvalid":"Nevalidní formát e-mailu.",
     "passwordsDiffer":"Hesla se neshodují.",
+    "invalidAge":"Neplatné datum narození.",
+    "tooYoung":"Uživateli musí být alespoň {{age}} let.",
+    "tooOld":"Uživateli nemůže být víc než {{age}} let.",
     "userExists":"Uživatel s\u00a0tímto e-mailem již existuje.",
     "regError":"Chyba při registraci: {{message}}",
     "regMistakes":"Opravte prosím chyby ve formuláři.",

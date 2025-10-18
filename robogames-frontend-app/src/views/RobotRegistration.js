@@ -279,6 +279,7 @@ function RobotRegistration() {
                   <CardBody>
                     <CardTitle tag="h3" style={{ display: 'inline' }}>{robot.name}</CardTitle>
 
+                    {!robot.confirmed && (
                     <i class="fa-solid fa-pencil ml-2"
                       style={{ cursor: 'pointer', fontSize: '1rem' }}
                       onClick={() => {
@@ -288,7 +289,7 @@ function RobotRegistration() {
                         toggleModal();
                       }}
                       title={t("rename")}
-                    />
+                    />)}
 
                     <CardText>
                       <hr></hr>
