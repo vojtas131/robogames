@@ -7,11 +7,13 @@ import {
   CardFooter,
   FormGroup,
   Form,
+  FormFeedback,
   Input,
   Row,
   Col,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
+import { validateBirth, minAge, maxAge } from "./Register";
 import { t } from "translations/translate";
 
 function UserProfile() {
@@ -27,6 +29,7 @@ function UserProfile() {
   });
   const [initialUserData, setInitialUserData] = useState({});
   const { token, tokenExpired } = useUser();
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,8 +56,35 @@ function UserProfile() {
     fetchData();
   }, []);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let newErrors = { ...errors };
+
+    if (name === 'birthDate') {
+      // validate date of birth
+      const val = validateBirth(value);
+      if (!val) {
+        newErrors.birthDate = t("invalidAge");
+      } else if (val === "younger") {
+        newErrors.birthDate = t("tooYoung", { age: minAge });
+      } else if (val === "older") {
+        newErrors.birthDate = t("tooOld", { age: maxAge });
+      } else {
+        delete newErrors.birthDate;
+      }
+    }
+
+    setErrors(newErrors);
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent form submission reload
+
+    // check for mistakes
+    if (errors.birthDate) {
+      alert(t("regMistakes"));
+      return;
+    }
 
     // Check for actual changes and no empty required inputs
     if (userData.name && userData.surname && userData.birthDate &&
@@ -79,8 +109,12 @@ function UserProfile() {
         if (!response.ok) throw new Error(t("userUpdateFail"));
 
         const result = await response.json();
-        console.log('Uložení se podařilo:', result);
-        alert(t("dataSaved"));
+        if (result.data === "success") {
+          // console.log('Uložení se podařilo:', result);
+          alert(t("dataSaved"));
+        } else {
+          alert(t("userUpdateFail"));
+        }
       } catch (error) {
         console.error('Update selhal:', error);
         alert(t("dataSaveFail"));
@@ -146,11 +180,15 @@ function UserProfile() {
                       <FormGroup>
                         <label>{t("birthDate")}</label>
                         <Input
+                          invalid={!!errors.birthDate}
                           value={userData.birthDate}
                           type="date"
+                          name="birthDate"
                           onChange={(e) => setUserData({ ...userData, birthDate: e.target.value })}
+                          onBlur={handleChange}
                           required
                         />
+                        {errors.birthDate && <FormFeedback>{errors.birthDate}</FormFeedback>}
                       </FormGroup>
                     </Col>
 

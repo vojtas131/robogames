@@ -29,6 +29,55 @@ const customStyles = {
   marginBottom: 'auto',
 };
 
+export const minAge = 6;
+export const maxAge = 99;
+
+// Calculates user age
+const calculateAge = (_birthDate) => {
+  if (!_birthDate) { return null; }
+
+  const today = new Date();
+  const birthDate = new Date(_birthDate);
+
+  // is not a number or is a future date
+  if (isNaN(birthDate) || birthDate > today) { return null; }
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+
+  // birthday in this year
+  const birthday = new Date(
+    today.getFullYear(),
+    birthDate.getMonth(),
+    birthDate.getDate()
+  );
+
+  // if did not have birthday this year yet
+  if (today < birthday) {
+    age--;
+  }
+
+  return age;
+};
+
+// Validates date of birth
+export function validateBirth(birthDate) {
+  const age = calculateAge(birthDate);
+  if (age === null) {
+    console.log('Invalid age.');
+    return false;
+  } else {
+    if (age < minAge) {
+      console.log('You have to be at least ', minAge, ' years old.')
+      return "younger";
+    } else if (age > maxAge) {
+      console.log('You cannot be older than ', maxAge, ' years.')
+      return "older";
+    } else {
+      return true;
+    }
+  }
+};
+
 function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -41,59 +90,10 @@ function Register() {
   });
   const [errors, setErrors] = useState({});
 
-  const minAge = 6;
-  const maxAge = 99;
-
   // Validates email format
   const validateEmail = (email) => {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
-  };
-
-  // Calculates user age
-  const calculateAge = (_birthDate) => {
-    if (!_birthDate) { return null; }
-
-    const today = new Date();
-    const birthDate = new Date(_birthDate);
-
-    // is not a number or is a future date
-    if (isNaN(birthDate) || birthDate > today) { return null; }
-
-    let age = today.getFullYear() - birthDate.getFullYear();
-
-    // birthday in this year
-    const birthday = new Date(
-      today.getFullYear(),
-      birthDate.getMonth(),
-      birthDate.getDate()
-    );
-
-    // if did not have birthday this year yet
-    if (today < birthday) {
-      age--;
-    }
-
-    return age;
-  };
-
-  // Validates date of birth
-  const validateBirth = (birthDate) => {
-    const age = calculateAge(birthDate);
-    if (age === null) {
-      console.log('Invalid age.');
-      return false;
-    } else {
-      if (age < minAge) {
-        console.log('You have to be at least ', minAge, ' years old.')
-        return "younger";
-      } else if (age > maxAge) {
-        console.log('You cannot be older than ', maxAge, ' years.')
-        return "older";
-      } else {
-        return true;
-      }
-    }
   };
 
   // Handle form input changes
@@ -119,9 +119,9 @@ function Register() {
       if (!val) {
         newErrors.birthDate = t("invalidAge");
       } else if (val === 'younger') {
-        newErrors.birthDate = t("tooYoung", {age: minAge});
+        newErrors.birthDate = t("tooYoung", { age: minAge });
       } else if (val === 'older') {
-        newErrors.birthDate = t("tooOld", {age: maxAge});
+        newErrors.birthDate = t("tooOld", { age: maxAge });
       } else {
         delete newErrors.birthDate;
       }
