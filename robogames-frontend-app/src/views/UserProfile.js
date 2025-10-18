@@ -13,7 +13,7 @@ import {
   Col,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
-import { validateBirth, minAge, maxAge } from "./Register";
+import { validateName, validateBirth, minAge, maxAge } from "./Register";
 import { t } from "translations/translate";
 
 function UserProfile() {
@@ -60,6 +60,18 @@ function UserProfile() {
     const { name, value } = e.target;
     let newErrors = { ...errors };
 
+    if (name === 'name' && !validateName(value)) {
+      newErrors.name = t("invalidName");
+    } else {
+      delete newErrors.name;
+    }
+
+    if (name === 'surname' && !validateName(value)) {
+      newErrors.surname = t("invalidSurname");
+    } else {
+      delete newErrors.surname;
+    }
+
     if (name === 'birthDate') {
       // validate date of birth
       const val = validateBirth(value);
@@ -81,7 +93,7 @@ function UserProfile() {
     e.preventDefault(); // Prevent form submission reload
 
     // check for mistakes
-    if (errors.birthDate) {
+    if (errors.name || errors.surname || errors.birthDate) {
       alert(t("regMistakes"));
       return;
     }
@@ -140,24 +152,37 @@ function UserProfile() {
                       <FormGroup>
                         <label>{t("name")}</label>
                         <Input
+                          invalid={!!errors.name}
                           value={userData.name}
                           placeholder={t("name")}
                           type="text"
-                          onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                          name="name"
+                          onChange={(e) => {
+                            handleChange(e);
+                            setUserData({ ...userData, name: e.target.value })
+                          }}
                           required
                         />
+                        {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
                       </FormGroup>
                     </Col>
                     <Col className="pl-md-1" md="6">
                       <FormGroup>
                         <label>{t("surname")}</label>
                         <Input
+                          invalid={!!errors.surname}
                           value={userData.surname}
                           placeholder={t("surname")}
                           type="text"
-                          onChange={(e) => setUserData({ ...userData, surname: e.target.value })}
+                          name="surname"
+                          onChange={(e) => {
+                            handleChange(e);
+                            setUserData({ ...userData, surname: e.target.value })
+                          }}
+                          onBlur={handleChange}
                           required
                         />
+                        {errors.surname && <FormFeedback>{errors.surname}</FormFeedback>}
                       </FormGroup>
                     </Col>
                   </Row>

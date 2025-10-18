@@ -78,6 +78,11 @@ export function validateBirth(birthDate) {
   }
 };
 
+export function validateName(name) {
+  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-]+$/;
+  return allowed.test(name);
+}
+
 function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -101,6 +106,18 @@ function Register() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     let newErrors = { ...errors };
+
+    if (name === 'name' && !validateName(value)) {
+      newErrors.name = t("invalidName");
+    } else {
+      delete newErrors.name;
+    }
+
+    if (name === 'surname' && !validateName(value)) {
+      newErrors.surname = t("invalidSurame");
+    } else {
+      delete newErrors.surname;
+    }
 
     if (name === 'email' && !validateEmail(value)) {
       newErrors.email = t("mailInvalid");
@@ -195,11 +212,13 @@ function Register() {
                 <form onSubmit={handleSubmit}>
                   <FormGroup>
                     <Label for="name">{t("name")}</Label>
-                    <Input type="text" id="name" name="name" placeholder={t("enterName")} value={formData.name} onChange={handleChange} required />
+                    <Input invalid={!!errors.name} type="text" id="name" name="name" placeholder={t("enterName")} value={formData.name} onChange={handleChange} required />
+                    {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
                   </FormGroup>
                   <FormGroup>
                     <Label for="surname">{t("surname")}</Label>
-                    <Input type="text" id="surname" name="surname" placeholder={t("enterSurname")} value={formData.surname} onChange={handleChange} required />
+                    <Input invalid={!!errors.surname} type="text" id="surname" name="surname" placeholder={t("enterSurname")} value={formData.surname} onChange={handleChange} required />
+                    {errors.surname && <FormFeedback>{errors.surname}</FormFeedback>}
                   </FormGroup>
                   <FormGroup>
                     <Label for="email">{t("mail")}</Label>

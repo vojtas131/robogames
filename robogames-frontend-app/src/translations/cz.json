@@ -227,6 +227,8 @@
     "enterNum":"Zadejte unikátní číslo",
 
     "mailInvalid":"Nevalidní formát e-mailu.",
+    "invalidName":"Jméno obsahuje neplatné znaky.",
+    "invalidSurame":"Příjmení obsahuje neplatné znaky.",
     "passwordsDiffer":"Hesla se neshodují.",
     "invalidAge":"Neplatné datum narození.",
     "tooYoung":"Uživateli musí být alespoň {{age}} let.",

@@ -227,6 +227,8 @@
     "enterNum": "Enter unique number",
 
     "mailInvalid": "Invalid e-mail format.",
+    "invalidName":"Name contains invalid characters.",
+    "invalidSurame":"Surname contains invalid characters.",
     "passwordsDiffer": "Passwords do not match.",
     "invalidAge":"Invalid date of birth.",
     "tooYoung":"User must be at least {{age}} years old.",
