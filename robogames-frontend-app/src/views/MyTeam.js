@@ -419,11 +419,10 @@ function MyTeam() {
 
                         <ListGroup>
                           {filteredUsers.map((user) => (
-                            <ListGroupItem key={user.id} tag="button" >
-                              {user.name} {user.surname} - {user.email}
-
+                            <ListGroupItem key={user.id} tag="button" style={{ cursor: "default" }} >
                               <Button color="link" onClick={() => handleAddUser(user.id)}>
-                                <i className="tim-icons icon-send" />
+                                {user.name} {user.surname} - {user.email}
+                                <i className="tim-icons icon-send ml-2" />
                               </Button>
                             </ListGroupItem>
                           ))}

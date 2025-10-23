@@ -185,14 +185,14 @@ function CompetitionRegistration() {
                         <hr></hr>
                       </CardHeader>
                       <CardBody>
-                        <p>{t("compDate_colon")} <span style={{ color: '#f20000', fontWeight: 'bold', fontSize: '18px' }}>{formatDate(competition.date)}</span></p>
-                        <p>{t("start_colon")}<span style={{ color: 'green', fontWeight: 'bold' }}>{formatTime(competition.startTime)}</span></p>
-                        <p>{t("endExpect")}<span style={{ color: 'green', fontWeight: 'bold' }}>{formatTime(competition.endTime)}</span></p>
+                        <p>{t("compDate_colon")} <span className='red-text' style={{ fontWeight: 'bold', fontSize: '18px' }}>{formatDate(competition.date)}</span></p>
+                        <p>{t("start_colon")}<span className='green-text' style={{ fontWeight: 'bold' }}>{formatTime(competition.startTime)}</span></p>
+                        <p>{t("endExpect")}<span className='green-text' style={{ fontWeight: 'bold' }}>{formatTime(competition.endTime)}</span></p>
                         {competition.started ? (
-                          <p style={{ color: '#f20000', fontWeight: 'bold' }}>{t("regImpossible")}</p>
+                          <p className='red-text' style={{ fontWeight: 'bold' }}>{t("regImpossible")}</p>
                         ) : isRegistered ? (
                           <>
-                            <p style={{ color: 'green', fontWeight: 'bold' }}>{t("robotRegPossible")}</p>
+                            <p className='green-text' style={{ fontWeight: 'bold' }}>{t("robotRegPossible")}</p>
 
                             <Button color="info" onClick={() => handleManageRobots(competition.year)}>
                               <i className="tim-icons icon-double-right" />

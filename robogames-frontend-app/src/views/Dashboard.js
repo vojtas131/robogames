@@ -62,10 +62,10 @@ function Dashboard() {
                     <Col md="6" key={index} style={{ marginBottom: '20px' }}>
                         <Card>
                             <CardHeader className="bg-primary">
-                                <CardTitle tag="h4" className='font-weight-normal'>{t("homeCompTitle", { year: comp.year })}</CardTitle>
+                                <CardTitle tag="h4" className='font-weight-normal' style={{ color: 'white' }}>{t("homeCompTitle", { year: comp.year })}</CardTitle>
                             </CardHeader>
                             <CardBody>
-                                <h4 style={{ color: '#f20000', fontSize: '25px' }}>{t("homeDate", { date: formatDate(comp.date) })}</h4>
+                                <h4 className='red-text' style={{ fontSize: '25px' }}>{t("homeDate", { date: formatDate(comp.date) })}</h4>
 
                                 <p>{t("homeStart", { time: comp.startTime })}</p>
                                 <p>{t("homeEnd", { time: comp.endTime })}</p>

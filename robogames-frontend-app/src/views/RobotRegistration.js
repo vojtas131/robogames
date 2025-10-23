@@ -274,28 +274,28 @@ function RobotRegistration() {
               ) : errorMessage ? (
                 <Alert color="warning">{errorMessage}</Alert>
               ) : robots.map((robot) => (
-                <Card key={robot.id} className="mb-3" style={{ border: '1px solid lightgray' }}>
+                <Card key={robot.id} className="mb-3" id='robotCard'>
 
                   <CardBody>
                     <CardTitle tag="h3" style={{ display: 'inline' }}>{robot.name}</CardTitle>
 
                     {!robot.confirmed && (
-                    <i class="fa-solid fa-pencil ml-2"
-                      style={{ cursor: 'pointer', fontSize: '1rem' }}
-                      onClick={() => {
-                        setEditMode(true);
-                        setRenameRobotId(robot.id);
-                        setRobotName(robot.name);
-                        toggleModal();
-                      }}
-                      title={t("rename")}
-                    />)}
+                      <i class="fa-solid fa-pencil ml-2"
+                        style={{ cursor: 'pointer', fontSize: '1rem' }}
+                        onClick={() => {
+                          setEditMode(true);
+                          setRenameRobotId(robot.id);
+                          setRobotName(robot.name);
+                          toggleModal();
+                        }}
+                        title={t("rename")}
+                      />)}
 
                     <CardText>
                       <hr></hr>
                       <p>{t("robotNum_colon", { id: robot.id })}</p>
                       {t("robotChecked")}
-                      <span style={{ color: robot.confirmed ? 'green' : 'red' }}>
+                      <span className={robot.confirmed ? 'green-text' : 'red-text'}>
                         {robot.confirmed ? t("yes") : t("no")}
                       </span><br />
 
@@ -303,7 +303,7 @@ function RobotRegistration() {
 
                       {t("disc_colon")} {robot.disciplineID && robot.disciplineID > 0 ? (
                         <>
-                          <span className='text-info'>{robot.diciplineName}</span>
+                          <span className='yellow-text'>{robot.diciplineName}</span>
 
                           {!robot.confirmed && (
                             <Alert color='warning' style={{ marginTop: '10px' }}>{t("robotRegistered")}</Alert>

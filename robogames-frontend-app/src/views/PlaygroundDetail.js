@@ -82,10 +82,10 @@ function MatchCreationPage() {
 
                 window.location.reload();
             } else {
-                throw new Error( data.data || t("unknownError"));
+                throw new Error(data.data || t("unknownError"));
             }
         } catch (error) {
-            alert(t("scoreSubmitError",{message: error.message || t("serverCommFail")}));
+            alert(t("scoreSubmitError", { message: error.message || t("serverCommFail") }));
         }
     };
 
@@ -124,7 +124,7 @@ function MatchCreationPage() {
                 throw new Error(data.data || t("matchesRemoveFail"));
             }
         } catch (error) {
-            alert(t("matchesRemoveError",{message: error.message || t("serverCommFail")}));
+            alert(t("matchesRemoveError", { message: error.message || t("serverCommFail") }));
         }
     };
 
@@ -134,7 +134,7 @@ function MatchCreationPage() {
 
             try {
                 const response = await fetch(apiUrl, {
-                    method: 'DELETE', 
+                    method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -151,7 +151,7 @@ function MatchCreationPage() {
                     throw new Error(data.data || t("matchRemoveFail"));
                 }
             } catch (error) {
-                alert(t("matchRemoveError",{message: error.message || t("serverCommFail")}));
+                alert(t("matchRemoveError", { message: error.message || t("serverCommFail") }));
             }
         }
     };
@@ -161,17 +161,17 @@ function MatchCreationPage() {
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/getMatches?id=${playgroundId}`);
             if (tokenExpired(response.status)) { return; }
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setMatches(data.data);
             } else {
                 console.error('Failed to fetch matches:', data);
-                alert(t("matchFetchFail",{message: data.data || t("unknownError")}));
+                alert(t("matchFetchFail", { message: data.data || t("unknownError") }));
             }
         } catch (error) {
             console.error('Error fetching matches:', error);
-            alert(t("matchFetchError",{message: error.message || t("serverCommFail")}));
+            alert(t("matchFetchError", { message: error.message || t("serverCommFail") }));
         }
     };
 
@@ -196,10 +196,10 @@ function MatchCreationPage() {
                 alert(t("matchesCreated"));
                 window.location.reload();
             } else {
-                alert(t("dataError",{data: data.data}));
+                alert(t("dataError", { data: data.data }));
             }
         } catch (error) {
-            alert(t("matchesCreateError",{message: error.message}));
+            alert(t("matchesCreateError", { message: error.message }));
         }
         toggleModal();
     };
@@ -295,10 +295,10 @@ function MatchCreationPage() {
                         }, {})).map(([group, groupMatches], index) => (
                             <Card key={index}>
                                 <CardHeader>
-                                    <CardTitle tag="h4">{t("matchGroup",{index: index + 1})}
+                                    <CardTitle tag="h4">{t("matchGroup", { index: index + 1 })}
                                     </CardTitle>
                                 </CardHeader>
-                                
+
                                 <CardBody>
                                     <Table responsive>
                                         <thead>
@@ -344,7 +344,7 @@ function MatchCreationPage() {
                         matches.map((match, index) => (
                             <Card key={match.id}>
                                 <CardHeader>
-                                    <CardTitle tag="h4">{t("matchNum",{index: index + 1})}</CardTitle>
+                                    <CardTitle tag="h4">{t("matchNum", { index: index + 1 })}</CardTitle>
                                 </CardHeader>
                                 <CardBody>
                                     <Table responsive>
@@ -361,7 +361,7 @@ function MatchCreationPage() {
                                             <tr>
                                                 <td>{match.id}</td>
                                                 <td>
-                                                    <span style={{ fontWeight: 'bold', color: match.state.name === 'DONE' ? 'green' : (match.state.name === 'WAITING' ? 'yellow' : 'black') }}>
+                                                    <span className={match.state.name === 'DONE' ? 'green-text' : (match.state.name === 'WAITING' ? 'yellow-text' : 'black')} style={{ fontWeight: 'bold' }}>
                                                         {match.state.name === 'DONE' ? t("matchDone") : (match.state.name === 'WAITING' ? t("matchWaiting") : match.state.name)}
                                                     </span>
                                                 </td>
@@ -389,7 +389,7 @@ function MatchCreationPage() {
                 <ModalBody>
                     <FormGroup>
                         <Label for="scoreInput">{t("score")}</Label>
-                        <Input style={{ color: 'black' }} type="number" id="scoreInput" value={score} onChange={(e) => setScore(e.target.value)} placeholder={t("matchScorePH")}/>
+                        <Input style={{ color: 'black' }} type="number" id="scoreInput" value={score} onChange={(e) => setScore(e.target.value)} placeholder={t("matchScorePH")} />
                     </FormGroup>
                 </ModalBody>
                 <ModalFooter>

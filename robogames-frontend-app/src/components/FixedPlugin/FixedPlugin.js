@@ -34,7 +34,7 @@ function FixedPlugin(props) {
         <DropdownToggle tag="div" style={{cursor: "pointer"}}>
           <i className="fa fa-cog fa-2x" />
         </DropdownToggle>
-        <ul className="dropdown-menu show">
+        <ul className="dropdown-menu show settings">
 
           <li className="adjustments-line text-center color-change">
             <ThemeContext.Consumer>

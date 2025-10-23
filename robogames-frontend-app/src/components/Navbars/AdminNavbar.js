@@ -214,7 +214,9 @@ function AdminNavbar(props) {
                       <p className="d-lg-none">{t("notification")}</p>
                     </DropdownToggle>
                     <DropdownMenu style={{ color: 'black' }} right>
-                      <DropdownItem>{t("notifHere")}</DropdownItem>
+                      {invitations.length === 0 && (
+                        <DropdownItem>{t("notifHere")}</DropdownItem>
+                      )}
 
                       {invitations.map(invitation => (
                         <DropdownItem key={invitation.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -222,7 +224,7 @@ function AdminNavbar(props) {
                             <i className="tim-icons icon-alert-circle-exc" />
                             <div color="danger" style={{ paddingTop: '5px' }} >
                               {t("inviteFrom")}
-                              <span style={{ color: 'green' }}>
+                              <span className="green-text">
                                 {invitation.teamName}</span>
                             </div>
                           </div>
