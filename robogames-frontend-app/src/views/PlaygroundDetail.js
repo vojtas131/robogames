@@ -318,7 +318,7 @@ function MatchCreationPage() {
                                                     <td >{match.id}</td>
 
                                                     <td>
-                                                        <span style={{ fontWeight: 'bold', color: match.state.name === 'DONE' ? 'green' : (match.state.name === 'WAITING' ? 'gold' : 'black') }}>
+                                                        <span className={match.state.name === 'DONE' ? 'green-text' : (match.state.name === 'WAITING' ? 'yellow-text' : 'black')} style={{ fontWeight: 'bold' }}>
                                                             {match.state.name === 'DONE' ? t("matchDone") : (match.state.name === 'WAITING' ? t("matchWaiting") : match.state.name)}
                                                         </span>
                                                     </td>

@@ -16,10 +16,7 @@
 
 */
 import Dashboard from "views/Dashboard.js";
-import Icons from "views/Icons.js";
 
-import Notifications from "views/Notifications.js";
-import Rtl from "views/Rtl.js";
 import TableList from "views/TableList.js";
 
 import UserProfile from "views/UserProfile.js";
@@ -35,7 +32,6 @@ import CompetitionRegistration from "views/CompetitionRegistration";
 import RobotRegistration from "views/RobotRegistration";
 import PlaygroundManagement from "views/PlaygroundManagement";
 import RobotConfirmation from "views/RobotConfirmation";
-import MatchGeneration from "views/MatchGeneration";
 import MatchManagement from "views/MatchManagement";
 import PlaygroundDetail from "views/PlaygroundDetail";
 import CompetitionResults from "views/CompetitonResults";
@@ -212,14 +208,6 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <RobotConfirmation />,
-    layout: "/admin", 
-  },
-  {
-    path: "/match-generation",
-    name: t("robotConf"),
-    rtlName: "",
-    icon: "tim-icons icon-molecule-40",
-    component: <MatchGeneration />,
     layout: "/admin", 
   },
   {

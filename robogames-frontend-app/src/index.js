@@ -23,7 +23,6 @@ import LoginLayout from "layouts/LoginLayout.js";
 import { UserProvider } from 'contexts/UserContext';
 
 import "assets/scss/black-dashboard-react.scss";
-import "assets/demo/demo.css";
 import "assets/css/nucleo-icons.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
