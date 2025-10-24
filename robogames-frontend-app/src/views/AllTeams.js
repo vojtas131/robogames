@@ -28,10 +28,19 @@ function AllTeams() {
           }
         });
         const json = await response.json();
+        console.log(json)
         if (tokenExpired(response.status)) { return; }
 
         if (response.ok && json.type === 'RESPONSE') {
-          setTeams(json.data);
+          const teamsWithLeader = json.data.map(team => {
+            const leader = team.memberNames.find(member => member.id === team.leaderID);
+            return {
+              ...team,
+              leaderName: leader ? `${leader.name} ${leader.surname}` : t("leaderUnknown")
+            };
+          });
+
+          setTeams(teamsWithLeader);
         } else {
           console.error(t("teamLoadFail"), json);
         }
@@ -57,7 +66,7 @@ function AllTeams() {
                   <tr>
                     <th>{t("id")}</th>
                     <th>{t("title")}</th>
-                    <th>{t("leaderID")}</th>
+                    <th>{t("leader")}</th>
                     <th>{t("members")}</th>
                   </tr>
                 </thead>
@@ -66,7 +75,7 @@ function AllTeams() {
                     <tr key={team.id}>
                       <td>{team.id}</td>
                       <td>{team.name}</td>
-                      <td>{team.leaderID}</td>
+                      <td>{team.leaderName}</td>
                       <td>
                         {team.memberNames.map(member => `${member.name} ${member.surname}`).join(', ')}
                       </td>

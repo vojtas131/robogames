@@ -28,6 +28,7 @@ import { t } from "translations/translate";
 function MyTeam() {
   const navigate = useNavigate();
   const [team, setTeam] = useState(null);
+  const [leaderName, setLeaderName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [createModal, setCreateModal] = useState(false);
@@ -69,6 +70,8 @@ function MyTeam() {
       const data = await response.json();
       if (data.type !== 'ERROR') {
         setTeam(data.data);
+        const leader = data.data.memberNames.find(member => member.id === data.data.leaderID);
+        setLeaderName(leader ? `${leader.name} ${leader.surname}` : t("leaderUnknown"));
       } else {
         setError(t("inNoTeam"));
       }
@@ -212,7 +215,6 @@ function MyTeam() {
     }
   };
 
-
   // funkce pro opuštění týmu
   const leaveTeam = async () => {
     // Zobrazit potvrzovací dialog a uložit výsledek
@@ -243,8 +245,6 @@ function MyTeam() {
     }
   };
 
-
-
   const handleRemoveTeam = async () => {
     if (window.confirm(t("teamRemoveCheck"))) {
       if (!token) {
@@ -272,12 +272,6 @@ function MyTeam() {
       }
     }
   };
-
-  if (isLoading) {
-    return <p>{t("loading")}</p>;
-  }
-
-
 
   const handleAddUser = async (userId) => {
     if (!token) {
@@ -309,7 +303,9 @@ function MyTeam() {
     }
   };
 
-
+  if (isLoading) {
+    return <p>{t("loading")}</p>;
+  }
 
   return (
     <div className="content">
@@ -346,11 +342,12 @@ function MyTeam() {
               <CardHeader>
                 <CardTitle tag="h2" style={{ display: 'inline' }}>{team.name}</CardTitle>
                 {(team.leaderID === parseInt(userID, 10) &&
-                  <i class="fa-solid fa-pencil ml-2"
-                    style={{ cursor: 'pointer', fontSize: '0.9rem' }}
-                    onClick={() => setCreateModal(true)}
-                    title={t("rename")}
-                  />
+                  <Button className='m-0 pb-3' color="link" onClick={() => setCreateModal(true)}>
+                    <i className="fa-solid fa-pencil"
+                      style={{ cursor: 'pointer', fontSize: '0.9rem' }}
+                      title={t("rename")}
+                    />
+                  </Button>
                 )}
                 <Modal isOpen={createModal} toggle={() => setCreateModal(!createModal)}>
                   <ModalHeader toggle={() => setCreateModal(false)}>{t("teamRename")}</ModalHeader>
@@ -401,7 +398,7 @@ function MyTeam() {
                     ))}
                   </tbody>
                 </Table>
-                <p><strong>{t("teamLeaderID")}</strong> {team.leaderID}</p>
+                <p><strong>{t("teamLeader")}</strong> {leaderName}</p>
                 <p><strong>{t("regYears")}</strong> {team.registrationYears.map(year => year.year).join(', ')}</p>
                 {team.leaderID === parseInt(userID, 10) && (
                   <>
@@ -445,7 +442,7 @@ function MyTeam() {
         </Col>
       </Row>
 
-      {team && (
+      {team && team.leaderID === parseInt(userID, 10) && (
         <Row>
           <Col xs="12">
             <Card>

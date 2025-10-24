@@ -280,16 +280,19 @@ function RobotRegistration() {
                     <CardTitle tag="h3" style={{ display: 'inline' }}>{robot.name}</CardTitle>
 
                     {!robot.confirmed && (
-                      <i class="fa-solid fa-pencil ml-2"
-                        style={{ cursor: 'pointer', fontSize: '1rem' }}
+                      <Button className='m-0 pb-3' color="link"
                         onClick={() => {
                           setEditMode(true);
                           setRenameRobotId(robot.id);
                           setRobotName(robot.name);
                           toggleModal();
-                        }}
-                        title={t("rename")}
-                      />)}
+                        }}>
+                        <i class="fa-solid fa-pencil ml-2"
+                          style={{ cursor: 'pointer', fontSize: '0.9rem' }}
+                          title={t("rename")}
+                        />
+                      </Button>
+                    )}
 
                     <CardText>
                       <hr></hr>
