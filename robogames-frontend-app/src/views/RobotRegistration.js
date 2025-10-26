@@ -26,6 +26,7 @@ import {
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
+import { validateTitle } from "./MyTeam";
 
 function RobotRegistration() {
   const location = useLocation();
@@ -35,6 +36,7 @@ function RobotRegistration() {
   const [errorMessage, setErrorMessage] = useState('');
   const [modal, setModal] = useState(false);
   const [robotName, setRobotName] = useState('');
+  const [creationError, setCreationError] = useState('');
 
   const [editMode, setEditMode] = useState(false);
   const [renameRobotId, setRenameRobotId] = useState(null);
@@ -197,6 +199,12 @@ function RobotRegistration() {
       alert(t("robotFillName"));
       return;
     }
+
+    if (!validateTitle(robotName)) {
+      setCreationError(t("invalidTitle"));
+      return;
+    }
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/create?year=${year}`, {
         method: 'POST',
@@ -212,11 +220,12 @@ function RobotRegistration() {
       if (response.ok && data.type !== "ERROR") {
         toggleModal();
         setRobotName('');
+        setCreationError('')
         fetchRobots();  // Refresh the list
       } else {
         // Check for specific error message regarding robot name duplication
         if (data.type === "ERROR" && data.data.includes("already exists")) {
-          alert(t("robotExists"));  // Show alert with the specific error message
+          setCreationError(t("robotExists"));  // Show specific error message
         } else {
           alert(t("robotAddFail", { data: data.data || response.statusText }));  // Fallback error message
         }
@@ -227,6 +236,11 @@ function RobotRegistration() {
   }
 
   const handleRenameRobot = async (year, robotId, newName) => {
+    if (!validateTitle(newName)) {
+      setCreationError(t("invalidTitle"));
+      return;
+    }
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${year}&id=${robotId}&name=${newName}`, {
         method: 'PUT',
@@ -242,10 +256,12 @@ function RobotRegistration() {
       const data = await response.json();
       if (data.type !== "ERROR") {
         console.log('Uložení se podařilo:', data);
-        alert(t("robotRenamed"));
+        toggleModal();
+        setRobotName('');
+        setCreationError('')
         window.location.reload();
       } else if (data.type === "ERROR" && data.data.includes("already exists")) {
-        alert(t("robotExists"));  // Robot name is already in database
+        setCreationError(t("robotExists"));  // Robot name is already in database
       } else {
         console.log('Chyba při ukládání dat:', data);
         alert(t("dataError", { data: data.data }));
@@ -265,6 +281,7 @@ function RobotRegistration() {
               <CardTitle tag="h2">{t("robotYearOverview", { year: year })}</CardTitle>
               <Button color="primary" onClick={() => {
                 setEditMode(false);
+                setCreationError('')
                 toggleModal();
               }}> {t("robotAdd")} </Button>
             </CardHeader>
@@ -285,6 +302,7 @@ function RobotRegistration() {
                           setEditMode(true);
                           setRenameRobotId(robot.id);
                           setRobotName(robot.name);
+                          setCreationError('')
                           toggleModal();
                         }}>
                         <i class="fa-solid fa-pencil ml-2"
@@ -355,6 +373,7 @@ function RobotRegistration() {
                 value={robotName} onChange={(e) => setRobotName(e.target.value)} style={{ color: 'black' }}
               />
             </FormGroup>
+            {creationError && <p className="text-danger">{creationError}</p>}
           </Form>
         </ModalBody>
         <ModalFooter>
@@ -365,7 +384,6 @@ function RobotRegistration() {
               } else {
                 handleAddRobot();
               }
-              toggleModal();
             }}
           > {t("save")} </Button>
           <Button color="secondary" onClick={toggleModal} style={{ margin: '10px' }}> {t("cancel")} </Button>

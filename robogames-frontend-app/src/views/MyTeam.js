@@ -24,6 +24,10 @@ import {
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
 
+export function validateTitle(title) {
+  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-.:,/?!+]+$/;
+  return allowed.test(title);
+}
 
 function MyTeam() {
   const navigate = useNavigate();
@@ -88,6 +92,11 @@ function MyTeam() {
       return;
     }
 
+    if (!validateTitle(newTeamName)) {
+      setCreationError(t("invalidTitle"));
+      return;
+    }
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/create`, {
         method: 'POST',
@@ -123,6 +132,11 @@ function MyTeam() {
   };
 
   const handleRenameTeam = async () => {
+    if (!validateTitle(newTeamName)) {
+      setCreationError(t("invalidTitle"));
+      return;
+    }
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/rename?name=${newTeamName}`, {
         method: 'PUT',

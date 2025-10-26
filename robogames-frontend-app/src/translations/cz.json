@@ -144,6 +144,7 @@
     "teamFetchFail":"Nepodařilo se načíst data týmu.",
     "leaderUnknown":"Neznámý vedoucí týmu",
     "teamCreateLogin":"Pro vytvoření týmu se musíte přihlásit.",
+    "invalidTitle":"Název obsahuje neplatné znaky.",
     "teamExists":"Tým s\u00a0tímto názvem již existuje.",
     "teamCreateFail":"Nepodařilo se vytvořit tým.",
     "teamRenameFail":"Nepodařilo se přejmenovat tým.",
