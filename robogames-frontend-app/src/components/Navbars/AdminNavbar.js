@@ -29,6 +29,8 @@ import {
   NavbarToggler,
   ModalHeader,
   UncontrolledButtonDropdown,
+  Dropdown,
+  Badge,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { ThemeContext, themes } from "contexts/ThemeContext";
@@ -42,6 +44,7 @@ function AdminNavbar(props) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: '', surname: '' });
   const [invitations, setInvitations] = useState([]);
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   const { theme } = useContext(ThemeContext);
   const { token, tokenExpired } = useUser();
@@ -124,6 +127,9 @@ function AdminNavbar(props) {
     } catch (error) {
       console.error('Error accepting invitation:', error);
     }
+    finally {
+      fetchInvitations();
+    }
   };
 
   // Reject a team invitation
@@ -144,6 +150,9 @@ function AdminNavbar(props) {
       }
     } catch (error) {
       console.error('Error rejecting invitation:', error);
+    }
+    finally {
+      fetchInvitations();
     }
   };
 
@@ -182,6 +191,14 @@ function AdminNavbar(props) {
     navigate('/robogames/login');
   };
 
+  const handleClickOnNotification = async () => {
+    if (notificationOpen) {
+      return setNotificationOpen(false);
+    }
+    await fetchInvitations();
+    return setNotificationOpen(true);
+  }
+
   return (
     <>
       <Navbar className={classNames("navbar-absolute", color)} expand="lg">
@@ -208,9 +225,10 @@ function AdminNavbar(props) {
             <Nav className="ml-auto" navbar>
               {isLoggedIn ? (
                 <>
-                  <UncontrolledDropdown nav>
+                  <Dropdown nav isOpen={notificationOpen} toggle={handleClickOnNotification}>
                     <DropdownToggle caret color="default" nav>
-                      <i className="tim-icons icon-bell-55" />
+                      <i className={classNames('tim-icons', 'icon-bell-55', {'has-notifications': invitations.length > 0})} />
+                      {invitations.length > 0 && <Badge color="danger">{invitations.length}</Badge>}
                       <p className="d-lg-none">{t("notification")}</p>
                     </DropdownToggle>
                     <DropdownMenu style={{ color: 'black' }} right>
@@ -241,7 +259,7 @@ function AdminNavbar(props) {
                       ))}
 
                     </DropdownMenu>
-                  </UncontrolledDropdown>
+                  </Dropdown>
 
                   {/* <UncontrolledDropdown nav></UncontrolledDropdown> */}
 

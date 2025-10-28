@@ -114,7 +114,7 @@ function Admin(props) {
                         <Sidebar
                             routes={routes}
                             logo={{
-                                outterLink: "https://utb.cz/",
+                                innerLink: "/",
                                 text: "Robogames",
                                 imgSrc: logo,
                             }}
