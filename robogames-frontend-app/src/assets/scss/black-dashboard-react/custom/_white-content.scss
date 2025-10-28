@@ -9,13 +9,15 @@
   .navbar.navbar-transparent .navbar-toggler-bar {
     background: $black-states;
   }
-
-  .navbar.navbar-transparent .navbar-nav li a:not(.dropdown-item) {
-    color: $black-states;
-
-    & i {
+  .navbar.navbar-transparent .navbar-nav li a:not(.dropdown-item){
       color: $black-states;
-    }
+      & i{
+        color: $black-states;
+        
+        &.has-notifications{
+          color: $danger-states;
+        }
+      }
   }
 
   .navbar.navbar-transparent .navbar-minimize button i {
