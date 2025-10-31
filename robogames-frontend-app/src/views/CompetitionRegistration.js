@@ -178,7 +178,7 @@ function CompetitionRegistration() {
                   today.setHours(0, 0, 0, 0);
 
                   return (
-                    <Card key={competition.id} style={{ border: '1px solid lightgray' }}>
+                    <Card key={competition.id} className='comp-card'>
 
                       <CardHeader>
                         <CardTitle tag="h3">{t("robogamesYear", { year: competition.year })}</CardTitle>

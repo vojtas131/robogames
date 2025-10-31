@@ -12,14 +12,20 @@ import nestleLogo from '../assets/img/nestle-logo.png';
 import itcLogo from '../assets/img/itc-logo.jpeg';
 import totLogo from '../assets/img/tot-logo.png';
 
+import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
 
 function Dashboard() {
     const [competitions, setCompetitions] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const { token } = useUser();
+
     const navigate = useNavigate();
     const currentYear = new Date().getFullYear();
 
     useEffect(() => {
+        setIsLoggedIn(!!token);
+
         fetch(`${process.env.REACT_APP_API_URL}api/competition/all`)
             .then(response => response.json())
             .then(data => {
@@ -72,7 +78,7 @@ function Dashboard() {
                             </CardBody>
                             {!comp.started && (
                                 <CardFooter>
-                                    <Button color="success" onClick={() => navigate('/admin/my-team')}>
+                                    <Button color="success" onClick={() => navigate(isLoggedIn ? '/admin/my-team' : '/robogames/login')}>
                                         {t("register")}
                                     </Button>
                                 </CardFooter>
