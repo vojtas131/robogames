@@ -35,7 +35,7 @@ function RobotConfirmation() {
   }, [selectedYear]);
 
   const handleConfirmRegistration = async (robotId, confirmed) => {
-    if (window.confirm(t("robotAction",{conf: confirmed ? t("confirm_lower") : t("remove_lower")}) )) {
+    if (window.confirm(t("robotAction", { conf: confirmed ? t("confirm_lower") : t("remove_lower") }))) {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`, {
           method: 'PUT',
@@ -50,13 +50,13 @@ function RobotConfirmation() {
         if (response.ok) {
           fetchRobotsForYear(selectedYear); // Refresh the list of robots to show updated statuses
         } else if (data.type === 'ERROR') {
-          alert(t("dataError",{data: data.data}));
+          alert(t("dataError", { data: data.data }));
         } else {
-          alert(t("robotUpdateFail",{message: data.message || t("unknownError")}));
+          alert(t("robotUpdateFail", { message: data.message || t("unknownError") }));
         }
       } catch (error) {
         console.error('Error confirming the robot registration:', error);
-        alert(t("robotConfirmError",{message: error.message || t("serverCommFail")}));
+        alert(t("robotConfirmError", { message: error.message || t("serverCommFail") }));
       }
     }
   };
@@ -90,13 +90,13 @@ function RobotConfirmation() {
       if (response.ok && data.type === 'RESPONSE') {
         setRobots(data.data);
       } else if (data.type === 'ERROR') {
-        alert(t("dataError",{data: data.data}));
+        alert(t("dataError", { data: data.data }));
       } else {
-        alert(t("robotFetchFail",{message: data.message || t("unknownError")}));
+        alert(t("robotFetchFail", { message: data.message || t("unknownError") }));
       }
     } catch (error) {
       console.error('Failed to fetch robots for year:', error);
-      alert(t("robotFetchError",{message: error.message || t("serverCommFail")}));
+      alert(t("robotFetchError", { message: error.message || t("serverCommFail") }));
     }
   };
 
@@ -156,13 +156,14 @@ function RobotConfirmation() {
                         <td>{robot.teamName}</td>
                         <td>{robot.diciplineName}</td>
                         <td>
-                          <Button
-                            color={robot.confirmed ? "warning" : "success"}
-                            className="btn-icon btn-simple"
-                            onClick={() => handleConfirmRegistration(robot.id, !robot.confirmed)}
-                          >
-                            <i className={robot.confirmed ? "tim-icons icon-simple-remove" : "tim-icons icon-check-2"} />
-                          </Button>
+                          {robot.diciplineName && (
+                            <Button
+                              color={robot.confirmed ? "warning" : "success"}
+                              className="btn-icon btn-simple"
+                              onClick={() => handleConfirmRegistration(robot.id, !robot.confirmed)}
+                            >
+                              <i className={robot.confirmed ? "tim-icons icon-simple-remove" : "tim-icons icon-check-2"} />
+                            </Button>)}
                         </td>
                       </tr>
                     ))}
