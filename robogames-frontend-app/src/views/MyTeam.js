@@ -307,8 +307,11 @@ function MyTeam() {
       });
       if (tokenExpired(response.status)) { return; }
 
-      if (response.ok) {
+      const result = await response.json();
+      if (result.data === "success") {
         alert(t("inviteSent"));
+      } else if (result.data === "failure, user already invited") {
+        alert(t("alreadyInvited"));
       } else {
         alert(t("somethingFailed"));
       }

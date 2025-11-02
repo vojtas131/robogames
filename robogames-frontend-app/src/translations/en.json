@@ -159,6 +159,7 @@
     "teamRemoveFail": "Failed to delete the team.",
     "inviteUser": "Do you really want to invite this user to the team?",
     "inviteSent": "Invitation sent successfully",
+    "alreadyInvited":"This user was already invited to the team",
     "somethingFailed": "Something went wrong.",
     "teamCreate": "Create team",
     "teamCreateNew": "Create a\u00a0new team",

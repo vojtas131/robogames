@@ -159,6 +159,7 @@
     "teamRemoveFail":"Nepodařilo se odstranit tým.",
     "inviteUser":"Opravdu chcete pozvat tohoto uživatele do týmu?",
     "inviteSent":"Pozvánka byla úspěšně odeslána",
+    "alreadyInvited":"Tento uživatel už byl do týmu pozván",
     "somethingFailed":"Něco se pokazilo.",
     "teamCreate":"Vytvořit tým",
     "teamCreateNew":"Vytvořit nový tým",
