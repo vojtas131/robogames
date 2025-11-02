@@ -9,6 +9,7 @@ This repository contains a frontend application for IS RoboCupMS.
 To run this web application, you need to install the following:
 * Java - version 11 or higher
 * Node.js
+* MariaDB
 
 ## Building
 
@@ -40,6 +41,7 @@ CREATE DATABASE robocup;
 CREATE user 'robocup_root'@'%' identified BY '[identifier]';
 GRANT all ON robocup.* TO 'robocup_root'@'%'; 
 ```
+Backend creates all tables.
 
 ## Run
 
