@@ -107,22 +107,50 @@ function Register() {
     setFormData(prev => ({ ...prev, [name]: value }));
     let newErrors = { ...errors };
 
-    if (name === 'name' && !validateName(value)) {
-      newErrors.name = t("invalidName");
-    } else {
-      delete newErrors.name;
+    if (name === 'name') {
+      if (!validateName(value)) {
+        newErrors.name = t("invalidName");
+      } else if (value.length < 2) {
+        newErrors.name = t("shortName");
+      } else if (value.length > 20) {
+        newErrors.name = t("longName");
+      } else {
+        delete newErrors.name;
+      }
     }
 
-    if (name === 'surname' && !validateName(value)) {
-      newErrors.surname = t("invalidSurame");
-    } else {
-      delete newErrors.surname;
+    if (name === 'surname') {
+      if (!validateName(value)) {
+        newErrors.surname = t("invalidSurame");
+      } else if (value.length < 2) {
+        newErrors.surname = t("shortSurname");
+      } else if (value.length > 20) {
+        newErrors.surname = t("longSurname");
+      } else {
+        delete newErrors.surname;
+      }
     }
 
-    if (name === 'email' && !validateEmail(value)) {
-      newErrors.email = t("mailInvalid");
-    } else {
-      delete newErrors.email;
+    if (name === 'email') {
+      if (!validateEmail(value)) {
+        newErrors.email = t("mailInvalid");
+      } else if (value.length < 8) {
+        newErrors.email = t("shortMail");
+      } else if (value.length > 30) {
+        newErrors.email = t("longMail");
+      } else {
+        delete newErrors.email;
+      }
+    }
+
+    if (name === 'password') {
+      if (value.length < 8) {
+        newErrors.password = t("shortPassword");
+      } else if (value.length > 30) {
+        newErrors.password = t("longPassword");
+      } else {
+        delete newErrors.password;
+      }
     }
 
     if (name === 'confirmPassword' && value !== formData.password) {
@@ -150,7 +178,7 @@ function Register() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!errors.email && !errors.confirmPassword && !errors.birthDate && formData.password === formData.confirmPassword && formData.email && formData.password && formData.name && formData.surname && formData.birthDate) {
+    if (!errors.name && !errors.surname && !errors.email && !errors.password && !errors.confirmPassword && !errors.birthDate && formData.password === formData.confirmPassword && formData.email && formData.password && formData.name && formData.surname && formData.birthDate) {
       const apiUrl = `${process.env.REACT_APP_API_URL}auth/register`;
       const data = {
         name: formData.name,
@@ -227,7 +255,8 @@ function Register() {
                   </FormGroup>
                   <FormGroup>
                     <Label for="password">{t("password")}</Label>
-                    <Input type="password" id="password" name="password" placeholder={t("passwordEnter")} value={formData.password} onChange={handleChange} required />
+                    <Input invalid={!!errors.password} type="password" id="password" name="password" placeholder={t("passwordEnter")} value={formData.password} onChange={handleChange} required />
+                    {errors.password && <FormFeedback>{errors.password}</FormFeedback>}
                   </FormGroup>
                   <FormGroup>
                     <Label for="confirmPassword">{t("passwordCheck")}</Label>

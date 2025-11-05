@@ -22,7 +22,7 @@ function Footer() {
             </NavLink>
           </NavItem>
           <NavItem>
-            <NavLink onClick={() => navigate('/admin/dashboard')}>
+            <NavLink href="https://robogames.utb.cz/">
               {t("about")}
             </NavLink>
           </NavItem>
