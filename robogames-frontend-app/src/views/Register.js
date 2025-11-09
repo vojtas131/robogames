@@ -80,7 +80,15 @@ export function validateBirth(birthDate) {
 
 export function validateName(name) {
   const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-]+$/;
-  return allowed.test(name);
+  if (allowed.test(name)) {
+    if (name.length < 2) {
+      return "too short"
+    } else if (name.length > 20) {
+      return "too long"
+    } else {
+      return true;
+    }
+  } else { return false; }
 }
 
 function Register() {
@@ -108,11 +116,12 @@ function Register() {
     let newErrors = { ...errors };
 
     if (name === 'name') {
-      if (!validateName(value)) {
+      var nameCheck = validateName(value);
+      if (!nameCheck) {
         newErrors.name = t("invalidName");
-      } else if (value.length < 2) {
+      } else if (nameCheck === "too short") {
         newErrors.name = t("shortName");
-      } else if (value.length > 20) {
+      } else if (nameCheck === "too long") {
         newErrors.name = t("longName");
       } else {
         delete newErrors.name;
@@ -120,11 +129,12 @@ function Register() {
     }
 
     if (name === 'surname') {
-      if (!validateName(value)) {
-        newErrors.surname = t("invalidSurame");
-      } else if (value.length < 2) {
+      var surnameCheck = validateName(value);
+      if (!surnameCheck) {
+        newErrors.surname = t("invalidSurname");
+      } else if (surnameCheck === "too short") {
         newErrors.surname = t("shortSurname");
-      } else if (value.length > 20) {
+      } else if (surnameCheck === "too long") {
         newErrors.surname = t("longSurname");
       } else {
         delete newErrors.surname;

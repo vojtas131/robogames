@@ -60,16 +60,30 @@ function UserProfile() {
     const { name, value } = e.target;
     let newErrors = { ...errors };
 
-    if (name === 'name' && !validateName(value)) {
-      newErrors.name = t("invalidName");
-    } else {
-      delete newErrors.name;
+    if (name === 'name') {
+      var nameCheck = validateName(value);
+      if (!nameCheck) {
+        newErrors.name = t("invalidName");
+      } else if (nameCheck === "too short") {
+        newErrors.name = t("shortName");
+      } else if (nameCheck === "too long") {
+        newErrors.name = t("longName");
+      } else {
+        delete newErrors.name;
+      }
     }
 
-    if (name === 'surname' && !validateName(value)) {
-      newErrors.surname = t("invalidSurname");
-    } else {
-      delete newErrors.surname;
+    if (name === 'surname') {
+      var surnameCheck = validateName(value);
+      if (!surnameCheck) {
+        newErrors.surname = t("invalidSurname");
+      } else if (surnameCheck === "too short") {
+        newErrors.surname = t("shortSurname");
+      } else if (surnameCheck === "too long") {
+        newErrors.surname = t("longSurname");
+      } else {
+        delete newErrors.surname;
+      }
     }
 
     if (name === 'birthDate') {
