@@ -110,16 +110,16 @@
         color: rgba(255, 255, 255, 0.7);
     }
 
-    .red-text {
-        color: #ff345a;
+    .red-text, .text-danger {
+        color: #ff345a !important;
     }
 
     .green-text {
-        color: #11ec11;
+        color: #11ec11 !important;
     }
 
     .yellow-text {
-        color: yellow;
+        color: yellow !important;
     }
 
     .settings {

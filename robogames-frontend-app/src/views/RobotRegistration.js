@@ -200,8 +200,15 @@ function RobotRegistration() {
       return;
     }
 
-    if (!validateTitle(robotName)) {
+    var titleCheck = validateTitle(robotName);
+    if (!titleCheck) {
       setCreationError(t("invalidTitle"));
+      return;
+    } else if (titleCheck === "too short") {
+      setCreationError(t("shortTitle"));
+      return;
+    } else if (titleCheck === "too long") {
+      setCreationError(t("longTitle"));
       return;
     }
 
@@ -236,8 +243,15 @@ function RobotRegistration() {
   }
 
   const handleRenameRobot = async (year, robotId, newName) => {
-    if (!validateTitle(newName)) {
+    var titleCheck = validateTitle(newName);
+    if (!titleCheck) {
       setCreationError(t("invalidTitle"));
+      return;
+    } else if (titleCheck === "too short") {
+      setCreationError(t("shortTitle"));
+      return;
+    } else if (titleCheck === "too long") {
+      setCreationError(t("longTitle"));
       return;
     }
 

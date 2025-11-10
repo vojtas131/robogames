@@ -26,7 +26,15 @@ import { t } from "translations/translate";
 
 export function validateTitle(title) {
   const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-.:,/?!+]+$/;
-  return allowed.test(title);
+  if (allowed.test(title)) {
+    if (title.length < 3) {
+      return "too short"
+    } else if (title.length > 15) {
+      return "too long"
+    } else {
+      return true;
+    }
+  } else { return false; }
 }
 
 function MyTeam() {
@@ -92,8 +100,15 @@ function MyTeam() {
       return;
     }
 
-    if (!validateTitle(newTeamName)) {
+    var titleCheck = validateTitle(newTeamName);
+    if (!titleCheck) {
       setCreationError(t("invalidTitle"));
+      return;
+    } else if (titleCheck === "too short") {
+      setCreationError(t("shortTitle"));
+      return;
+    } else if (titleCheck === "too long") {
+      setCreationError(t("longTitle"));
       return;
     }
 
@@ -132,8 +147,15 @@ function MyTeam() {
   };
 
   const handleRenameTeam = async () => {
-    if (!validateTitle(newTeamName)) {
+    var titleCheck = validateTitle(newTeamName);
+    if (!titleCheck) {
       setCreationError(t("invalidTitle"));
+      return;
+    } else if (titleCheck === "too short") {
+      setCreationError(t("shortTitle"));
+      return;
+    } else if (titleCheck === "too long") {
+      setCreationError(t("longTitle"));
       return;
     }
 

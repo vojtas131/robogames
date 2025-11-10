@@ -145,6 +145,8 @@
     "leaderUnknown":"Unknown team leader",
     "teamCreateLogin": "You must be logged in to create a\u00a0team.",
     "invalidTitle":"Name contains invalid characters.",
+    "shortTitle":"Name is too short.",
+    "longTitle":"Name is too long.",
     "teamExists": "A team with this name already exists.",
     "teamCreateFail": "Failed to create team.",
     "teamRenameFail":"Failed to rename team.",
