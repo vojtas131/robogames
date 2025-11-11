@@ -13,6 +13,7 @@ import {
   ModalFooter,
   Form,
   FormGroup,
+  FormFeedback,
   Label,
   Input,
   Dropdown,
@@ -21,6 +22,7 @@ import {
   DropdownItem
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
+import { validateName, validateBirth, minAge, maxAge, validateEmail } from "./Register";
 import { t } from "translations/translate";
 
 function UserManagement() {
@@ -40,6 +42,7 @@ function UserManagement() {
   const [isAdminOrLeader, setIsAdminOrLeader] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchedUser, setSearchedUser] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const { token, tokenExpired } = useUser();
   const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER'];
@@ -90,31 +93,92 @@ function UserManagement() {
   };
 
   const handleAddUser = async () => {
-    if (!Object.values(newUser).every(value => value)) {
-      alert(t("fillAll"));
-      return;
-    }
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/user/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newUser)
-      });
-      if (tokenExpired(response.status)) { return; }
+    let newErrors = { ...errors };
 
-      if (response.ok) {
-        alert(t("userCreated"));
-        setAddModal(false);
-        window.location.reload();
-      } else {
-        const result = await response.json();
-        throw new Error(result.message || t("userCreateFail"));
+    var nameCheck = validateName(newUser.name);
+    if (!nameCheck) {
+      newErrors.name = t("invalidName");
+    } else if (nameCheck === "too short") {
+      newErrors.name = t("shortName");
+    } else if (nameCheck === "too long") {
+      newErrors.name = t("longName");
+    } else {
+      delete newErrors.name;
+    }
+
+    var surnameCheck = validateName(newUser.surname);
+    if (!surnameCheck) {
+      newErrors.surname = t("invalidSurname");
+    } else if (surnameCheck === "too short") {
+      newErrors.surname = t("shortSurname");
+    } else if (surnameCheck === "too long") {
+      newErrors.surname = t("longSurname");
+    } else {
+      delete newErrors.surname;
+    }
+
+    var emailCheck = validateEmail(newUser.email);
+    if (!emailCheck) {
+      newErrors.email = t("mailInvalid");
+    } else if (emailCheck === "too short") {
+      newErrors.email = t("shortMail");
+    } else if (emailCheck === "too long") {
+      newErrors.email = t("longMail");
+    } else {
+      delete newErrors.email;
+    }
+
+    if (newUser.password.length < 8) {
+      newErrors.password = t("shortPassword");
+    } else if (newUser.password.length > 30) {
+      newErrors.password = t("longPassword");
+    } else {
+      delete newErrors.password;
+    }
+
+    const birthCheck = validateBirth(newUser.birthDate);
+    if (!birthCheck) {
+      newErrors.birthDate = t("invalidAge");
+    } else if (birthCheck === 'younger') {
+      newErrors.birthDate = t("tooYoung", { age: minAge });
+    } else if (birthCheck === 'older') {
+      newErrors.birthDate = t("tooOld", { age: maxAge });
+    } else {
+      delete newErrors.birthDate;
+    }
+
+    setErrors(newErrors);
+
+    if (!errors.name && !errors.surname && !errors.email && !errors.password && !errors.birthDate && newUser.email && newUser.password && newUser.name && newUser.surname && newUser.birthDate) {
+      if (!Object.values(newUser).every(value => value)) {
+        alert(t("fillAll"));
+        return;
       }
-    } catch (error) {
-      alert(error.message);
+
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}api/user/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(newUser)
+        });
+        if (tokenExpired(response.status)) { return; }
+
+        if (response.ok) {
+          alert(t("userCreated"));
+          setAddModal(false);
+          window.location.reload();
+        } else {
+          const result = await response.json();
+          throw new Error(result.message || t("userCreateFail"));
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    } else {
+      alert(t("regMistakes"));
     }
   };
 
@@ -288,23 +352,28 @@ function UserManagement() {
           <Form>
             <FormGroup>
               <Label for="name">{t("name")}</Label>
-              <Input style={{ color: 'black' }} type="text" name="name" id="name" placeholder={t("enterName")} value={newUser.name} onChange={handleInputChange} />
+              <Input invalid={!!errors.name} style={{ color: 'black' }} type="text" name="name" id="name" placeholder={t("enterName")} value={newUser.name} onChange={handleInputChange} />
+              {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
             </FormGroup>
             <FormGroup>
               <Label for="surname">{t("surname")}</Label>
-              <Input style={{ color: 'black' }} type="text" name="surname" id="surname" placeholder={t("enterSurname")} value={newUser.surname} onChange={handleInputChange} />
+              <Input invalid={!!errors.surname} style={{ color: 'black' }} type="text" name="surname" id="surname" placeholder={t("enterSurname")} value={newUser.surname} onChange={handleInputChange} />
+              {errors.surname && <FormFeedback>{errors.surname}</FormFeedback>}
             </FormGroup>
             <FormGroup>
               <Label for="email">{t("mail")}</Label>
-              <Input style={{ color: 'black' }} type="email" name="email" id="email" placeholder={t("enterMail")} value={newUser.email} onChange={handleInputChange} />
+              <Input invalid={!!errors.email} style={{ color: 'black' }} type="email" name="email" id="email" placeholder={t("enterMail")} value={newUser.email} onChange={handleInputChange} />
+              {errors.email && <FormFeedback>{errors.email}</FormFeedback>}
             </FormGroup>
             <FormGroup>
               <Label for="password">{t("password")}</Label>
-              <Input style={{ color: 'black' }} type="password" name="password" id="password" placeholder={t("passwordEnter")} value={newUser.password} onChange={handleInputChange} />
+              <Input invalid={!!errors.password} style={{ color: 'black' }} type="password" name="password" id="password" placeholder={t("passwordEnter")} value={newUser.password} onChange={handleInputChange} />
+              {errors.password && <FormFeedback>{errors.password}</FormFeedback>}
             </FormGroup>
             <FormGroup>
               <Label for="birthDate">{t("birthDate")}</Label>
-              <Input style={{ color: 'black' }} type="date" name="birthDate" id="birthDate" value={newUser.birthDate} onChange={handleInputChange} />
+              <Input invalid={!!errors.birthDate} style={{ color: 'black' }} type="date" name="birthDate" id="birthDate" value={newUser.birthDate} onChange={handleInputChange} />
+              {errors.birthDate && <FormFeedback>{errors.birthDate}</FormFeedback>}
             </FormGroup>
           </Form>
         </ModalBody>

@@ -91,6 +91,20 @@ export function validateName(name) {
   } else { return false; }
 }
 
+// Validates email format
+export function validateEmail(email) {
+  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (re.test(String(email).toLowerCase())) {
+    if (email.length < 8) {
+      return "too short"
+    } else if (email.length > 30) {
+      return "too long"
+    } else {
+      return true;
+    }
+  } else { return false; }
+}
+
 function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -102,12 +116,6 @@ function Register() {
     birthDate: ''
   });
   const [errors, setErrors] = useState({});
-
-  // Validates email format
-  const validateEmail = (email) => {
-    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
-  };
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -142,11 +150,12 @@ function Register() {
     }
 
     if (name === 'email') {
-      if (!validateEmail(value)) {
+      var emailCheck = validateEmail(value);
+      if (!emailCheck) {
         newErrors.email = t("mailInvalid");
-      } else if (value.length < 8) {
+      } else if (emailCheck === "too short") {
         newErrors.email = t("shortMail");
-      } else if (value.length > 30) {
+      } else if (emailCheck === "too long") {
         newErrors.email = t("longMail");
       } else {
         delete newErrors.email;
