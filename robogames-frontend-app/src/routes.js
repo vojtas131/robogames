@@ -37,6 +37,7 @@ import PlaygroundDetail from "views/PlaygroundDetail";
 import CompetitionResults from "views/CompetitonResults";
 import Contact from "views/Contact";
 import Rules from "views/Rules";
+import AuthCallback from "components/KeyCloak/KeyCloak";
 import { t } from "translations/translate";
 
 
@@ -47,7 +48,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-puzzle-10",
     component: <MatchManagement />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/admin-dashboard",
@@ -55,7 +56,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-settings-gear-63",
     component: <AdminDashboard />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/user-profile",
@@ -71,7 +72,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <MyTeam />,
-    layout: "/admin", 
+    layout: "/admin",
   },
 
   {
@@ -115,7 +116,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-single-02",
     component: <AllTeams />,
-    layout: "/admin", 
+    layout: "/admin",
   },
 
   {
@@ -152,14 +153,14 @@ var routes = [
     component: <Register />,
     layout: "/robogames", // Set layout to an empty string or simply omit this line
   },
-  
+
   {
     path: "/user-management",
     name: t("manageUser"),
     rtlName: "",
     icon: "tim-icons icon-single-02",
     component: <UserManagement />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/competition-management",
@@ -167,7 +168,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-single-02",
     component: <CompetitionManagement />,
-    layout: "/admin", 
+    layout: "/admin",
   },
 
   {
@@ -176,7 +177,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <CompetitionDetail />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/competition-registration",
@@ -184,7 +185,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <CompetitionRegistration />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/robot-registration",
@@ -192,7 +193,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <RobotRegistration />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/playground-management",
@@ -200,7 +201,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <PlaygroundManagement />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/robot-confirmation",
@@ -208,7 +209,7 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <RobotConfirmation />,
-    layout: "/admin", 
+    layout: "/admin",
   },
   {
     path: "/playground-detail",
@@ -216,7 +217,14 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <PlaygroundDetail />,
-    layout: "/admin", 
+    layout: "/admin",
+  },
+  {
+    path: "/auth/callback",
+    name: "Auth Callback",
+    component: <AuthCallback />,
+    layout: "/admin",
   }
+
 ];
 export default routes;
