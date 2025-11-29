@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Container, Row, Col } from "reactstrap";
+import { Container, Row, Col } from "reactstrap";
 import { useUser } from 'contexts/UserContext';
 import { t } from "translations/translate";
 
@@ -12,15 +12,15 @@ const customStyles = {
   marginBottom: 'auto',
 };
 
-const baseUrl = "http://localhost:8180/realms/my_app/protocol/openid-connect";
-const redirectUrl = "http://localhost:3000/admin/auth/callback";
-// const userInfoUrl = baseUrl + "/userinfo";
+const baseUrl = `${process.env.REACT_APP_KEYCLOAK_URL}/realms/${process.env.REACT_APP_REALM}/protocol/openid-connect`;
+const redirectUrl = `${process.env.REACT_APP_URL}admin/auth/callback`;
+const clientId = process.env.REACT_APP_CLIENT_ID;
 
 // sets redirect url to Keycloak login
 export const loginWithKeycloak = () => {
   const keycloakUrl =
     baseUrl + "/auth" +
-    "?client_id=my_client" +
+    "?client_id" + clientId +
     "&redirect_uri=" + redirectUrl +
     "&response_type=code" +
     "&scope=openid email profile";
@@ -28,8 +28,8 @@ export const loginWithKeycloak = () => {
 };
 
 export const logoutFromKeycloak = () => {
-  const loginUrl = "http://localhost:3000/robogames/login";
-  const logoutUrl = baseUrl + "/logout?client_id=my_client&post_logout_redirect_uri=" + loginUrl;
+  const homeUrl = `${process.env.REACT_APP_URL}admin/dashboard`;
+  const logoutUrl = baseUrl + `/logout?client_id=${clientId}&post_logout_redirect_uri=` + homeUrl;
   window.location.assign(logoutUrl);
 }
 

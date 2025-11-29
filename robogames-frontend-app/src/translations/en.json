@@ -450,6 +450,7 @@
     "dataSaveFail": "Saving information failed. Please try again later.",
     "noChanges": "No changes were made.",
     "infoEdit": "Edit information",
+    "changePassword":"Change password",
 
     "wrongMailPassword": "Incorrect e-mail or password",
 
