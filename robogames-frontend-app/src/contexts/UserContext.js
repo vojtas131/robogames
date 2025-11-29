@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { logoutFromKeycloak } from "../components/KeyCloak/KeyCloak";
 import { t } from "translations/translate";
 
 const UserContext = createContext();
@@ -60,7 +61,9 @@ export const UserProvider = ({ children }) => {
     localStorage.removeItem('roles');
     localStorage.removeItem('UserID');
     setUser(null);
-    window.location.href = '/robogames/login';
+
+    // logout from keycloak
+    logoutFromKeycloak();
   };
 
   // if token expired

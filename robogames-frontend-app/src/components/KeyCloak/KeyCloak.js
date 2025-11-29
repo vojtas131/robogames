@@ -14,7 +14,7 @@ const customStyles = {
 
 const baseUrl = "http://localhost:8180/realms/my_app/protocol/openid-connect";
 const redirectUrl = "http://localhost:3000/admin/auth/callback";
-const userInfoUrl = baseUrl + "/userinfo";
+// const userInfoUrl = baseUrl + "/userinfo";
 
 // sets redirect url to Keycloak login
 export const loginWithKeycloak = () => {
@@ -26,6 +26,12 @@ export const loginWithKeycloak = () => {
     "&scope=openid email profile";
   window.location.assign(keycloakUrl);
 };
+
+export const logoutFromKeycloak = () => {
+  const loginUrl = "http://localhost:3000/robogames/login";
+  const logoutUrl = baseUrl + "/logout?client_id=my_client&post_logout_redirect_uri=" + loginUrl;
+  window.location.assign(logoutUrl);
+}
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -74,9 +80,7 @@ export default function AuthCallback() {
       <Container className="h-100 d-flex justify-content-center align-items-center">
         <Row className="justify-content-center align-items-center" style={{ height: '100vh' }}>
           <Col style={customStyles}>
-            <Card>
-              <h4 className="mb-0 card-title text-center">{t("loggingIn")}</h4>
-            </Card>
+            <h4 className="mb-0 card-title text-center">{t("loggingIn")}</h4>
           </Col>
         </Row>
       </Container>

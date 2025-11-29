@@ -32,6 +32,7 @@ import {
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { ThemeContext, themes } from "contexts/ThemeContext";
+import { logoutFromKeycloak } from "../KeyCloak/KeyCloak";
 import { t } from "translations/translate";
 
 function AdminNavbar(props) {
@@ -186,7 +187,9 @@ function AdminNavbar(props) {
     localStorage.removeItem('roles');
     localStorage.removeItem('UserID');
     setIsLoggedIn(false);
-    navigate('/robogames/login');
+    
+    // logout from keycloak
+    logoutFromKeycloak();
   };
 
   const handleClickOnNotification = async () => {
