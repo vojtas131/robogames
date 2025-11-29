@@ -1,5 +1,16 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Card, Container, Row, Col } from "reactstrap";
+import { useUser } from 'contexts/UserContext';
+import { t } from "translations/translate";
+
+const customStyles = {
+  maxWidth: "700px",
+  minWidth: "400px",
+  width: '100%',
+  marginTop: 'auto',
+  marginBottom: 'auto',
+};
 
 const baseUrl = "http://localhost:8180/realms/my_app/protocol/openid-connect";
 const redirectUrl = "http://localhost:3000/admin/auth/callback";
@@ -18,6 +29,7 @@ export const loginWithKeycloak = () => {
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const { token, setToken, getUserInfo } = useUser();
 
   useEffect(() => {
     async function processLogin() {
@@ -29,27 +41,45 @@ export default function AuthCallback() {
         return;
       }
 
+      // send code to backend
       const res = await fetch(`${process.env.REACT_APP_API_URL}auth/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code })
       });
 
+      // get user token from backend
       const data = await res.json();
 
-      if (data.error) {
+      if (data.type === "ERROR") {
         console.error("Keycloak login failed:", data.error);
         return;
       }
 
-      // uložíš interní token
-      localStorage.setItem("token", data.data.token);
-
+      await loginWithToken(data.data, navigate);
       navigate("/admin/dashboard");
     }
 
     processLogin();
   }, []);
 
-  return <div>Přihlašuji…</div>;
+  const loginWithToken = async (token, navigate) => {
+    localStorage.setItem("token", token); // save intern user token
+    setToken(token);
+    await getUserInfo(token);    // load user data
+  };
+
+  return (
+    <>
+      <Container className="h-100 d-flex justify-content-center align-items-center">
+        <Row className="justify-content-center align-items-center" style={{ height: '100vh' }}>
+          <Col style={customStyles}>
+            <Card>
+              <h4 className="mb-0 card-title text-center">{t("loggingIn")}</h4>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </>
+  )
 }

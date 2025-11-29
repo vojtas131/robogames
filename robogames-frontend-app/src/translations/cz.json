@@ -481,5 +481,7 @@
     "particips":"Účastníci soutěže",
     "compTeamRegister":"Registrace týmu do soutěže",
     "robotRegistration":"Registrace robotů",
-    "robotConfirm":"Potvrzení robotů"
+    "robotConfirm":"Potvrzení robotů",
+
+    "loggingIn":"Probíhá přihlašování..."
 }

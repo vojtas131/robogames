@@ -481,5 +481,7 @@
     "particips": "Competition Participants",
     "compTeamRegister": "Team Registration",
     "robotRegistration": "Robot Registration",
-    "robotConfirm": "Robot Confirmation"
+    "robotConfirm": "Robot Confirmation",
+
+    "loggingIn":"Login in progress..."
 }

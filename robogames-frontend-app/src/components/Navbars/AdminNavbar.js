@@ -19,7 +19,6 @@ import {
   DropdownItem,
   UncontrolledDropdown,
   Input,
-  InputGroup,
   NavbarBrand,
   Navbar,
   NavLink,
@@ -28,7 +27,6 @@ import {
   Modal,
   NavbarToggler,
   ModalHeader,
-  UncontrolledButtonDropdown,
   Dropdown,
   Badge,
 } from "reactstrap";
@@ -61,7 +59,7 @@ function AdminNavbar(props) {
     return () => {
       window.removeEventListener("resize", updateColor);
     };
-  }, []);
+  }, [token]);
 
   // Fetch user information
   const fetchUserInfo = async () => {
