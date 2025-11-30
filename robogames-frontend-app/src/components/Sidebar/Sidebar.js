@@ -10,7 +10,7 @@
 * @param {object} props.logo - An object with properties `innerLink`, `outterLink`, `text`, and `imgSrc` to configure the sidebar logo.
 * @returns {JSX.Element} - The rendered Sidebar component.
 */
-import React, { useRef, useEffect, useContext } from "react";
+import React, { useRef, useEffect } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { PropTypes } from "prop-types";
 import PerfectScrollbar from "perfect-scrollbar";
@@ -42,7 +42,7 @@ function Sidebar(props) {
         ps.destroy(); // Destroy PerfectScrollbar instance on component unmount
       }
     };
-  }, [user]); // Add user as a dependency to re-run this effect when user changes
+  }, [user, token]); // Add user as a dependency to re-run this effect when user changes
 
   const linkOnClick = () => {
     document.documentElement.classList.remove("nav-open"); // Remove the "nav-open" class from the document element when a link is clicked
@@ -105,7 +105,8 @@ function Sidebar(props) {
             {logoImg !== null || logoText !== null ? <div className="logo">{logoImg}{logoText}</div> : null} {/* Render the logo if it exists */}
             <Nav>
               {routes.map((prop, key) => {
-                if (prop.redirect || (prop.path === "/login" && isLoggedIn)) return null; // Hide login when logged in
+                if (prop.path === "/login") return null; // Hide login
+                if (prop.path === "/auth/callback") return null; // Always hide callback
                 if (prop.path === "/register") return null; // Always hide register
                 if (prop.path === "/user-management") return null; // Always hide user management
                 if (prop.path === "/competition-management") return null; // Always hide competition management

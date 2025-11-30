@@ -220,7 +220,7 @@ function UserManagement() {
 
         if (response.ok) {
           alert(t("userRemoved"));
-          //window.location.reload();
+          window.location.reload();
         } else {
           throw new Error(t("userRemoveFail"));
         }
@@ -253,9 +253,9 @@ function UserManagement() {
           <Card>
             <CardHeader>
               <h4 className="card-title">{t("manageUser")}</h4>
-              {isAdminOrLeader && (
+              {/* {isAdminOrLeader && (
                 <Button color="success" onClick={() => setAddModal(true)}>{t("userAdd")}</Button>
-              )}
+              )} */}
               {isAdminOrLeader && (
                 <div className="search-section">
                   <Input
@@ -346,7 +346,7 @@ function UserManagement() {
       </Row>
 
       {/* Modal for adding a new user */}
-      <Modal isOpen={addModal} toggle={() => setAddModal(false)}>
+      {/* <Modal isOpen={addModal} toggle={() => setAddModal(false)}>
         <ModalHeader toggle={() => setAddModal(false)}>{t("userAddNew")}</ModalHeader>
         <ModalBody>
           <Form>
@@ -381,7 +381,7 @@ function UserManagement() {
           <Button style={{ margin: '10px' }} color="primary" onClick={handleAddUser}>{t("add")}</Button>
           <Button style={{ margin: '10px' }} color="secondary" onClick={() => setAddModal(false)}>{t("cancel")}</Button>
         </ModalFooter>
-      </Modal>
+      </Modal> */}
 
       {/* Modal for editing roles */}
       <Modal isOpen={editModal} toggle={() => setEditModal(false)}>

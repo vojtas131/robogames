@@ -468,6 +468,7 @@
     "myTeam":"Můj tým",
     "logOut":"Odhlásit se",
     "logIn":"Přihlásit se",
+    "kcLogin":"Přihlásit přes KeyCloak",
     "search_caps":"HLEDAT",
     
     "matchEval":"Vyhodnocování zápasů",

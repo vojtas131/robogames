@@ -468,6 +468,7 @@
     "myTeam": "My team",
     "logOut": "Log out",
     "logIn": "Log in",
+    "kcLogin":"Log in with KeyCloak",
     "search_caps": "SEARCH",
     
     "matchEval": "Match Evaluation",

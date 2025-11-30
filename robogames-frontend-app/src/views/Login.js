@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardBody, FormGroup, Label, Input, Button, Container, Row, Col } from "reactstrap";
 // import AdminNavbar from "components/Navbars/AdminNavbar";
-import { loginWithKeycloak } from "../components/KeyCloak/KeyCloak"
+// import { loginWithKeycloak } from "../components/KeyCloak/KeyCloak"
 import { useUser } from 'contexts/UserContext';
 
 import { t } from "translations/translate";
@@ -56,9 +56,9 @@ function Login() {
                 </FormGroup>
                 <div className="text-center">
                   <Button color="primary" onClick={handleLogin}>{t("log")}</Button>
-                  <Button color="primary" onClick={() => navigate(loginWithKeycloak())}>
+                  {/* <Button color="primary" onClick={() => navigate(loginWithKeycloak())}>
                     {"Přihlásit přes KeyCloak"}
-                  </Button>
+                  </Button> */}
                 </div>
                 <div className="text-center mt-3">
                   <p className="text-muted" style={{ fontSize: '0.8rem' }}>{t("noAccount")}</p>
