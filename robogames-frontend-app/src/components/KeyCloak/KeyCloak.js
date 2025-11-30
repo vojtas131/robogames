@@ -20,7 +20,7 @@ const clientId = process.env.REACT_APP_CLIENT_ID;
 export const loginWithKeycloak = () => {
   const keycloakUrl =
     baseUrl + "/auth" +
-    "?client_id" + clientId +
+    "?client_id=" + clientId +
     "&redirect_uri=" + redirectUrl +
     "&response_type=code" +
     "&scope=openid email profile";

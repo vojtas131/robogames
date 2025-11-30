@@ -230,7 +230,21 @@ function UserProfile() {
                         {errors.birthDate && <FormFeedback>{errors.birthDate}</FormFeedback>}
                       </FormGroup>
                     </Col>
-
+                  </Row>
+                  <Row>
+                    <Col>
+                      <Button
+                        onClick={() => {
+                          window.location.href =
+                            process.env.REACT_APP_KEYCLOAK_URL + "/realms/" +
+                            process.env.REACT_APP_REALM + "/login-actions/reset-credentials?client_id=" +
+                            process.env.REACT_APP_CLIENT_ID + "&redirect_uri=" +
+                            process.env.REACT_APP_URL + "admin/user-profile";
+                        }}
+                      >
+                        {t("changePassword")}
+                      </Button>
+                    </Col>
                   </Row>
                   <CardFooter>
                     <Button className="btn-fill" color="primary" type="submit">
