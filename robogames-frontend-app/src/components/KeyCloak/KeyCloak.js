@@ -48,7 +48,7 @@ export default function AuthCallback() {
       }
 
       // send code to backend
-      const res = await fetch(`${process.env.REACT_APP_API_URL}auth/validate`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}api/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code })
@@ -58,7 +58,7 @@ export default function AuthCallback() {
       const data = await res.json();
 
       if (data.type === "ERROR") {
-        console.error("Keycloak login failed:", data.error);
+        console.error("Keycloak login failed:", data.data);
         return;
       }
 
