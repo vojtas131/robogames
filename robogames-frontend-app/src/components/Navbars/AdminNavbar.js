@@ -32,7 +32,7 @@ import {
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { ThemeContext, themes } from "contexts/ThemeContext";
-import { logoutFromKeycloak } from "../KeyCloak/KeyCloak";
+import { loginWithKeycloak, logoutFromKeycloak } from "../KeyCloak/KeyCloak";
 import { t } from "translations/translate";
 
 function AdminNavbar(props) {
@@ -187,7 +187,7 @@ function AdminNavbar(props) {
     localStorage.removeItem('roles');
     localStorage.removeItem('UserID');
     setIsLoggedIn(false);
-    
+
     // logout from keycloak
     logoutFromKeycloak();
   };
@@ -205,7 +205,7 @@ function AdminNavbar(props) {
       <Navbar className={classNames("navbar-absolute", color)} expand="lg">
         <Container fluid>
           <div className="navbar-wrapper">
-            <div className={classNames("navbar-toggle d-inline")}> { /*toggled: props.sidebarOpened */}
+            <div className={classNames("navbar-toggle d-inline")}>
               <NavbarToggler onClick={props.toggleSidebar}>
                 <span className="navbar-toggler-bar bar1" />
                 <span className="navbar-toggler-bar bar2" />
@@ -228,7 +228,7 @@ function AdminNavbar(props) {
                 <>
                   <Dropdown nav isOpen={notificationOpen} toggle={handleClickOnNotification}>
                     <DropdownToggle caret color="default" nav>
-                      <i className={classNames('tim-icons', 'icon-bell-55', {'has-notifications': invitations.length > 0})} />
+                      <i className={classNames('tim-icons', 'icon-bell-55', { 'has-notifications': invitations.length > 0 })} />
                       {invitations.length > 0 && <Badge color="danger">{invitations.length}</Badge>}
                       <p className="d-lg-none">{t("notification")}</p>
                     </DropdownToggle>
@@ -262,8 +262,6 @@ function AdminNavbar(props) {
                     </DropdownMenu>
                   </Dropdown>
 
-                  {/* <UncontrolledDropdown nav></UncontrolledDropdown> */}
-
                   <UncontrolledDropdown nav>
                     <DropdownToggle caret color="default" nav>
                       <div className="photo">
@@ -282,8 +280,11 @@ function AdminNavbar(props) {
                 </>
               ) : (
                 <NavLink tag="li" className="nav-item">
-                  <Button color="primary" onClick={() => navigate('/robogames/login')}>
+                  {/* <Button color="primary" onClick={() => navigate('/robogames/login')}>
                     {t("logIn")}
+                  </Button> */}
+                  <Button color="primary" onClick={() => navigate(loginWithKeycloak())}>
+                    {t("kcLogin")}
                   </Button>
                 </NavLink>
               )}

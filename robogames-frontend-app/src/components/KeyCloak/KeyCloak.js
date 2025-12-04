@@ -40,10 +40,18 @@ export default function AuthCallback() {
   useEffect(() => {
     async function processLogin() {
       const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
 
+      const code = params.get("code");
       if (!code) {
         console.error("No code found");
+        return;
+      }
+
+      // checks url for error parameter
+      const error = params.get("error");
+      if(error){
+        console.error("Access denied");
+        navigate("/admin/dashboard");
         return;
       }
 
