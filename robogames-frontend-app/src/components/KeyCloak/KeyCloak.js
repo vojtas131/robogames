@@ -41,16 +41,10 @@ export default function AuthCallback() {
     async function processLogin() {
       const params = new URLSearchParams(window.location.search);
 
+      // go to homepage if login failed
       const code = params.get("code");
       if (!code) {
         console.error("No code found");
-        return;
-      }
-
-      // checks url for error parameter
-      const error = params.get("error");
-      if(error){
-        console.error("Access denied");
         navigate("/admin/dashboard");
         return;
       }
