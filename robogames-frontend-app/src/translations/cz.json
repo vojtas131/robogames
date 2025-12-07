@@ -494,5 +494,20 @@
     "teacherInfo": "Informace o učiteli",
     "noMembers": "Žádní členové týmu nejsou k dispozici",
 
+    "teamRegister": "Registrace týmu",
+    "teacherName": "Jméno učitele",
+    "teacherSurname": "Příjmení učitele",
+    "teacherContact": "Kontakt na učitele",
+    "enterTeacherName": "Zadejte jméno učitele",
+    "enterTeacherSurname": "Zadejte příjmení učitele",
+    "enterTeacherContact": "Email nebo telefon",
+    "fillAllFields": "Vyplňte všechna pole",
+    "note": "Poznámka",
+    "teacherInfoRequired": "Údaje o učiteli jsou vyžadovány pro týmy s členy mladšími 18 let nebo týmy soutěžící pod školou. Vyplňte prosím jméno, příjmení a kontakt na odpovědného učitele/vedoucího.",
+    "editTeacherInfo": "Upravit údaje učitele",
+    "dataSaved": "Údaje byly uloženy",
+    "dataSaveError": "Chyba při ukládání",
+    "notProvided": "Neuvedeno",
+
     "loggingIn":"Probíhá přihlašování..."
 }

@@ -16,6 +16,14 @@ import {
   Button,
   Row,
   Col,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  FormGroup,
+  Label,
+  Input,
+  Alert,
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
@@ -24,6 +32,14 @@ function CompetitionRegistration() {
   const [competitions, setCompetitions] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [registrationModal, setRegistrationModal] = useState(false);
+  const [editTeacherModal, setEditTeacherModal] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [teacherName, setTeacherName] = useState('');
+  const [teacherSurname, setTeacherSurname] = useState('');
+  const [teacherContact, setTeacherContact] = useState('');
+  const [registrationError, setRegistrationError] = useState('');
+  const [needsTeacherInfo, setNeedsTeacherInfo] = useState(false);
   const navigate = useNavigate();
   const { token, tokenExpired } = useUser();
 
@@ -78,15 +94,30 @@ function CompetitionRegistration() {
   };
 
   const registerTeam = async (year) => {
-    // ask user for confirmation before registering
-    const confirmRegistration = window.confirm(t("regConfirm"));
-    if (!confirmRegistration) {
-      return;
+    setSelectedYear(year);
+    setTeacherName('');
+    setTeacherSurname('');
+    setTeacherContact('');
+    setRegistrationError('');
+    setNeedsTeacherInfo(true); // Assume we need teacher info by default
+    setRegistrationModal(true);
+  };
+
+  const handleRegistrationSubmit = async () => {
+    // Validation
+    if (needsTeacherInfo) {
+      if (!teacherName.trim() || !teacherSurname.trim() || !teacherContact.trim()) {
+        setRegistrationError(t("fillAllFields"));
+        return;
+      }
     }
 
     const requestBody = {
-      year: year,
-      open: false
+      year: selectedYear,
+      open: false,
+      teacherName: teacherName.trim(),
+      teacherSurname: teacherSurname.trim(),
+      teacherContact: teacherContact.trim()
     };
 
     try {
@@ -101,24 +132,86 @@ function CompetitionRegistration() {
       if (tokenExpired(response.status)) { return; }
 
       const data = await response.json();
-      if (response.ok) {
-        if (data.type === 'Error') {
-          alert(t("dataError", { data: data.data })); // display error message from the server
-        } else {
-          alert(t("regSuccess"));
-          window.location.reload();
-
-        }
+      if (response.ok && data.type !== 'ERROR') {
+        alert(t("regSuccess"));
+        setRegistrationModal(false);
+        window.location.reload();
       } else {
-        console.error('Failed to register team:', data);
-        alert(t("regFail", { message: data.message || t("unknownError") }));
+        setRegistrationError(data.data || t("regFail"));
       }
     } catch (error) {
       console.error('Error registering team:', error);
-      alert(t("regTeamError"));
+      setRegistrationError(t("regTeamError"));
     }
   };
 
+
+  const handleEditTeacherInfo = async (year) => {
+    setSelectedYear(year);
+    setRegistrationError('');
+    
+    // Fetch current teacher info
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/teamRegistration/teacherInfo?year=${year}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (tokenExpired(response.status)) { return; }
+
+      const data = await response.json();
+      if (response.ok && data.type !== 'ERROR') {
+        setTeacherName(data.data.teacherName || '');
+        setTeacherSurname(data.data.teacherSurname || '');
+        setTeacherContact(data.data.teacherContact || '');
+        setEditTeacherModal(true);
+      } else {
+        alert(t("dataFetchFail"));
+      }
+    } catch (error) {
+      console.error('Error fetching teacher info:', error);
+      alert(t("dataFetchError"));
+    }
+  };
+
+  const handleUpdateTeacherInfo = async () => {
+    // Validation
+    if (!teacherName.trim() || !teacherSurname.trim() || !teacherContact.trim()) {
+      setRegistrationError(t("fillAllFields"));
+      return;
+    }
+
+    const requestBody = {
+      teacherName: teacherName.trim(),
+      teacherSurname: teacherSurname.trim(),
+      teacherContact: teacherContact.trim()
+    };
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/teamRegistration/updateTeacherInfo?year=${selectedYear}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+      if (tokenExpired(response.status)) { return; }
+
+      const data = await response.json();
+      if (response.ok && data.type !== 'ERROR') {
+        alert(t("dataSaved"));
+        setEditTeacherModal(false);
+        window.location.reload();
+      } else {
+        setRegistrationError(data.data || t("dataSaveFail"));
+      }
+    } catch (error) {
+      console.error('Error updating teacher info:', error);
+      setRegistrationError(t("dataSaveError"));
+    }
+  };
 
   useEffect(() => {
     const fetchCompetitions = async () => {
@@ -194,10 +287,28 @@ function CompetitionRegistration() {
                           <>
                             <p className='green-text' style={{ fontWeight: 'bold' }}>{t("robotRegPossible")}</p>
 
+                            <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '5px' }}>
+                              <h5 style={{ marginBottom: '10px' }}>{t("teacherInfo")}</h5>
+                              <p style={{ margin: '5px 0' }}>
+                                <strong>{t("teacherName")}:</strong> {registrations.find(r => r.compatitionYear === competition.year)?.teacherName || t("notProvided")}
+                              </p>
+                              <p style={{ margin: '5px 0' }}>
+                                <strong>{t("teacherSurname")}:</strong> {registrations.find(r => r.compatitionYear === competition.year)?.teacherSurname || t("notProvided")}
+                              </p>
+                              <p style={{ margin: '5px 0' }}>
+                                <strong>{t("teacherContact")}:</strong> {registrations.find(r => r.compatitionYear === competition.year)?.teacherContact || t("notProvided")}
+                              </p>
+                            </div>
+
                             <Button color="info" onClick={() => handleManageRobots(competition.year)}>
                               <i className="tim-icons icon-double-right" />
                               {t("manageRobots")}
                               <i className="tim-icons icon-double-left" />
+                            </Button>
+
+                            <Button color="warning" onClick={() => handleEditTeacherInfo(competition.year)}>
+                              <i className="tim-icons icon-pencil" />
+                              {t("editTeacherInfo")}
                             </Button>
 
                             <Button color="danger" onClick={() => unregisterTeam(competition.year)}>
@@ -219,6 +330,124 @@ function CompetitionRegistration() {
           </Card>
         </Col>
       </Row>
+
+      {/* Registration Modal */}
+      <Modal isOpen={registrationModal} toggle={() => setRegistrationModal(false)} size="lg">
+        <ModalHeader toggle={() => setRegistrationModal(false)}>
+          {t("teamRegister")}
+        </ModalHeader>
+        <ModalBody style={{ padding: '20px' }}>
+          <Alert color="info" style={{ marginBottom: '20px' }}>
+            <strong>{t("note")}:</strong> {t("teacherInfoRequired")}
+          </Alert>
+          
+          <FormGroup style={{ marginBottom: '15px' }}>
+            <Label for="teacherName">{t("teacherName")} *</Label>
+            <Input
+              style={{ color: 'black' }}
+              type="text"
+              name="teacherName"
+              id="teacherName"
+              placeholder={t("enterTeacherName")}
+              value={teacherName}
+              onChange={e => setTeacherName(e.target.value)}
+            />
+          </FormGroup>
+
+          <FormGroup style={{ marginBottom: '15px' }}>
+            <Label for="teacherSurname">{t("teacherSurname")} *</Label>
+            <Input
+              style={{ color: 'black' }}
+              type="text"
+              name="teacherSurname"
+              id="teacherSurname"
+              placeholder={t("enterTeacherSurname")}
+              value={teacherSurname}
+              onChange={e => setTeacherSurname(e.target.value)}
+            />
+          </FormGroup>
+
+          <FormGroup style={{ marginBottom: '15px' }}>
+            <Label for="teacherContact">{t("teacherContact")} *</Label>
+            <Input
+              style={{ color: 'black' }}
+              type="text"
+              name="teacherContact"
+              id="teacherContact"
+              placeholder={t("enterTeacherContact")}
+              value={teacherContact}
+              onChange={e => setTeacherContact(e.target.value)}
+            />
+          </FormGroup>
+
+          {registrationError && <Alert color="danger" style={{ marginTop: '15px' }}>{registrationError}</Alert>}
+        </ModalBody>
+        <ModalFooter style={{ padding: '15px 20px' }}>
+          <Button color="success" onClick={handleRegistrationSubmit} style={{ marginRight: '10px' }}>
+            {t("register")}
+          </Button>
+          <Button color="secondary" onClick={() => setRegistrationModal(false)}>
+            {t("cancel")}
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Edit Teacher Info Modal */}
+      <Modal isOpen={editTeacherModal} toggle={() => setEditTeacherModal(false)} size="lg">
+        <ModalHeader toggle={() => setEditTeacherModal(false)}>
+          {t("editTeacherInfo")}
+        </ModalHeader>
+        <ModalBody style={{ padding: '20px' }}>
+          <FormGroup style={{ marginBottom: '15px' }}>
+            <Label for="editTeacherName">{t("teacherName")} *</Label>
+            <Input
+              style={{ color: 'black' }}
+              type="text"
+              name="editTeacherName"
+              id="editTeacherName"
+              placeholder={t("enterTeacherName")}
+              value={teacherName}
+              onChange={e => setTeacherName(e.target.value)}
+            />
+          </FormGroup>
+
+          <FormGroup style={{ marginBottom: '15px' }}>
+            <Label for="editTeacherSurname">{t("teacherSurname")} *</Label>
+            <Input
+              style={{ color: 'black' }}
+              type="text"
+              name="editTeacherSurname"
+              id="editTeacherSurname"
+              placeholder={t("enterTeacherSurname")}
+              value={teacherSurname}
+              onChange={e => setTeacherSurname(e.target.value)}
+            />
+          </FormGroup>
+
+          <FormGroup style={{ marginBottom: '15px' }}>
+            <Label for="editTeacherContact">{t("teacherContact")} *</Label>
+            <Input
+              style={{ color: 'black' }}
+              type="text"
+              name="editTeacherContact"
+              id="editTeacherContact"
+              placeholder={t("enterTeacherContact")}
+              value={teacherContact}
+              onChange={e => setTeacherContact(e.target.value)}
+            />
+          </FormGroup>
+
+          {registrationError && <Alert color="danger" style={{ marginTop: '15px' }}>{registrationError}</Alert>}
+        </ModalBody>
+        <ModalFooter style={{ padding: '15px 20px' }}>
+          <Button color="primary" onClick={handleUpdateTeacherInfo} style={{ marginRight: '10px' }}>
+            {t("save")}
+          </Button>
+          <Button color="secondary" onClick={() => setEditTeacherModal(false)}>
+            {t("cancel")}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }

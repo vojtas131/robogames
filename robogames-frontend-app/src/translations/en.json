@@ -494,5 +494,20 @@
     "teacherInfo": "Teacher Information",
     "noMembers": "No team members available",
 
+    "teamRegister": "Team Registration",
+    "teacherName": "Teacher's Name",
+    "teacherSurname": "Teacher's Surname",
+    "teacherContact": "Teacher's Contact",
+    "enterTeacherName": "Enter teacher's name",
+    "enterTeacherSurname": "Enter teacher's surname",
+    "enterTeacherContact": "Email or phone",
+    "fillAllFields": "Fill in all fields",
+    "note": "Note",
+    "teacherInfoRequired": "Teacher information is required for teams with members under 18 years old or teams competing under a school. Please provide the name, surname, and contact of the responsible teacher/leader.",
+    "editTeacherInfo": "Edit Teacher Information",
+    "dataSaved": "Data saved successfully",
+    "dataSaveError": "Error saving data",
+    "notProvided": "Not provided",
+
     "loggingIn":"Login in progress..."
 }
