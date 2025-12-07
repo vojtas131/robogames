@@ -36,11 +36,28 @@ function RobotProfile() {
       setIsLoading(false);
       return;
     }
+    
+    if (!token) {
+      setError(t("mustLogin") || "You must be logged in to view this page");
+      setIsLoading(false);
+      return;
+    }
+    
     fetchRobotProfile();
   }, [robotId, token]);
 
   const fetchRobotProfile = async () => {
+    if (!token) {
+      setError(t("mustLogin") || "You must be logged in to view this page");
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      console.log('Fetching robot profile with ID:', robotId);
+      console.log('API URL:', `${process.env.REACT_APP_API_URL}api/robot/profile?id=${robotId}`);
+      console.log('Token:', token ? 'Present' : 'Missing');
+      
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}api/robot/profile?id=${robotId}`,
         {
@@ -52,9 +69,18 @@ function RobotProfile() {
         }
       );
 
+      console.log('Response status:', response.status);
+
       if (tokenExpired(response.status)) { return; }
 
+      if (response.status === 404) {
+        setError(t("robotProfileNotFound") || "Robot profile endpoint not found. Please contact administrator.");
+        setIsLoading(false);
+        return;
+      }
+
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (response.ok && data.type === 'RESPONSE') {
         setProfile(data.data);
