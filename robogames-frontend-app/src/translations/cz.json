@@ -484,6 +484,15 @@
     "compTeamRegister":"Registrace týmu do soutěže",
     "robotRegistration":"Registrace robotů",
     "robotConfirm":"Potvrzení robotů",
+    "robotProfile": "Profil Robota",
+    "showProfile": "Zobrazit Profil",
+    "profile": "Profil",
+    "robotIdMissing": "Chybí ID robota",
+    "robotProfileFetchFail": "Nepodařilo se načíst profil robota",
+    "teamInfo": "Informace o týmu",
+    "teamMembers": "Členové týmu",
+    "teacherInfo": "Informace o učiteli",
+    "noMembers": "Žádní členové týmu nejsou k dispozici",
 
     "loggingIn":"Probíhá přihlašování..."
 }

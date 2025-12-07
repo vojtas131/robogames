@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Card,
   CardHeader,
@@ -29,6 +29,7 @@ import { t } from "translations/translate";
 import { validateTitle } from "./MyTeam";
 
 function RobotRegistration() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [robots, setRobots] = useState([]);
   const [disciplines, setDisciplines] = useState([]);
@@ -308,23 +309,37 @@ function RobotRegistration() {
                 <Card key={robot.id} className="mb-3" id='robotCard'>
 
                   <CardBody>
-                    <CardTitle tag="h3" style={{ display: 'inline' }}>{robot.name}</CardTitle>
+                    <Row>
+                      <Col xs="10">
+                        <CardTitle tag="h3" style={{ display: 'inline' }}>{robot.name}</CardTitle>
 
-                    {!robot.confirmed && (
-                      <Button className='m-0 pb-3' color="link"
-                        onClick={() => {
-                          setEditMode(true);
-                          setRenameRobotId(robot.id);
-                          setRobotName(robot.name);
-                          setCreationError('')
-                          toggleModal();
-                        }}>
-                        <i class="fa-solid fa-pencil ml-2"
-                          style={{ cursor: 'pointer', fontSize: '0.9rem' }}
-                          title={t("rename")}
-                        />
-                      </Button>
-                    )}
+                        {!robot.confirmed && (
+                          <Button className='m-0 pb-3' color="link"
+                            onClick={() => {
+                              setEditMode(true);
+                              setRenameRobotId(robot.id);
+                              setRobotName(robot.name);
+                              setCreationError('')
+                              toggleModal();
+                            }}>
+                            <i class="fa-solid fa-pencil ml-2"
+                              style={{ cursor: 'pointer', fontSize: '0.9rem' }}
+                              title={t("rename")}
+                            />
+                          </Button>
+                        )}
+                      </Col>
+                      <Col xs="2" className="text-right">
+                        <Button
+                          color="info"
+                          size="sm"
+                          onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
+                          title={t("showProfile") || "Show Profile"}
+                        >
+                          <i className="tim-icons icon-badge" /> {t("profile") || "Profile"}
+                        </Button>
+                      </Col>
+                    </Row>
 
                     <CardText>
                       <hr></hr>

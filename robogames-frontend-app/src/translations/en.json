@@ -484,6 +484,15 @@
     "compTeamRegister": "Team Registration",
     "robotRegistration": "Robot Registration",
     "robotConfirm": "Robot Confirmation",
+    "robotProfile": "Robot Profile",
+    "showProfile": "Show Profile",
+    "profile": "Profile",
+    "robotIdMissing": "Robot ID is missing",
+    "robotProfileFetchFail": "Failed to fetch robot profile",
+    "teamInfo": "Team Information",
+    "teamMembers": "Team Members",
+    "teacherInfo": "Teacher Information",
+    "noMembers": "No team members available",
 
     "loggingIn":"Login in progress..."
 }

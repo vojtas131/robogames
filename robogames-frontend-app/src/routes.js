@@ -32,6 +32,7 @@ import CompetitionRegistration from "views/CompetitionRegistration";
 import RobotRegistration from "views/RobotRegistration";
 import PlaygroundManagement from "views/PlaygroundManagement";
 import RobotConfirmation from "views/RobotConfirmation";
+import RobotProfile from "views/RobotProfile";
 import MatchManagement from "views/MatchManagement";
 import PlaygroundDetail from "views/PlaygroundDetail";
 import CompetitionResults from "views/CompetitonResults";
@@ -209,6 +210,14 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <RobotConfirmation />,
+    layout: "/admin",
+  },
+  {
+    path: "/robot-profile",
+    name: t("robotProfile"),
+    rtlName: "",
+    icon: "tim-icons icon-settings",
+    component: <RobotProfile />,
     layout: "/admin",
   },
   {

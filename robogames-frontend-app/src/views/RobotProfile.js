@@ -1,0 +1,332 @@
+/**
+ * RobotProfile component displays detailed information about a specific robot.
+ * It fetches and displays robot name, number, discipline, category, team information,
+ * team members, and teacher contact details in a nicely formatted view.
+ */
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+  Row,
+  Col,
+  Table,
+  Button,
+  Badge
+} from 'reactstrap';
+import { useUser } from "contexts/UserContext";
+import { t } from "translations/translate";
+
+function RobotProfile() {
+  const [searchParams] = useSearchParams();
+  const robotId = searchParams.get('id');
+  const navigate = useNavigate();
+  
+  const [profile, setProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const { token, tokenExpired } = useUser();
+
+  useEffect(() => {
+    if (!robotId) {
+      setError(t("robotIdMissing") || "Robot ID is missing");
+      setIsLoading(false);
+      return;
+    }
+    fetchRobotProfile();
+  }, [robotId, token]);
+
+  const fetchRobotProfile = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}api/robot/profile?id=${robotId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
+
+      if (tokenExpired(response.status)) { return; }
+
+      const data = await response.json();
+      
+      if (response.ok && data.type === 'RESPONSE') {
+        setProfile(data.data);
+      } else if (data.type === 'ERROR') {
+        setError(data.data || t("robotProfileFetchFail") || "Failed to fetch robot profile");
+      } else {
+        setError(data.message || t("unknownError") || "Unknown error occurred");
+      }
+    } catch (error) {
+      console.error('Error fetching robot profile:', error);
+      setError(t("serverCommFail") || "Server communication failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTeamClick = () => {
+    if (profile?.teamId) {
+      navigate(`/admin/team-detail?id=${profile.teamId}`);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="content">
+        <Row>
+          <Col xs="12">
+            <Card>
+              <CardBody>
+                <div className="text-center">
+                  <p>{t("loading") || "Loading..."}</p>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="content">
+        <Row>
+          <Col xs="12">
+            <Card>
+              <CardBody>
+                <div className="text-center">
+                  <h4 className="text-danger">{t("error") || "Error"}</h4>
+                  <p>{error}</p>
+                  <Button color="primary" onClick={() => navigate(-1)}>
+                    {t("back") || "Go Back"}
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="content">
+        <Row>
+          <Col xs="12">
+            <Card>
+              <CardBody>
+                <div className="text-center">
+                  <p>{t("noData") || "No data available"}</p>
+                  <Button color="primary" onClick={() => navigate(-1)}>
+                    {t("back") || "Go Back"}
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content">
+      <Row>
+        <Col md="12">
+          <Button 
+            color="info" 
+            size="sm" 
+            onClick={() => navigate(-1)}
+            style={{ marginBottom: '20px' }}
+          >
+            <i className="tim-icons icon-minimal-left" /> {t("back") || "Back"}
+          </Button>
+        </Col>
+      </Row>
+
+      <Row>
+        {/* Main Robot Information Card */}
+        <Col lg="6" md="12">
+          <Card className="card-chart">
+            <CardHeader>
+              <Row>
+                <Col className="text-left" sm="6">
+                  <CardTitle tag="h2">
+                    <i className="tim-icons icon-settings text-primary" />{" "}
+                    {profile.robotName}
+                  </CardTitle>
+                  <h5 className="card-category">
+                    {t("robotNum") || "Robot Number"}: <Badge color="info">#{profile.robotNumber}</Badge>
+                  </h5>
+                </Col>
+                <Col sm="6">
+                  <div className="text-right" style={{ paddingTop: '10px' }}>
+                    <Badge color="success" pill style={{ fontSize: '14px', padding: '8px 15px' }}>
+                      {profile.category}
+                    </Badge>
+                  </div>
+                </Col>
+              </Row>
+            </CardHeader>
+            <CardBody>
+              <div style={{ padding: '10px 0' }}>
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs="4">
+                    <strong>{t("discipline") || "Discipline"}:</strong>
+                  </Col>
+                  <Col xs="8">
+                    <Badge color="primary" style={{ fontSize: '13px' }}>
+                      {profile.discipline}
+                    </Badge>
+                  </Col>
+                </Row>
+                
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs="4">
+                    <strong>{t("category") || "Category"}:</strong>
+                  </Col>
+                  <Col xs="8">
+                    {profile.category}
+                  </Col>
+                </Row>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+
+        {/* Team Information Card */}
+        <Col lg="6" md="12">
+          <Card className="card-chart">
+            <CardHeader>
+              <CardTitle tag="h3">
+                <i className="tim-icons icon-molecule-40 text-info" />{" "}
+                {t("teamInfo") || "Team Information"}
+              </CardTitle>
+            </CardHeader>
+            <CardBody>
+              <div style={{ padding: '10px 0' }}>
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs="4">
+                    <strong>{t("team") || "Team"}:</strong>
+                  </Col>
+                  <Col xs="8">
+                    <span 
+                      style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
+                      onClick={handleTeamClick}
+                    >
+                      {profile.teamName}
+                    </span>
+                  </Col>
+                </Row>
+                
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs="4">
+                    <strong>{t("teamId") || "Team ID"}:</strong>
+                  </Col>
+                  <Col xs="8">
+                    #{profile.teamId}
+                  </Col>
+                </Row>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row>
+        {/* Team Members Card */}
+        <Col lg="6" md="12">
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h3">
+                <i className="tim-icons icon-single-02 text-warning" />{" "}
+                {t("teamMembers") || "Team Members"}
+              </CardTitle>
+            </CardHeader>
+            <CardBody>
+              {profile.teamMembers && profile.teamMembers.length > 0 ? (
+                <Table responsive>
+                  <thead className="text-primary">
+                    <tr>
+                      <th>#</th>
+                      <th>{t("name") || "Name"}</th>
+                      <th>{t("surname") || "Surname"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profile.teamMembers.map((member, index) => (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>{member.name}</td>
+                        <td>{member.surname}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : (
+                <p className="text-muted">{t("noMembers") || "No team members available"}</p>
+              )}
+            </CardBody>
+          </Card>
+        </Col>
+
+        {/* Teacher Information Card */}
+        <Col lg="6" md="12">
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h3">
+                <i className="tim-icons icon-badge text-success" />{" "}
+                {t("teacherInfo") || "Teacher Information"}
+              </CardTitle>
+            </CardHeader>
+            <CardBody>
+              <div style={{ padding: '10px 0' }}>
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs="4">
+                    <strong>{t("name") || "Name"}:</strong>
+                  </Col>
+                  <Col xs="8">
+                    {profile.teacherName || '-'}
+                  </Col>
+                </Row>
+                
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs="4">
+                    <strong>{t("surname") || "Surname"}:</strong>
+                  </Col>
+                  <Col xs="8">
+                    {profile.teacherSurname || '-'}
+                  </Col>
+                </Row>
+                
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs="4">
+                    <strong>{t("contact") || "Contact"}:</strong>
+                  </Col>
+                  <Col xs="8">
+                    {profile.teacherContact ? (
+                      <a href={`mailto:${profile.teacherContact}`} style={{ color: '#1d8cf8' }}>
+                        {profile.teacherContact}
+                      </a>
+                    ) : '-'}
+                  </Col>
+                </Row>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
+}
+
+export default RobotProfile;
