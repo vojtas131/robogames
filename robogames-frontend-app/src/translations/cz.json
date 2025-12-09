@@ -468,7 +468,7 @@
     "myTeam":"Můj tým",
     "logOut":"Odhlásit se",
     "logIn":"Přihlásit se",
-    "kcLogin":"Přihlásit přes KeyCloak",
+    "logRegister":"Přihlásit/Registrovat",
     "search_caps":"HLEDAT",
     
     "matchEval":"Vyhodnocování zápasů",
@@ -485,5 +485,6 @@
     "robotRegistration":"Registrace robotů",
     "robotConfirm":"Potvrzení robotů",
 
-    "loggingIn":"Probíhá přihlašování..."
+    "loggingIn":"Probíhá přihlašování...",
+    "loginFailed":"Příhlášení se nezdařilo."
 }

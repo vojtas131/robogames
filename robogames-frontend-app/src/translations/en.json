@@ -468,7 +468,7 @@
     "myTeam": "My team",
     "logOut": "Log out",
     "logIn": "Log in",
-    "kcLogin":"Log in with KeyCloak",
+    "logRegister":"Login/Register",
     "search_caps": "SEARCH",
     
     "matchEval": "Match Evaluation",
@@ -485,5 +485,6 @@
     "robotRegistration": "Robot Registration",
     "robotConfirm": "Robot Confirmation",
 
-    "loggingIn":"Login in progress..."
+    "loggingIn":"Login in progress...",
+    "loginFailed":"Login failed."
 }
