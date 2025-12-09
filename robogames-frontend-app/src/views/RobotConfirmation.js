@@ -137,7 +137,7 @@ function RobotConfirmation() {
                 <Table responsive>
                   <thead>
                     <tr>
-                      <th>{t("id")}</th>
+                      {/* <th>{t("id")}</th> */}
                       <th>{t("robotNum")}</th>
                       <th>{t("title")}</th>
                       <th>{t("confirmed")}</th>
@@ -145,13 +145,13 @@ function RobotConfirmation() {
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>
                       <th>{t("confirm")}</th>
-                      <th>{t("profile") || "Profile"}</th>
+                      <th>{t("profile")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRobots.map(robot => (
                       <tr key={robot.id}>
-                        <td>{robot.id}</td>
+                        {/* <td>{robot.id}</td> */}
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
                         <td>{robot.confirmed ? t("yes") : t("no")}</td>
@@ -173,7 +173,7 @@ function RobotConfirmation() {
                             color="info"
                             className="btn-icon btn-simple"
                             onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
-                            title={t("showProfile") || "Show Profile"}
+                            title={t("showProfile")}
                           >
                             <i className="tim-icons icon-badge" />
                           </Button>

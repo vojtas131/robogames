@@ -288,8 +288,8 @@ function CompetitionManagement() {
                 </CardHeader>
                 <CardBody>
                   <dl className="row">
-                    <dt className="col-sm-3">{t("id_colon")}</dt>
-                    <dd className="col-sm-9">{competition.id}</dd>
+                    {/* <dt className="col-sm-3">{t("id_colon")}</dt>
+                    <dd className="col-sm-9">{competition.id}</dd> */}
                     <dt className="col-sm-3">{t("date_colon")}</dt>
                     <dd className="col-sm-9">{competition.date ? competition.date.split('T')[0] : 'N/A'}</dd>
                     <dt className="col-sm-3">{t("start_colon")}</dt>
@@ -316,10 +316,10 @@ function CompetitionManagement() {
                     <Modal isOpen={modalEdit} toggle={toggleModalEdit}>
                       <ModalHeader toggle={toggleModalEdit}>{t("compEdit")}</ModalHeader>
                       <ModalBody>
-                        <FormGroup>
+                        {/* <FormGroup>
                           <Label for="id">{t("id")}</Label>
                           <Input style={{ color: 'black' }} type="number" name="id" id="id" value={formDataEdit.id} onChange={handleInputChangeEdit} />
-                        </FormGroup>
+                        </FormGroup> */}
                         <FormGroup>
                           <Label for="year">{t("year")}</Label>
                           <Input style={{ color: 'black' }} type="number" name="year" id="year" value={formDataEdit.year} onChange={handleInputChangeEdit} />

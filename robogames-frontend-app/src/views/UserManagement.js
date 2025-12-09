@@ -300,8 +300,8 @@ function UserManagement() {
               <Table responsive>
                 <thead className="text-primary">
                   <tr>
-                    <th>{t("id")}</th>
-                    <th>{t("uuid")}</th>
+                    {/* <th>{t("id")}</th>
+                    <th>{t("uuid")}</th> */}
                     <th>{t("name")}</th>
                     <th>{t("surname")}</th>
                     <th>{t("mail")}</th>
@@ -314,8 +314,8 @@ function UserManagement() {
                 <tbody>
                   {users.map((user, index) => (
                     <tr key={index}>
-                      <td>{user.id}</td>
-                      <td>{user.uuid}</td>
+                      {/* <td>{user.id}</td>
+                      <td>{user.uuid}</td> */}
                       <td>{user.name}</td>
                       <td>{user.surname}</td>
                       <td>{user.email}</td>

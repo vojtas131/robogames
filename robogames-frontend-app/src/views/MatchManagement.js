@@ -94,7 +94,7 @@ function MatchManagement() {
                   <Col key={playground.id} sm="6" md="3" lg="3" className="mb-4 mr-4">
                     <div className='pg-card' onClick={() => handleCardClick(playground.id)} style={{ cursor: 'pointer', height: '200px', width: '200px', borderRadius: '50%' }}>
                       <div className="d-flex flex-column justify-content-center align-items-center h-100">
-                        <div>{t("pgID",{id: playground.number})}</div>
+                        {/* <div>{t("pgID",{id: playground.number})}</div> */}
                         <h4>{playground.name}</h4>
                         <div>{t("pgDisc",{name: playground.disciplineName})}</div>
                         <div>{t("pgNum",{number: playground.number})}</div>
