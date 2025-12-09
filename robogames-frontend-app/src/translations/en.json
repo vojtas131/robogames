@@ -468,7 +468,7 @@
     "myTeam": "My team",
     "logOut": "Log out",
     "logIn": "Log in",
-    "kcLogin":"Log in with KeyCloak",
+    "loginRegister":"Login/Register",
     "search_caps": "SEARCH",
     
     "matchEval": "Match Evaluation",
@@ -505,9 +505,10 @@
     "note": "Note",
     "teacherInfoRequired": "Teacher information is required for teams with members under 18 years old or teams competing under a school. Please provide the name, surname, and contact of the responsible teacher/leader.",
     "editTeacherInfo": "Edit Teacher Information",
-    "dataSaved": "Data saved successfully",
     "dataSaveError": "Error saving data",
     "notProvided": "Not provided",
+    "back":"Go back",
+    "err":"Error",
 
     "loggingIn":"Login in progress..."
 }

@@ -468,7 +468,7 @@
     "myTeam":"Můj tým",
     "logOut":"Odhlásit se",
     "logIn":"Přihlásit se",
-    "kcLogin":"Přihlásit přes KeyCloak",
+    "loginRegister":"Přihlásit/Registrovat",
     "search_caps":"HLEDAT",
     
     "matchEval":"Vyhodnocování zápasů",
@@ -505,9 +505,10 @@
     "note": "Poznámka",
     "teacherInfoRequired": "Údaje o učiteli jsou vyžadovány pro týmy s členy mladšími 18 let nebo týmy soutěžící pod školou. Vyplňte prosím jméno, příjmení a kontakt na odpovědného učitele/vedoucího.",
     "editTeacherInfo": "Upravit údaje učitele",
-    "dataSaved": "Údaje byly uloženy",
     "dataSaveError": "Chyba při ukládání",
     "notProvided": "Neuvedeno",
+    "back":"Zpět",
+    "err":"Chyba",
 
     "loggingIn":"Probíhá přihlašování..."
 }

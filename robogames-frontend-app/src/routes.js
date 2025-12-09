@@ -20,8 +20,8 @@ import Dashboard from "views/Dashboard.js";
 import TableList from "views/TableList.js";
 
 import UserProfile from "views/UserProfile.js";
-import Login from "views/Login.js";
-import Register from "views/Register.js";
+// import Login from "views/Login.js";
+// import Register from "views/Register.js";
 import UserManagement from "views/UserManagement";
 import AdminDashboard from "views/AdminDashboard";
 import CompetitionManagement from "views/CompetitionManagement";
@@ -129,31 +129,31 @@ var routes = [
     layout: "/admin",
   },
 
-  {
-    path: "/login",
-    name: t("login"),
-    rtlName: "",
-    icon: "tim-icons icon-single-02",
-    component: <Login />,
-    layout: "/robogames", // Set layout to an empty string or simply omit this line
-  },
+  // {
+  //   path: "/login",
+  //   name: t("login"),
+  //   rtlName: "",
+  //   icon: "tim-icons icon-single-02",
+  //   component: <Login />,
+  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
+  // },
 
-  {
-    path: "/register",
-    name: t("registration"),
-    rtlName: "",
-    icon: "tim-icons icon-single-02",
-    component: <Register />,
-    layout: "/robogames", // Set layout to an empty string or simply omit this line
-  },
-  {
-    path: "/register",
-    name: t("registration"),
-    rtlName: "",
-    icon: "tim-icons icon-single-02",
-    component: <Register />,
-    layout: "/robogames", // Set layout to an empty string or simply omit this line
-  },
+  // {
+  //   path: "/register",
+  //   name: t("registration"),
+  //   rtlName: "",
+  //   icon: "tim-icons icon-single-02",
+  //   component: <Register />,
+  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
+  // },
+  // {
+  //   path: "/register",
+  //   name: t("registration"),
+  //   rtlName: "",
+  //   icon: "tim-icons icon-single-02",
+  //   component: <Register />,
+  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
+  // },
 
   {
     path: "/user-management",

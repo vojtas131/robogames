@@ -280,11 +280,8 @@ function AdminNavbar(props) {
                 </>
               ) : (
                 <NavLink tag="li" className="nav-item">
-                  {/* <Button color="primary" onClick={() => navigate('/robogames/login')}>
-                    {t("logIn")}
-                  </Button> */}
                   <Button color="primary" onClick={() => navigate(loginWithKeycloak())}>
-                    {t("kcLogin")}
+                    {t("loginRegister")}
                   </Button>
                 </NavLink>
               )}
