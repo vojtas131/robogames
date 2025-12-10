@@ -20,8 +20,8 @@ import Dashboard from "views/Dashboard.js";
 import TableList from "views/TableList.js";
 
 import UserProfile from "views/UserProfile.js";
-import Login from "views/Login.js";
-import Register from "views/Register.js";
+// import Login from "views/Login.js";
+// import Register from "views/Register.js";
 import UserManagement from "views/UserManagement";
 import AdminDashboard from "views/AdminDashboard";
 import CompetitionManagement from "views/CompetitionManagement";
@@ -32,6 +32,7 @@ import CompetitionRegistration from "views/CompetitionRegistration";
 import RobotRegistration from "views/RobotRegistration";
 import PlaygroundManagement from "views/PlaygroundManagement";
 import RobotConfirmation from "views/RobotConfirmation";
+import RobotProfile from "views/RobotProfile";
 import MatchManagement from "views/MatchManagement";
 import PlaygroundDetail from "views/PlaygroundDetail";
 import CompetitionResults from "views/CompetitonResults";
@@ -128,31 +129,31 @@ var routes = [
     layout: "/admin",
   },
 
-  {
-    path: "/login",
-    name: t("login"),
-    rtlName: "",
-    icon: "tim-icons icon-single-02",
-    component: <Login />,
-    layout: "/robogames", // Set layout to an empty string or simply omit this line
-  },
+  // {
+  //   path: "/login",
+  //   name: t("login"),
+  //   rtlName: "",
+  //   icon: "tim-icons icon-single-02",
+  //   component: <Login />,
+  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
+  // },
 
-  {
-    path: "/register",
-    name: t("registration"),
-    rtlName: "",
-    icon: "tim-icons icon-single-02",
-    component: <Register />,
-    layout: "/robogames", // Set layout to an empty string or simply omit this line
-  },
-  {
-    path: "/register",
-    name: t("registration"),
-    rtlName: "",
-    icon: "tim-icons icon-single-02",
-    component: <Register />,
-    layout: "/robogames", // Set layout to an empty string or simply omit this line
-  },
+  // {
+  //   path: "/register",
+  //   name: t("registration"),
+  //   rtlName: "",
+  //   icon: "tim-icons icon-single-02",
+  //   component: <Register />,
+  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
+  // },
+  // {
+  //   path: "/register",
+  //   name: t("registration"),
+  //   rtlName: "",
+  //   icon: "tim-icons icon-single-02",
+  //   component: <Register />,
+  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
+  // },
 
   {
     path: "/user-management",
@@ -209,6 +210,14 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <RobotConfirmation />,
+    layout: "/admin",
+  },
+  {
+    path: "/robot-profile",
+    name: t("robotProfile"),
+    rtlName: "",
+    icon: "tim-icons icon-settings",
+    component: <RobotProfile />,
     layout: "/admin",
   },
   {

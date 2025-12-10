@@ -303,7 +303,7 @@ function MatchCreationPage() {
                                     <Table responsive>
                                         <thead>
                                             <tr>
-                                                <th>#</th>
+                                                {/* <th>#</th> */}
                                                 <th>{t("state")}</th>
                                                 <th>{t("score")}</th>
                                                 <th>{t("robotName")}</th>
@@ -315,7 +315,7 @@ function MatchCreationPage() {
                                             {groupMatches.map(match => (
 
                                                 <tr key={match.id}>
-                                                    <td >{match.id}</td>
+                                                    {/* <td >{match.id}</td> */}
 
                                                     <td>
                                                         <span className={match.state.name === 'DONE' ? 'green-text' : (match.state.name === 'WAITING' ? 'yellow-text' : 'black')} style={{ fontWeight: 'bold' }}>

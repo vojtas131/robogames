@@ -60,8 +60,8 @@ function CompetitionDetail() {
               <Table responsive>
                 <thead className="text-primary">
                   <tr>
-                    <th>{t("id")}</th>
-                    <th>{t("teamID")}</th>
+                    {/* <th>{t("id")}</th> */}
+                    {/* <th>{t("teamID")}</th> */}
                     <th>{t("teamName")}</th>
 
                     <th>{t("category")}</th>
@@ -70,7 +70,7 @@ function CompetitionDetail() {
                 <tbody>
                   {registrations.map(reg => (
                     <tr key={reg.id}>
-                      <td>{reg.id}</td>
+                      {/* <td>{reg.id}</td> */}
                       <td>{reg.teamID}</td>
                       <td>{reg.teamName}</td>
 

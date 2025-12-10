@@ -12,6 +12,7 @@ import nestleLogo from '../assets/img/nestle-logo.png';
 import itcLogo from '../assets/img/itc-logo.jpeg';
 import totLogo from '../assets/img/tot-logo.png';
 
+import { loginWithKeycloak } from "../components/KeyCloak/KeyCloak";
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
 
@@ -78,7 +79,7 @@ function Dashboard() {
                             </CardBody>
                             {!comp.started && (
                                 <CardFooter>
-                                    <Button color="success" onClick={() => navigate(isLoggedIn ? '/admin/my-team' : '/robogames/login')}>
+                                    <Button color="success" onClick={() => navigate(isLoggedIn ? '/admin/my-team' : loginWithKeycloak())}>
                                         {t("register")}
                                     </Button>
                                 </CardFooter>

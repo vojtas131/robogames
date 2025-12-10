@@ -7,6 +7,7 @@
 
 */
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
   Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
@@ -16,6 +17,7 @@ import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
 
 function RobotConfirmation() {
+  const navigate = useNavigate();
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
   const [robots, setRobots] = useState([]);
@@ -135,7 +137,7 @@ function RobotConfirmation() {
                 <Table responsive>
                   <thead>
                     <tr>
-                      <th>{t("id")}</th>
+                      {/* <th>{t("id")}</th> */}
                       <th>{t("robotNum")}</th>
                       <th>{t("title")}</th>
                       <th>{t("confirmed")}</th>
@@ -143,12 +145,13 @@ function RobotConfirmation() {
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>
                       <th>{t("confirm")}</th>
+                      <th>{t("profile")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRobots.map(robot => (
                       <tr key={robot.id}>
-                        <td>{robot.id}</td>
+                        {/* <td>{robot.id}</td> */}
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
                         <td>{robot.confirmed ? t("yes") : t("no")}</td>
@@ -164,6 +167,16 @@ function RobotConfirmation() {
                             >
                               <i className={robot.confirmed ? "tim-icons icon-simple-remove" : "tim-icons icon-check-2"} />
                             </Button>)}
+                        </td>
+                        <td>
+                          <Button
+                            color="info"
+                            className="btn-icon btn-simple"
+                            onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
+                            title={t("showProfile")}
+                          >
+                            <i className="tim-icons icon-badge" />
+                          </Button>
                         </td>
                       </tr>
                     ))}
