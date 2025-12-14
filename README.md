@@ -1,6 +1,6 @@
 # Robogames
 
-This repository contains a frontend application for IS RoboCupMS.
+This repository contains a frontend application for [IS RoboCupMS](https://github.com/0xMartin/RoboCupMS).
 
 *TBD*
 
@@ -19,13 +19,12 @@ cd robogames
 ```
 
 ### Backend:
-To build backend do not use Windows PowerShell, it does not work there.
 ```
 cd RoboCupMS
-gradlew.bat build  //windows
-gradlew build      //linux
+gradlew.bat build  // CMD
+./gradle build      // PS, Bash
 ```
-Build location: robogames\RoboCupMS\build\libs\
+Build location: robogames/RoboCupMS/build/libs/
 
 ### Frontend:
 ```
