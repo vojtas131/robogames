@@ -136,7 +136,6 @@ function UserProfile() {
 
         const result = await response.json();
         if (result.data === "success") {
-          // console.log('Uložení se podařilo:', result);
           alert(t("dataSaved"));
         } else {
           alert(t("userUpdateFail"));

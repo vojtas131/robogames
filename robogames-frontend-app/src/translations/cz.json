@@ -444,6 +444,7 @@
     "selectRole":"Vyberte roli",
     "roleAdd":"Přidat roli",
     "roleRemove":"Odebrat roli",
+    "userEdit":"Upravit údaje uživatele",
 
     "userUpdateFail":"Nebylo možné upravit uživatelské údaje.",
     "dataSaved":"Údaje byly úspěšně uloženy.",

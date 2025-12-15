@@ -444,6 +444,7 @@
     "selectRole": "Select role",
     "roleAdd": "Add role",
     "roleRemove": "Remove role",
+    "userEdit":"Edit user data",
 
     "userUpdateFail": "Could not update user details.",
     "dataSaved": "Details saved successfully.",

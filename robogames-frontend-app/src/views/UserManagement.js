@@ -29,6 +29,7 @@ function UserManagement() {
   const [users, setUsers] = useState([]);
   const [editModal, setEditModal] = useState(false);
   const [addModal, setAddModal] = useState(false);
+  const [userEditModal, setUserEditModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [newRole, setNewRole] = useState('');
@@ -246,6 +247,90 @@ function UserManagement() {
     }
   };
 
+  // validate new data
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let newErrors = { ...errors };
+    let updatedUser = { ...currentUser, [name]: value };
+
+    if (name === 'name') {
+      const nameCheck = validateName(value);
+      if (!nameCheck) newErrors.name = t("invalidName");
+      else if (nameCheck === "too short") newErrors.name = t("shortName");
+      else if (nameCheck === "too long") newErrors.name = t("longName");
+      else delete newErrors.name;
+    }
+
+    if (name === 'surname') {
+      const surnameCheck = validateName(value);
+      if (!surnameCheck) newErrors.surname = t("invalidSurname");
+      else if (surnameCheck === "too short") newErrors.surname = t("shortSurname");
+      else if (surnameCheck === "too long") newErrors.surname = t("longSurname");
+      else delete newErrors.surname;
+    }
+
+    if (name === 'birthDate') {
+      const val = validateBirth(value);
+      if (!val) newErrors.birthDate = t("invalidAge");
+      else if (val === "younger") newErrors.birthDate = t("tooYoung", { age: minAge });
+      else if (val === "older") newErrors.birthDate = t("tooOld", { age: maxAge });
+      else delete newErrors.birthDate;
+    }
+
+    setErrors(newErrors);
+    setCurrentUser(updatedUser);
+  };
+
+  const handleUserEdit = (user) => {
+    setCurrentUser(user);
+    setUserEditModal(true);
+    setDropdownOpen(false);
+  };
+
+  // edit user info by admin
+  const handleUserEditSubmit = async (e) => {
+    e.preventDefault();
+
+    if (errors.name || errors.surname || errors.birthDate) {
+      alert(t("regMistakes"));
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}api/user/editById?id=${currentUser.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: currentUser.name,
+            surname: currentUser.surname,
+            birthDate: currentUser.birthDate,
+          }),
+        }
+      );
+
+      if (tokenExpired(response.status)) return;
+
+      if (!response.ok) throw new Error(t("userUpdateFail"));
+
+      const result = await response.json();
+      if (result.data === "success") {
+        alert(t("dataSaved"));
+        setEditModal(false);
+        window.location.reload();
+      } else {
+        alert(t("userUpdateFail"));
+      }
+    } catch (error) {
+      console.error('Update selhal:', error);
+      alert(t("dataSaveFail"));
+    }
+  };
+
   return (
     <div className="content">
       <Row>
@@ -308,7 +393,7 @@ function UserManagement() {
                     <th>{t("birthDate")}</th>
                     <th>{t("role")}</th>
                     <th>{t("teamID")}</th>
-                    <th>{t("action")}</th>
+                    <th style={{ textAlign: 'center' }}>{t("action")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -330,6 +415,11 @@ function UserManagement() {
                       </td>
                       <td>{user.teamID}</td>
                       <td>
+                        {isAdminOrLeader && (
+                          <Button color="secondary" size="sm" onClick={() => handleUserEdit(user)} style={{ marginLeft: '10px' }}>
+                            <i className="fa-solid fa-pencil"></i>
+                          </Button>
+                        )}
                         {isAdminOrLeader && (
                           <Button color="danger" size="sm" onClick={() => handleRemoveUser(user.id)} style={{ marginLeft: '10px' }}>
                             <i className="tim-icons icon-trash-simple"></i>
@@ -405,6 +495,53 @@ function UserManagement() {
           <Button color="danger" onClick={() => submitRoleChange('remove')} style={{ margin: '10px' }}>{t("roleRemove")}</Button>
           <Button color="secondary" onClick={() => setEditModal(false)} style={{ margin: '10px' }}>{t("cancel")}</Button>
         </ModalFooter>
+      </Modal>
+
+      {/* modal for editing user info */}
+      <Modal isOpen={userEditModal} toggle={() => setUserEditModal(false)}>
+        <ModalHeader toggle={() => setUserEditModal(false)}>{t("userEdit")}</ModalHeader>
+        <ModalBody>
+          <Form onSubmit={handleUserEditSubmit}>
+            <FormGroup>
+              <Label>{t("name")}</Label>
+              <Input
+                name="name"
+                type="text"
+                value={currentUser?.name || ""}
+                onChange={handleChange}
+                invalid={!!errors.name}
+              />
+              {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
+            </FormGroup>
+
+            <FormGroup>
+              <Label>{t("surname")}</Label>
+              <Input
+                name="surname"
+                type="text"
+                value={currentUser?.surname || ""}
+                onChange={handleChange}
+                invalid={!!errors.surname}
+              />
+              {errors.surname && <FormFeedback>{errors.surname}</FormFeedback>}
+            </FormGroup>
+
+            <FormGroup>
+              <Label>{t("birthDate")}</Label>
+              <Input
+                name="birthDate"
+                type="date"
+                value={currentUser?.birthDate || ""}
+                onChange={handleChange}
+                invalid={!!errors.birthDate}
+              />
+              {errors.birthDate && <FormFeedback>{errors.birthDate}</FormFeedback>}
+            </FormGroup>
+
+            <Button color="primary" type="submit">{t("save")}</Button>
+            <Button color="secondary" onClick={() => setUserEditModal(false)} style={{ margin: '10px' }}>{t("cancel")}</Button>
+          </Form>
+        </ModalBody>
       </Modal>
     </div>
   );
