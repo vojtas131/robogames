@@ -41,7 +41,7 @@ export default function AuthCallback() {
     async function processLogin() {
       const params = new URLSearchParams(window.location.search);
 
-      // go to homepage if login failed
+      // go to homepage if no code arrived from Keycloak
       const code = params.get("code");
       if (!code) {
         console.error("No code found");
@@ -59,8 +59,11 @@ export default function AuthCallback() {
       // get user token from backend
       const data = await res.json();
 
+      // if login failed go to homepage
       if (data.type === "ERROR") {
         console.error("Keycloak login failed:", data.data);
+        navigate("/admin/dashboard");
+        alert(t("loginFailed"));
         return;
       }
 

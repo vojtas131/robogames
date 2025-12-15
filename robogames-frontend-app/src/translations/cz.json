@@ -511,5 +511,6 @@
     "back":"Zpět",
     "err":"Chyba",
 
-    "loggingIn":"Probíhá přihlašování..."
+    "loggingIn":"Probíhá přihlašování...",
+    "loginFailed":"Příhlášení se nezdařilo."
 }

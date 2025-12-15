@@ -511,5 +511,6 @@
     "back":"Go back",
     "err":"Error",
 
-    "loggingIn":"Login in progress..."
+    "loggingIn":"Login in progress...",
+    "loginFailed":"Login failed."
 }
