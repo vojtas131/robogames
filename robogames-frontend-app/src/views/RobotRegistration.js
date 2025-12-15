@@ -334,9 +334,9 @@ function RobotRegistration() {
                           color="info"
                           size="sm"
                           onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
-                          title={t("showProfile") || "Show Profile"}
+                          title={t("showProfile")}
                         >
-                          <i className="tim-icons icon-badge" /> {t("profile") || "Profile"}
+                          <i className="tim-icons icon-badge" /> {t("profile")}
                         </Button>
                       </Col>
                     </Row>
