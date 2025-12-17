@@ -23,7 +23,7 @@ function RobotProfile() {
   const [searchParams] = useSearchParams();
   const robotId = searchParams.get('id');
   const navigate = useNavigate();
-  
+
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,13 +36,13 @@ function RobotProfile() {
       setIsLoading(false);
       return;
     }
-    
+
     if (!token) {
       setError(t("mustLogin"));
       setIsLoading(false);
       return;
     }
-    
+
     fetchRobotProfile();
   }, [robotId, token]);
 
@@ -54,10 +54,6 @@ function RobotProfile() {
     }
 
     try {
-      console.log('Fetching robot profile with ID:', robotId);
-      console.log('API URL:', `${process.env.REACT_APP_API_URL}api/robot/profile?id=${robotId}`);
-      console.log('Token:', token ? 'Present' : 'Missing');
-      
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}api/robot/profile?id=${robotId}`,
         {
@@ -69,8 +65,6 @@ function RobotProfile() {
         }
       );
 
-      console.log('Response status:', response.status);
-
       if (tokenExpired(response.status)) { return; }
 
       if (response.status === 404) {
@@ -80,8 +74,6 @@ function RobotProfile() {
       }
 
       const data = await response.json();
-      console.log('Response data:', data);
-      
       if (response.ok && data.type === 'RESPONSE') {
         setProfile(data.data);
       } else if (data.type === 'ERROR') {
@@ -97,11 +89,11 @@ function RobotProfile() {
     }
   };
 
-  const handleTeamClick = () => {
-    if (profile?.teamId) {
-      navigate(`/admin/team-detail?id=${profile.teamId}`);
-    }
-  };
+  // const handleTeamClick = () => {
+  //   if (profile?.teamId) {
+  //     navigate(`/admin/team-detail?id=${profile.teamId}`);
+  //   }
+  // };
 
   if (isLoading) {
     return (
@@ -168,9 +160,9 @@ function RobotProfile() {
     <div className="content">
       <Row>
         <Col md="12">
-          <Button 
-            color="info" 
-            size="sm" 
+          <Button
+            color="info"
+            size="sm"
             onClick={() => navigate(-1)}
             className='mb-3'
           >
@@ -192,9 +184,11 @@ function RobotProfile() {
                     {profile.robotName}
                   </CardTitle>
                   <h5 className="card-category">
-                    {t("robotNum")}: <Badge color="info">#{profile.robotNumber}</Badge>
+                    {t("robotNum")}:
+                    <Badge color="info" className='ml-2'>#{profile.robotNumber}</Badge>
                   </h5>
                 </Col>
+                {/*
                 <Col sm="6">
                   <div className="text-right" style={{ paddingTop: '10px' }}>
                     <Badge color="success" pill style={{ fontSize: '14px', padding: '8px 15px' }}>
@@ -202,10 +196,11 @@ function RobotProfile() {
                     </Badge>
                   </div>
                 </Col>
+                */}
               </Row>
             </CardHeader>
             <CardBody>
-              <div style={{ padding: '10px 0' }}>
+              <div style={{ padding: '15px 15px' }}>
                 <Row style={{ marginBottom: '15px' }}>
                   <Col xs="4">
                     <strong>{t("discipline")}:</strong>
@@ -216,7 +211,7 @@ function RobotProfile() {
                     </Badge>
                   </Col>
                 </Row>
-                
+
                 <Row style={{ marginBottom: '15px' }}>
                   <Col xs="4">
                     <strong>{t("category")}:</strong>
@@ -235,26 +230,26 @@ function RobotProfile() {
           <Card className="card-chart">
             <CardHeader>
               <CardTitle tag="h3">
-                <i className="tim-icons icon-molecule-40 text-info" />{" "}
+                <i className="tim-icons icon-molecule-40 text-info mr-2" />
                 {t("teamInfo")}
               </CardTitle>
             </CardHeader>
             <CardBody>
-              <div style={{ padding: '10px 0' }}>
+              <div style={{ padding: '15px 15px' }}>
                 <Row style={{ marginBottom: '15px' }}>
                   <Col xs="4">
                     <strong>{t("team")}:</strong>
                   </Col>
                   <Col xs="8">
-                    <span 
-                      // style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
-                      // onClick={handleTeamClick}
+                    <span
+                    // style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
+                    // onClick={handleTeamClick}
                     >
                       {profile.teamName}
                     </span>
                   </Col>
                 </Row>
-                
+
                 {/* <Row style={{ marginBottom: '15px' }}>
                   <Col xs="4">
                     <strong>{t("teamId")}:</strong>
@@ -263,6 +258,15 @@ function RobotProfile() {
                     #{profile.teamId}
                   </Col>
                 </Row> */}
+
+                <Row style={{ marginBottom: '15px' }}>
+                <Col xs="4">
+                  <strong>{t("teamLeader")}</strong>
+                </Col>
+                <Col xs="8">
+                  {profile.leaderName ? `${profile.leaderName} ${profile.leaderSurname}` : t("leaderUnknown")}
+                </Col> 
+                </Row>
               </div>
             </CardBody>
           </Card>
@@ -284,7 +288,7 @@ function RobotProfile() {
                 <Table responsive>
                   <thead className="text-primary">
                     <tr>
-                      <th>#</th>
+                      {/* <th>#</th> */}
                       <th>{t("name")}</th>
                       <th>{t("surname")}</th>
                     </tr>
@@ -292,7 +296,7 @@ function RobotProfile() {
                   <tbody>
                     {profile.teamMembers.map((member, index) => (
                       <tr key={index}>
-                        <td>{index + 1}</td>
+                        {/* <td>{index + 1}</td> */}
                         <td>{member.name}</td>
                         <td>{member.surname}</td>
                       </tr>
@@ -325,7 +329,7 @@ function RobotProfile() {
                     {profile.teacherName || '-'}
                   </Col>
                 </Row>
-                
+
                 <Row style={{ marginBottom: '15px' }}>
                   <Col xs="4">
                     <strong>{t("surname")}:</strong>
@@ -334,7 +338,7 @@ function RobotProfile() {
                     {profile.teacherSurname || '-'}
                   </Col>
                 </Row>
-                
+
                 <Row style={{ marginBottom: '15px' }}>
                   <Col xs="4">
                     <strong>{t("contact")}:</strong>
