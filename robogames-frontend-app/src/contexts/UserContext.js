@@ -6,6 +6,14 @@ const UserContext = createContext();
 
 export const useUser = () => useContext(UserContext);
 
+// Error kody z backendu
+const ERROR_CODES = {
+  TOKEN_MISSING: 'TOKEN_MISSING',
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  TOKEN_INVALID: 'TOKEN_INVALID',
+  NO_ROLE: 'NO_ROLE'
+};
+
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -56,28 +64,79 @@ export const UserProvider = ({ children }) => {
   };
 
 
-  const logout = () => {
+  const logout = (skipKeycloakLogout = false) => {
     localStorage.removeItem('token');
     localStorage.removeItem('roles');
     localStorage.removeItem('UserID');
     setUser(null);
+    setToken(null);
 
-    // logout from keycloak
-    logoutFromKeycloak();
+    // logout from keycloak (pokud neni preskoceno - napr. pri expiraci tokenu backend uz odhlasil)
+    if (!skipKeycloakLogout) {
+      logoutFromKeycloak();
+    } else {
+      // Presmerujeme na dashboard bez Keycloak logout
+      window.location.assign(`${process.env.REACT_APP_URL}admin/dashboard`);
+    }
   };
 
   // if token expired
-  const tokenExpired = (response) => {
-    if (response === 403 || response === 401) {
-      console.log("Token expired");
-      logout();
+  // Muzete volat bud s jednim parametrem (status code) nebo s dvema (status, responseData)
+  const tokenExpired = (response, responseData = null) => {
+    // 401 = Unauthorized - token je neplatny/expiroval, uzivatel musi znovu prihlasit
+    if (response === 401) {
+      console.log("Token is unauthorized (missing, expired or invalid)");
+      
+      // Pri 401 backend uz odhlasil uzivatele z Keycloaku, takze preskocime Keycloak logout
+      // a jen vycistime local storage
+      let skipKeycloakLogout = true;
+      
+      // Pokud mame response data, zalogujeme presny duvod
+      if (responseData && responseData.errorCode) {
+        switch (responseData.errorCode) {
+          case ERROR_CODES.TOKEN_EXPIRED:
+            console.log("Token expired - session timeout");
+            break;
+          case ERROR_CODES.TOKEN_MISSING:
+            console.log("Token missing");
+            break;
+          case ERROR_CODES.TOKEN_INVALID:
+            console.log("Token invalid");
+            break;
+          default:
+            console.log("Unknown auth error:", responseData.errorCode);
+        }
+      }
+      
+      logout(skipKeycloakLogout);
       return true;
     }
+    
+    // 403 = Forbidden - uzivatel je prihlasen, ale nema opravneni k dane akci
+    if (response === 403) {
+      // Pokud mame errorCode NO_ROLE, uzivatel nema zadnou roli - odhlasime
+      if (responseData && responseData.errorCode === ERROR_CODES.NO_ROLE) {
+        console.log("User has no role - forbidden");
+        logout(true); // Backend uz odhlasil
+        return true;
+      }
+      // Pro zpetnou kompatibilitu - pokud nemame responseData, pouzijeme stare chovani
+      // (odhlasime uzivatele)
+      if (!responseData) {
+        console.log("Forbidden (legacy behavior - logging out)");
+        logout(true); // Preskocime Keycloak logout - backend uz to udelal
+        return true;
+      }
+      // Jinak je to legitimni "nemas opravneni" - neodhlasujeme
+      console.log("Forbidden - insufficient permissions (not logging out)");
+      return false;
+    }
+    
     return false;
   }
 
   return (
-    <UserContext.Provider value={{ user, token, setToken, login, tokenExpired, getUserInfo }}>
+    <UserContext.Provider value={{ user, token, setToken, login, tokenExpired, getUserInfo, logout }}>
       {children}
     </UserContext.Provider>
   );
