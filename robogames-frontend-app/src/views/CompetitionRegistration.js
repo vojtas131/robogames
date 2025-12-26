@@ -234,9 +234,11 @@ function CompetitionRegistration() {
             }
           })
         ]);
-        const [competitionsData, registrationsData] = await Promise.all(responses.map(res => res.json()));
-        if (tokenExpired(responses.status)) { return; }
 
+        // check token expiration / statuses before parsing JSON
+        if (tokenExpired(responses[0].status) || tokenExpired(responses[1].status)) { return; }
+
+        const [competitionsData, registrationsData] = await Promise.all(responses.map(res => res.json()));
         if (responses[0].ok && responses[1].ok) {
           setCompetitions(competitionsData.data);
           setRegistrations(registrationsData.data);
@@ -265,7 +267,7 @@ function CompetitionRegistration() {
                 <p>{t("loading")}</p>
               ) : (
                 competitions.map((competition) => {
-                  const isRegistered = registrations.some(reg => reg.compatitionYear === competition.year);
+                  const isRegistered = registrations.some(reg => reg.competitionYear === competition.year);
                   const competitionDate = new Date(competition.date);
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
@@ -290,13 +292,13 @@ function CompetitionRegistration() {
                             <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '5px' }}>
                               <h5 style={{ marginBottom: '10px' }}>{t("teacherInfo")}</h5>
                               <p style={{ margin: '5px 0' }}>
-                                <strong>{t("teacherName")}:</strong> {registrations.find(r => r.compatitionYear === competition.year)?.teacherName || t("notProvided")}
+                                <strong>{t("teacherName")}:</strong> {registrations.find(r => r.competitionYear === competition.year)?.teacherName || t("notProvided")}
                               </p>
                               <p style={{ margin: '5px 0' }}>
-                                <strong>{t("teacherSurname")}:</strong> {registrations.find(r => r.compatitionYear === competition.year)?.teacherSurname || t("notProvided")}
+                                <strong>{t("teacherSurname")}:</strong> {registrations.find(r => r.competitionYear === competition.year)?.teacherSurname || t("notProvided")}
                               </p>
                               <p style={{ margin: '5px 0' }}>
-                                <strong>{t("teacherContact")}:</strong> {registrations.find(r => r.compatitionYear === competition.year)?.teacherContact || t("notProvided")}
+                                <strong>{t("teacherContact")}:</strong> {registrations.find(r => r.competitionYear === competition.year)?.teacherContact || t("notProvided")}
                               </p>
                             </div>
 

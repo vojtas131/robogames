@@ -71,7 +71,7 @@ function CompetitionDetail() {
                   {registrations.map(reg => (
                     <tr key={reg.id}>
                       {/* <td>{reg.id}</td> */}
-                      <td>{reg.teamID}</td>
+                      {/* <td>{reg.teamID}</td> */}
                       <td>{reg.teamName}</td>
 
                       <td>{reg.category}</td>

@@ -414,7 +414,7 @@ function MyTeam() {
                 <Table responsive>
                   <thead>
                     <tr>
-                      <th>{t("id")}</th>
+                      {/* <th>{t("id")}</th> */}
                       <th>{t("name")}</th>
                       <th>{t("surname")}</th>
                     </tr>
@@ -422,7 +422,7 @@ function MyTeam() {
                   <tbody>
                     {team.memberNames.map(member => (
                       <tr key={member.id}>
-                        <td>{member.id}</td>
+                        {/* <td>{member.id}</td> */}
                         <td>{member.name}</td>
                         <td>{member.surname}</td>
 
