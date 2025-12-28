@@ -13,7 +13,7 @@ import {
   Col,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
-import { validateName, validateBirth, minAge, maxAge } from "./Register";
+import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 
 function UserProfile() {
@@ -92,9 +92,9 @@ function UserProfile() {
       if (!val) {
         newErrors.birthDate = t("invalidAge");
       } else if (val === "younger") {
-        newErrors.birthDate = t("tooYoung", { age: minAge });
+        newErrors.birthDate = t("tooYoung", { age: process.env.REACT_APP_MIN_AGE });
       } else if (val === "older") {
-        newErrors.birthDate = t("tooOld", { age: maxAge });
+        newErrors.birthDate = t("tooOld", { age: process.env.REACT_APP_MAX_AGE });
       } else {
         delete newErrors.birthDate;
       }

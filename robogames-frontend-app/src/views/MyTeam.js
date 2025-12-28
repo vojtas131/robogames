@@ -27,9 +27,9 @@ import { t } from "translations/translate";
 export function validateTitle(title) {
   const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-.:,/?!+]+$/;
   if (allowed.test(title)) {
-    if (title.length < 3) {
+    if (title.length < process.env.REACT_APP_TITLE_MIN_LENGTH) {
       return "too short"
-    } else if (title.length > 15) {
+    } else if (title.length > process.env.REACT_APP_TITLE_MAX_LENGTH) {
       return "too long"
     } else {
       return true;

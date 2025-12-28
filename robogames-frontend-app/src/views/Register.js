@@ -29,9 +29,6 @@ const customStyles = {
   marginBottom: 'auto',
 };
 
-export const minAge = 6;
-export const maxAge = 99;
-
 // Calculates user age
 const calculateAge = (_birthDate) => {
   if (!_birthDate) { return null; }
@@ -66,11 +63,11 @@ export function validateBirth(birthDate) {
     console.log('Invalid age.');
     return false;
   } else {
-    if (age < minAge) {
-      console.log('You have to be at least ', minAge, ' years old.')
+    if (age < process.env.REACT_APP_MIN_AGE) {
+      console.log('You have to be at least ', process.env.REACT_APP_MIN_AGE, ' years old.')
       return "younger";
-    } else if (age > maxAge) {
-      console.log('You cannot be older than ', maxAge, ' years.')
+    } else if (age > process.env.REACT_APP_MAX_AGE) {
+      console.log('You cannot be older than ', process.env.REACT_APP_MAX_AGE, ' years.')
       return "older";
     } else {
       return true;
@@ -81,9 +78,9 @@ export function validateBirth(birthDate) {
 export function validateName(name) {
   const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-]+$/;
   if (allowed.test(name)) {
-    if (name.length < 2) {
+    if (name.length < process.env.REACT_APP_MIN_NAME_LENGTH) {
       return "too short"
-    } else if (name.length > 20) {
+    } else if (name.length > process.env.REACT_APP_MAX_NAME_LENGTH) {
       return "too long"
     } else {
       return true;
@@ -95,9 +92,9 @@ export function validateName(name) {
 export function validateEmail(email) {
   const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (re.test(String(email).toLowerCase())) {
-    if (email.length < 8) {
+    if (email.length < process.env.REACT_APP_MIN_EMAIL_LENGTH) {
       return "too short"
-    } else if (email.length > 30) {
+    } else if (email.length > process.env.REACT_APP_MAX_EMAIL_LENGTH) {
       return "too long"
     } else {
       return true;
@@ -162,30 +159,30 @@ function Register() {
       }
     }
 
-    if (name === 'password') {
-      if (value.length < 8) {
-        newErrors.password = t("shortPassword");
-      } else if (value.length > 30) {
-        newErrors.password = t("longPassword");
-      } else {
-        delete newErrors.password;
-      }
-    }
+    // if (name === 'password') {
+    //   if (value.length < 8) {
+    //     newErrors.password = t("shortPassword");
+    //   } else if (value.length > 30) {
+    //     newErrors.password = t("longPassword");
+    //   } else {
+    //     delete newErrors.password;
+    //   }
+    // }
 
-    if (name === 'confirmPassword' && value !== formData.password) {
-      newErrors.confirmPassword = t("passwordsDiffer");
-    } else {
-      delete newErrors.confirmPassword;
-    }
+    // if (name === 'confirmPassword' && value !== formData.password) {
+    //   newErrors.confirmPassword = t("passwordsDiffer");
+    // } else {
+    //   delete newErrors.confirmPassword;
+    // }
 
     if (name === 'birthDate') {
       const val = validateBirth(value);
       if (!val) {
         newErrors.birthDate = t("invalidAge");
       } else if (val === 'younger') {
-        newErrors.birthDate = t("tooYoung", { age: minAge });
+        newErrors.birthDate = t("tooYoung", { age: process.env.REACT_APP_MIN_AGE });
       } else if (val === 'older') {
-        newErrors.birthDate = t("tooOld", { age: maxAge });
+        newErrors.birthDate = t("tooOld", { age: process.env.REACT_APP_MAX_AGE });
       } else {
         delete newErrors.birthDate;
       }

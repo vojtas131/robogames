@@ -22,7 +22,7 @@ import {
   DropdownItem
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
-import { validateName, validateBirth, minAge, maxAge, validateEmail } from "./Register";
+import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 
 function UserManagement() {
@@ -93,95 +93,95 @@ function UserManagement() {
     setDropdownOpen(!dropdownOpen);
   };
 
-  const handleAddUser = async () => {
-    let newErrors = { ...errors };
+  // const handleAddUser = async () => {
+  //   let newErrors = { ...errors };
 
-    var nameCheck = validateName(newUser.name);
-    if (!nameCheck) {
-      newErrors.name = t("invalidName");
-    } else if (nameCheck === "too short") {
-      newErrors.name = t("shortName");
-    } else if (nameCheck === "too long") {
-      newErrors.name = t("longName");
-    } else {
-      delete newErrors.name;
-    }
+  //   var nameCheck = validateName(newUser.name);
+  //   if (!nameCheck) {
+  //     newErrors.name = t("invalidName");
+  //   } else if (nameCheck === "too short") {
+  //     newErrors.name = t("shortName");
+  //   } else if (nameCheck === "too long") {
+  //     newErrors.name = t("longName");
+  //   } else {
+  //     delete newErrors.name;
+  //   }
 
-    var surnameCheck = validateName(newUser.surname);
-    if (!surnameCheck) {
-      newErrors.surname = t("invalidSurname");
-    } else if (surnameCheck === "too short") {
-      newErrors.surname = t("shortSurname");
-    } else if (surnameCheck === "too long") {
-      newErrors.surname = t("longSurname");
-    } else {
-      delete newErrors.surname;
-    }
+  //   var surnameCheck = validateName(newUser.surname);
+  //   if (!surnameCheck) {
+  //     newErrors.surname = t("invalidSurname");
+  //   } else if (surnameCheck === "too short") {
+  //     newErrors.surname = t("shortSurname");
+  //   } else if (surnameCheck === "too long") {
+  //     newErrors.surname = t("longSurname");
+  //   } else {
+  //     delete newErrors.surname;
+  //   }
 
-    var emailCheck = validateEmail(newUser.email);
-    if (!emailCheck) {
-      newErrors.email = t("mailInvalid");
-    } else if (emailCheck === "too short") {
-      newErrors.email = t("shortMail");
-    } else if (emailCheck === "too long") {
-      newErrors.email = t("longMail");
-    } else {
-      delete newErrors.email;
-    }
+  //   var emailCheck = validateEmail(newUser.email);
+  //   if (!emailCheck) {
+  //     newErrors.email = t("mailInvalid");
+  //   } else if (emailCheck === "too short") {
+  //     newErrors.email = t("shortMail");
+  //   } else if (emailCheck === "too long") {
+  //     newErrors.email = t("longMail");
+  //   } else {
+  //     delete newErrors.email;
+  //   }
 
-    if (newUser.password.length < 8) {
-      newErrors.password = t("shortPassword");
-    } else if (newUser.password.length > 30) {
-      newErrors.password = t("longPassword");
-    } else {
-      delete newErrors.password;
-    }
+  //   if (newUser.password.length < 8) {
+  //     newErrors.password = t("shortPassword");
+  //   } else if (newUser.password.length > 30) {
+  //     newErrors.password = t("longPassword");
+  //   } else {
+  //     delete newErrors.password;
+  //   }
 
-    const birthCheck = validateBirth(newUser.birthDate);
-    if (!birthCheck) {
-      newErrors.birthDate = t("invalidAge");
-    } else if (birthCheck === 'younger') {
-      newErrors.birthDate = t("tooYoung", { age: minAge });
-    } else if (birthCheck === 'older') {
-      newErrors.birthDate = t("tooOld", { age: maxAge });
-    } else {
-      delete newErrors.birthDate;
-    }
+  //   const birthCheck = validateBirth(newUser.birthDate);
+  //   if (!birthCheck) {
+  //     newErrors.birthDate = t("invalidAge");
+  //   } else if (birthCheck === 'younger') {
+  //     newErrors.birthDate = t("tooYoung", { age: minAge });
+  //   } else if (birthCheck === 'older') {
+  //     newErrors.birthDate = t("tooOld", { age: maxAge });
+  //   } else {
+  //     delete newErrors.birthDate;
+  //   }
 
-    setErrors(newErrors);
+  //   setErrors(newErrors);
 
-    if (!errors.name && !errors.surname && !errors.email && !errors.password && !errors.birthDate && newUser.email && newUser.password && newUser.name && newUser.surname && newUser.birthDate) {
-      if (!Object.values(newUser).every(value => value)) {
-        alert(t("fillAll"));
-        return;
-      }
+  //   if (!errors.name && !errors.surname && !errors.email && !errors.password && !errors.birthDate && newUser.email && newUser.password && newUser.name && newUser.surname && newUser.birthDate) {
+  //     if (!Object.values(newUser).every(value => value)) {
+  //       alert(t("fillAll"));
+  //       return;
+  //     }
 
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/user/add`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(newUser)
-        });
-        if (tokenExpired(response.status)) { return; }
+  //     try {
+  //       const response = await fetch(`${process.env.REACT_APP_API_URL}api/user/add`, {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Authorization': `Bearer ${token}`
+  //         },
+  //         body: JSON.stringify(newUser)
+  //       });
+  //       if (tokenExpired(response.status)) { return; }
 
-        if (response.ok) {
-          alert(t("userCreated"));
-          setAddModal(false);
-          window.location.reload();
-        } else {
-          const result = await response.json();
-          throw new Error(result.message || t("userCreateFail"));
-        }
-      } catch (error) {
-        alert(error.message);
-      }
-    } else {
-      alert(t("regMistakes"));
-    }
-  };
+  //       if (response.ok) {
+  //         alert(t("userCreated"));
+  //         setAddModal(false);
+  //         window.location.reload();
+  //       } else {
+  //         const result = await response.json();
+  //         throw new Error(result.message || t("userCreateFail"));
+  //       }
+  //     } catch (error) {
+  //       alert(error.message);
+  //     }
+  //   } else {
+  //     alert(t("regMistakes"));
+  //   }
+  // };
 
   const submitRoleChange = async (action) => {
     if (newRole && currentUser) {
@@ -272,8 +272,8 @@ function UserManagement() {
     if (name === 'birthDate') {
       const val = validateBirth(value);
       if (!val) newErrors.birthDate = t("invalidAge");
-      else if (val === "younger") newErrors.birthDate = t("tooYoung", { age: minAge });
-      else if (val === "older") newErrors.birthDate = t("tooOld", { age: maxAge });
+      else if (val === "younger") newErrors.birthDate = t("tooYoung", { age: process.env.REACT_APP_MIN_AGE });
+      else if (val === "older") newErrors.birthDate = t("tooOld", { age: process.env.REACT_APP_MAX_AGE });
       else delete newErrors.birthDate;
     }
 
@@ -357,8 +357,8 @@ function UserManagement() {
                 <Table responsive>
                   <thead className="text-primary">
                     <tr>
-                      <th>{t("id")}</th>
-                      <th>{t("uuid")}</th>
+                      {/* <th>{t("id")}</th> */}
+                      {/* <th>{t("uuid")}</th> */}
                       <th>{t("name")}</th>
                       <th>{t("surname")}</th>
                       <th>{t("mail")}</th>
@@ -368,8 +368,8 @@ function UserManagement() {
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{searchedUser.id}</td>
-                      <td>{searchedUser.uuid}</td>
+                      {/* <td>{searchedUser.id}</td> */}
+                      {/* <td>{searchedUser.uuid}</td> */}
                       <td>{searchedUser.name}</td>
                       <td>{searchedUser.surname}</td>
                       <td>{searchedUser.email}</td>
