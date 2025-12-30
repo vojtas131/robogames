@@ -9,15 +9,17 @@
   .navbar.navbar-transparent .navbar-toggler-bar {
     background: $black-states;
   }
-  .navbar.navbar-transparent .navbar-nav li a:not(.dropdown-item){
+
+  .navbar.navbar-transparent .navbar-nav li a:not(.dropdown-item) {
+    color: $black-states;
+
+    & i {
       color: $black-states;
-      & i{
-        color: $black-states;
-        
-        &.has-notifications{
-          color: $danger-states;
-        }
+
+      &.has-notifications {
+        color: $danger-states;
       }
+    }
   }
 
   .navbar.navbar-transparent .navbar-minimize button i {
@@ -380,6 +382,12 @@
     background-image: linear-gradient(to bottom left, #ff8144, #ffd0ad, #ff8144) !important;
   }
 
+  .btn-info.btn-simple {
+    color: #b5740e;
+    border-color: #b5740e;
+    background-image: linear-gradient(to bottom left, #fdca69, #ffedcc, #fdca69) !important;
+  }
+
   .btn-danger.btn-simple {
     color: #ff0030;
     border-color: #ff0030;
@@ -421,5 +429,10 @@
 
   .settings {
     background: linear-gradient(#5c5c5c, #242424);
+  }
+
+  .comp-card,
+  .pg-card {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
   }
 }

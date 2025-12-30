@@ -31,6 +31,12 @@
         background-image: linear-gradient(to bottom left, #a44833, #6b3226, #a44833) !important;
     }
 
+    .btn-info.btn-simple {
+        color: #ffb300;
+        border-color: #ffb300;
+        background-image: linear-gradient(to bottom left, #93712e, #614c24, #93712e) !important;
+    }
+
     .btn-danger.btn-simple {
         color: #ff345a;
         border-color: #ff345a;
@@ -46,7 +52,8 @@
         border-color: #495268 !important;
     }
 
-    .comp-card, .pg-card{
+    .comp-card,
+    .pg-card {
         border: 1px solid #495268 !important;
     }
 
@@ -103,14 +110,15 @@
     }
 
     p {
-        color: rgba(255, 255, 255, 0.9);
+        color: rgba(255, 255, 255, 0.9) !important;
     }
 
     li {
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255, 255, 255, 0.7) !important;
     }
 
-    .red-text, .text-danger {
+    .red-text,
+    .text-danger {
         color: #ff345a !important;
     }
 

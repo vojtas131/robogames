@@ -178,7 +178,7 @@ function RobotProfile() {
           <Card className="card-chart">
             <CardHeader>
               <Row>
-                <Col className="text-left" sm="6">
+                <Col className="text-left">
                   <CardTitle tag="h2">
                     <i className="tim-icons icon-settings text-primary mr-2" />
                     {profile.robotName}
@@ -200,7 +200,7 @@ function RobotProfile() {
               </Row>
             </CardHeader>
             <CardBody>
-              <div style={{ padding: '15px 15px' }}>
+              <div style={{ padding: '3px 15px' }}>
                 <Row style={{ marginBottom: '15px' }}>
                   <Col xs="4">
                     <strong>{t("discipline")}:</strong>

@@ -336,7 +336,7 @@ function RobotRegistration() {
                           onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
                           title={t("showProfile")}
                         >
-                          <i className="tim-icons icon-badge" /> {t("profile")}
+                          <i className="tim-icons icon-badge mb-1" /> {t("profile")}
                         </Button>
                       </Col>
                     </Row>
@@ -359,9 +359,19 @@ function RobotRegistration() {
                             <Alert color='warning' style={{ marginTop: '10px' }}>{t("robotRegistered")}</Alert>
                           )}
 
-                          {!robot.confirmed && (
-                            <Button color="danger" onClick={() => handleUnregisterDiscipline(robot.id)}>{t("regCancel")}</Button>
-                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            {!robot.confirmed && (
+                              <Button color="danger" onClick={() => handleUnregisterDiscipline(robot.id)}>
+                                {t("regCancel")}
+                              </Button>
+                            )}
+
+                            {!robot.confirmed && (
+                              <Button color="danger" onClick={() => handleRemoveRobot(year, robot.id)} className="btn-icon btn-simple">
+                                <i className="tim-icons icon-trash-simple"></i>
+                              </Button>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <Dropdown isOpen={robot.dropdownOpen} toggle={() => toggleDropdown(robot.id)}>
@@ -379,13 +389,6 @@ function RobotRegistration() {
                       )}
                     </CardText>
                   </CardBody>
-                  {!robot.confirmed && (
-                    <CardFooter className="d-flex justify-content-end">
-                      <Button color="danger" onClick={() => handleRemoveRobot(year, robot.id)} className="btn-icon btn-simple">
-                        <i className="tim-icons icon-trash-simple"></i>
-                      </Button>
-                    </CardFooter>
-                  )}
                 </Card>
               ))}
             </CardBody>
@@ -397,7 +400,7 @@ function RobotRegistration() {
         <ModalBody>
           <Form>
             <FormGroup>
-              <Label for="robotName"> {editMode ? t("newName") : t("robotName")} </Label>
+              <Label for="robotName"> {editMode ? t("newTitle") : t("robotName")} </Label>
               <Input type="text" name="name" id="robotName" placeholder={t("robotEnterName")}
                 value={robotName} onChange={(e) => setRobotName(e.target.value)} style={{ color: 'black' }}
               />
