@@ -21,12 +21,14 @@ import {
   ModalBody,
   ModalFooter,
   FormGroup,
+  FormFeedback,
   Label,
   Input,
   Alert,
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
+import { validateName, validateEmail } from "./Register";
 
 function CompetitionRegistration() {
   const [competitions, setCompetitions] = useState([]);
@@ -40,6 +42,7 @@ function CompetitionRegistration() {
   const [teacherContact, setTeacherContact] = useState('');
   const [registrationError, setRegistrationError] = useState('');
   const [needsTeacherInfo, setNeedsTeacherInfo] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { token, tokenExpired } = useUser();
 
@@ -52,10 +55,54 @@ function CompetitionRegistration() {
     return timeString.substr(0, 5);
   };
 
+  // Accept contact as either email or phone number
+  const validateContact = (contact) => {
+    if (!contact) return false;
+    // try email first
+    const emailCheck = validateEmail(contact);
+    if (emailCheck) return emailCheck;
+
+    // phone: allow digits and common formatting characters
+    const phoneAllowed = /^[0-9+\s\-()]+$/;
+    const digits = contact.replace(/\D/g, '');
+    if (!phoneAllowed.test(contact) || digits.length === 0) return false;
+
+    if (digits.length < process.env.REACT_APP_MIN_CONTACT_LENGTH) return "too short";
+    if (digits.length > process.env.REACT_APP_MAX_CONTACT_LENGTH) return "too long";
+
+    return true;
+  };
+
   const handleManageRobots = (year) => {
     // navigate to the robot registration page with the competition year as a query parameter
     navigate(`/admin/robot-registration?year=${year}`);
   };
+
+  // Unified onChange handler for teacher fields with validation
+  const handleTeacherChange = (e) => {
+    const { name, value } = e.target;
+    let newErrors = { ...errors };
+
+    const setField = (fieldName, setter, validator, messages) => {
+      setter(value);
+      const check = validator(value.trim());
+      if (!check) newErrors[fieldName] = messages.invalid;
+      else if (check === "too short") newErrors[fieldName] = messages.short;
+      else if (check === "too long") newErrors[fieldName] = messages.long;
+      else delete newErrors[fieldName];
+    };
+
+    if (name === 'teacherName' || name === 'editTeacherName') {
+      setField('teacherName', setTeacherName, validateName, { invalid: t("invalidName"), short: t("shortName"), long: t("longName") });
+    } else if (name === 'teacherSurname' || name === 'editTeacherSurname') {
+      setField('teacherSurname', setTeacherSurname, validateName, { invalid: t("invalidSurname"), short: t("shortSurname"), long: t("longSurname") });
+    } else if (name === 'teacherContact' || name === 'editTeacherContact') {
+      setField('teacherContact', setTeacherContact, validateContact, { invalid: t("invalidContact"), short: t("shortContact"), long: t("longContact") });
+    }
+
+    setErrors(newErrors);
+  };
+
   const unregisterTeam = async (year) => {
     const confirmUnregistration = window.confirm(t("unreg"));
     if (!confirmUnregistration) {
@@ -99,6 +146,7 @@ function CompetitionRegistration() {
     setTeacherSurname('');
     setTeacherContact('');
     setRegistrationError('');
+    setErrors({});
     setNeedsTeacherInfo(true); // Assume we need teacher info by default
     setRegistrationModal(true);
   };
@@ -106,9 +154,39 @@ function CompetitionRegistration() {
   const handleRegistrationSubmit = async () => {
     // Validation
     if (needsTeacherInfo) {
-      if (!teacherName.trim() || !teacherSurname.trim() || !teacherContact.trim()) {
-        setRegistrationError(t("fillAllFields"));
+      let newErrors = {};
+      const nameCheck = validateName(teacherName.trim());
+      if (!nameCheck) {
+        newErrors.teacherName = t("invalidName");
+      } else if (nameCheck === "too short") {
+        newErrors.teacherName = t("shortName");
+      } else if (nameCheck === "too long") {
+        newErrors.teacherName = t("longName");
+      }
+
+      const surnameCheck = validateName(teacherSurname.trim());
+      if (!surnameCheck) {
+        newErrors.teacherSurname = t("invalidSurname");
+      } else if (surnameCheck === "too short") {
+        newErrors.teacherSurname = t("shortSurname");
+      } else if (surnameCheck === "too long") {
+        newErrors.teacherSurname = t("longSurname");
+      }
+
+      const contactCheck = validateContact(teacherContact.trim());
+      if (!contactCheck) {
+        newErrors.teacherContact = t("invalidContact");
+      } else if (contactCheck === "too short") {
+        newErrors.teacherContact = t("shortContact");
+      } else if (contactCheck === "too long") {
+        newErrors.teacherContact = t("longContact");
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
         return;
+      } else {
+        setErrors({});
       }
     }
 
@@ -149,7 +227,7 @@ function CompetitionRegistration() {
   const handleEditTeacherInfo = async (year) => {
     setSelectedYear(year);
     setRegistrationError('');
-    
+
     // Fetch current teacher info
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/teamRegistration/teacherInfo?year=${year}`, {
@@ -165,6 +243,7 @@ function CompetitionRegistration() {
         setTeacherName(data.data.teacherName || '');
         setTeacherSurname(data.data.teacherSurname || '');
         setTeacherContact(data.data.teacherContact || '');
+        setErrors({});
         setEditTeacherModal(true);
       } else {
         alert(t("dataFetchFail"));
@@ -177,9 +256,40 @@ function CompetitionRegistration() {
 
   const handleUpdateTeacherInfo = async () => {
     // Validation
-    if (!teacherName.trim() || !teacherSurname.trim() || !teacherContact.trim()) {
-      setRegistrationError(t("fillAllFields"));
+    let newErrors = {};
+    const nameCheck = validateName(teacherName.trim());
+    if (!nameCheck) {
+      newErrors.teacherName = t("invalidName");
+    } else if (nameCheck === "too short") {
+      newErrors.teacherName = t("shortName");
+    } else if (nameCheck === "too long") {
+      newErrors.teacherName = t("longName");
+    }
+
+    const surnameCheck = validateName(teacherSurname.trim());
+    if (!surnameCheck) {
+      newErrors.teacherSurname = t("invalidSurname");
+    } else if (surnameCheck === "too short") {
+      newErrors.teacherSurname = t("shortSurname");
+    } else if (surnameCheck === "too long") {
+      newErrors.teacherSurname = t("longSurname");
+    }
+
+    const contactCheck = validateContact(teacherContact.trim());
+    if (!contactCheck) {
+      newErrors.teacherContact = t("invalidContact");
+    } else if (contactCheck === "too short") {
+      newErrors.teacherContact = t("shortContact");
+    } else if (contactCheck === "too long") {
+      newErrors.teacherContact = t("longContact");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
+    } else {
+      setErrors({});
+      setRegistrationError('');
     }
 
     const requestBody = {
@@ -339,10 +449,11 @@ function CompetitionRegistration() {
           {t("teamRegister")}
         </ModalHeader>
         <ModalBody style={{ padding: '20px' }}>
+          <p>{t("fillTeacher")}</p>
           <Alert color="info" style={{ marginBottom: '20px' }}>
             <strong>{t("note")}:</strong> {t("teacherInfoRequired")}
           </Alert>
-          
+
           <FormGroup style={{ marginBottom: '15px' }}>
             <Label for="teacherName">{t("teacherName")} *</Label>
             <Input
@@ -352,8 +463,10 @@ function CompetitionRegistration() {
               id="teacherName"
               placeholder={t("enterTeacherName")}
               value={teacherName}
-              onChange={e => setTeacherName(e.target.value)}
+              onChange={handleTeacherChange}
+              invalid={!!errors.teacherName}
             />
+            {errors.teacherName && <FormFeedback>{errors.teacherName}</FormFeedback>}
           </FormGroup>
 
           <FormGroup style={{ marginBottom: '15px' }}>
@@ -365,8 +478,10 @@ function CompetitionRegistration() {
               id="teacherSurname"
               placeholder={t("enterTeacherSurname")}
               value={teacherSurname}
-              onChange={e => setTeacherSurname(e.target.value)}
+              onChange={handleTeacherChange}
+              invalid={!!errors.teacherSurname}
             />
+            {errors.teacherSurname && <FormFeedback>{errors.teacherSurname}</FormFeedback>}
           </FormGroup>
 
           <FormGroup style={{ marginBottom: '15px' }}>
@@ -378,11 +493,11 @@ function CompetitionRegistration() {
               id="teacherContact"
               placeholder={t("enterTeacherContact")}
               value={teacherContact}
-              onChange={e => setTeacherContact(e.target.value)}
+              onChange={handleTeacherChange}
+              invalid={!!errors.teacherContact}
             />
+            {errors.teacherContact && <FormFeedback>{errors.teacherContact}</FormFeedback>}
           </FormGroup>
-
-          {registrationError && <Alert color="danger" style={{ marginTop: '15px' }}>{registrationError}</Alert>}
         </ModalBody>
         <ModalFooter style={{ padding: '15px 20px' }}>
           <Button color="success" onClick={handleRegistrationSubmit} style={{ marginRight: '10px' }}>
@@ -409,8 +524,10 @@ function CompetitionRegistration() {
               id="editTeacherName"
               placeholder={t("enterTeacherName")}
               value={teacherName}
-              onChange={e => setTeacherName(e.target.value)}
+              onChange={handleTeacherChange}
+              invalid={!!errors.teacherName}
             />
+            {errors.teacherName && <FormFeedback>{errors.teacherName}</FormFeedback>}
           </FormGroup>
 
           <FormGroup style={{ marginBottom: '15px' }}>
@@ -422,8 +539,10 @@ function CompetitionRegistration() {
               id="editTeacherSurname"
               placeholder={t("enterTeacherSurname")}
               value={teacherSurname}
-              onChange={e => setTeacherSurname(e.target.value)}
+              onChange={handleTeacherChange}
+              invalid={!!errors.teacherSurname}
             />
+            {errors.teacherSurname && <FormFeedback>{errors.teacherSurname}</FormFeedback>}
           </FormGroup>
 
           <FormGroup style={{ marginBottom: '15px' }}>
@@ -435,16 +554,15 @@ function CompetitionRegistration() {
               id="editTeacherContact"
               placeholder={t("enterTeacherContact")}
               value={teacherContact}
-              onChange={e => setTeacherContact(e.target.value)}
+              onChange={handleTeacherChange}
+              invalid={!!errors.teacherContact}
             />
+            {errors.teacherContact && <FormFeedback>{errors.teacherContact}</FormFeedback>}
           </FormGroup>
-
-          {registrationError && <Alert color="danger" style={{ marginTop: '15px' }}>{registrationError}</Alert>}
         </ModalBody>
         <ModalFooter style={{ padding: '15px 20px' }}>
           <Button color="primary" onClick={handleUpdateTeacherInfo} style={{ marginRight: '10px' }}>
-            {t("save")}
-          </Button>
+            {t("save")}</Button>
           <Button color="secondary" onClick={() => setEditTeacherModal(false)}>
             {t("cancel")}
           </Button>
