@@ -192,7 +192,6 @@ function CompetitionRegistration() {
 
     const requestBody = {
       year: selectedYear,
-      open: false,
       teacherName: teacherName.trim(),
       teacherSurname: teacherSurname.trim(),
       teacherContact: teacherContact.trim()

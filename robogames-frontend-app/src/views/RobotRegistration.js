@@ -343,7 +343,7 @@ function RobotRegistration() {
 
                     <CardText>
                       <hr></hr>
-                      <p>{t("robotNum_colon", { id: robot.id })}</p>
+                      <p>{t("robotNum_colon", { id: robot.number })}</p>
                       {t("robotChecked")}
                       <span className={robot.confirmed ? 'green-text' : 'red-text'}>
                         {robot.confirmed ? t("yes") : t("no")}

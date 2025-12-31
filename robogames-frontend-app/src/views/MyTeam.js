@@ -172,9 +172,15 @@ function MyTeam() {
       if (!response.ok) throw new Error(t("teamRenameFail"));
 
       const data = await response.json();
-      console.log('Uložení se podařilo:', data);
-      alert(t("teamRenamed"));
-      window.location.reload();
+      if (response.ok && data.type != 'ERROR') {
+        console.log('Uložení se podařilo:', data);
+        alert(t("teamRenamed"));
+        window.location.reload();
+      } else if (data.type === "ERROR" && data.data.includes("already exists")) {
+        setCreationError(t("teamExists"));  // Team name is already in database
+      } else {
+        setCreationError(t("teamRenameFail"));
+      }
     } catch (error) {
       console.error('Update selhal:', error);
       alert(t("dataSaveFail"));
