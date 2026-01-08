@@ -57,8 +57,8 @@ function Dashboard() {
                             <CardTitle tag="h1">{t("homeWelcome")}</CardTitle>
                         </CardHeader>
                         <CardBody>
-                            <p>{t("homeP1")}</p>
-                            <p>{t("homeP2")}</p>
+                            <h4>{t("homeP1")}</h4>
+                            <p>{t("homeP2")} <a href="https://www.robogames.utb.cz">www.robogames.utb.cz</a></p>
                             <p>{t("homeP3")}</p>
                         </CardBody>
                     </Card>
@@ -94,29 +94,6 @@ function Dashboard() {
                         </Card>
                     </Col>
                 ))}
-            </Row>
-            <Row>
-                <Col md="12">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle tag="h4">{t("sponsors")}</CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <Row>
-                                <Col md="6" className="logo-box"><img src={abbLogo} alt="ABB" /></Col>
-                                <Col md="6" className="logo-box"><img src={zfLogo} alt="ZF" /></Col>
-                                <Col md="6" className="logo-box"><img src={kyndrylLogo} alt="Kyndryl" /></Col>
-                                <Col md="6" className="logo-box"><img src={blogicLogo} alt="BLogic" /></Col>
-                                <Col md="6" className="logo-box"><img src={continentalLogo} alt="Continental" /></Col>
-                                <Col md="6" className="logo-box"><img src={nxpLogo} alt="NXP" /></Col>
-                                <Col md="6" className="logo-box"><img src={ruzovkaLogo} alt="Ruzovka" /></Col>
-                                <Col md="6" className="logo-box"><img src={totLogo} alt="TOT" /></Col>
-                                <Col md="6" className="logo-box"><img src={itcLogo} alt="ITC" /></Col>
-                                <Col md="6" className="logo-box"><img src={nestleLogo} alt="Nestle" /></Col>
-                            </Row>
-                        </CardBody>
-                    </Card>
-                </Col>
             </Row>
         </div>
     );
