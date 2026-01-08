@@ -66,6 +66,7 @@
     "unregError":"Během rušení registrace týmu nastala chyba.",
     "regConfirm":"Opravdu se chcete zaregistrovat?",
     "regSuccess":"Tým byl úspěšně zaregistrován.",
+    "regClosed":"Registrace do této soutěže je uzavřena.",
     "regFail":"Nebylo možné provést registraci: {{message}}",
     "regTeamError":"Během registrace týmu nastala chyba.",
     "compsAvailable":"Dostupné soutěže",

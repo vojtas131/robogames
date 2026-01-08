@@ -66,6 +66,7 @@
     "unregError": "An error occurred while canceling the team's registration.",
     "regConfirm": "Do you really want to register?",
     "regSuccess": "The team was successfully registered.",
+    "regClosed":"Registration for this competition is closed.",
     "regFail": "Registration could not be completed: {{message}}",
     "regTeamError": "An error occurred during team registration.",
     "compsAvailable": "Available competitions",

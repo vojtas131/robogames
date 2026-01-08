@@ -213,6 +213,8 @@ function CompetitionRegistration() {
         alert(t("regSuccess"));
         setRegistrationModal(false);
         window.location.reload();
+      } else if(data.data === 'failure, registration for this competition year is closed'){
+        setRegistrationError(t("regClosed"));
       } else {
         setRegistrationError(data.data || t("regFail"));
       }
