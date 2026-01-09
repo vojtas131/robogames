@@ -25,6 +25,7 @@ import {
   Label,
   Input,
   Alert,
+  Badge,
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
@@ -372,74 +373,244 @@ function CompetitionRegistration() {
       <Row>
         <Col xs="12">
           <Card>
-            <CardHeader>
-              <CardTitle tag="h2">{t("compsAvailable")}</CardTitle>
+            <CardHeader className="pb-2">
+              <Row className="align-items-center">
+                <Col>
+                  <CardTitle tag="h2" className="mb-1">
+                    <i className="tim-icons icon-trophy mr-2" />
+                    {t("compsAvailable")}
+                  </CardTitle>
+                  <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
+                    {t("selectCompetition") || "Vyberte ročník soutěže pro registraci vašeho týmu"}
+                  </p>
+                </Col>
+              </Row>
             </CardHeader>
             <CardBody>
               {isLoading ? (
-                <p>{t("loading")}</p>
+                <div className="text-center py-5">
+                  <i className="tim-icons icon-refresh-02 fa-spin" style={{ fontSize: '2rem' }} />
+                  <p className="mt-3 text-muted">{t("loading")}</p>
+                </div>
+              ) : competitions.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="tim-icons icon-calendar-60" style={{ fontSize: '3rem', opacity: 0.5 }} />
+                  <p className="mt-3 text-muted">{t("noCompetitions") || "Žádné dostupné soutěže"}</p>
+                </div>
               ) : (
-                competitions.map((competition) => {
-                  const isRegistered = registrations.some(reg => reg.competitionYear === competition.year);
-                  const competitionDate = new Date(competition.date);
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
+                <Row>
+                  {competitions.map((competition) => {
+                    const isRegistered = registrations.some(reg => reg.competitionYear === competition.year);
+                    const registration = registrations.find(r => r.competitionYear === competition.year);
+                    const competitionDate = new Date(competition.date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
 
-                  return (
-                    <Card key={competition.id} className='comp-card'>
-
-                      <CardHeader>
-                        <CardTitle tag="h3">{t("robogamesYear", { year: competition.year })}</CardTitle>
-                        <hr></hr>
-                      </CardHeader>
-                      <CardBody>
-                        <p>{t("compDate_colon")} <span className='red-text' style={{ fontWeight: 'bold', fontSize: '18px' }}>{formatDate(competition.date)}</span></p>
-                        <p>{t("start_colon")}<span className='green-text' style={{ fontWeight: 'bold' }}>{formatTime(competition.startTime)}</span></p>
-                        <p>{t("endExpect")}<span className='green-text' style={{ fontWeight: 'bold' }}>{formatTime(competition.endTime)}</span></p>
-                        {competition.started ? (
-                          <p className='red-text' style={{ fontWeight: 'bold' }}>{t("regImpossible")}</p>
-                        ) : isRegistered ? (
-                          <>
-                            <p className='green-text' style={{ fontWeight: 'bold' }}>{t("robotRegPossible")}</p>
-
-                            <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '5px' }}>
-                              <h5 style={{ marginBottom: '10px' }}>{t("teacherInfo")}</h5>
-                              <p style={{ margin: '5px 0' }}>
-                                <strong>{t("teacherName")}:</strong> {registrations.find(r => r.competitionYear === competition.year)?.teacherName || t("notProvided")}
-                              </p>
-                              <p style={{ margin: '5px 0' }}>
-                                <strong>{t("teacherSurname")}:</strong> {registrations.find(r => r.competitionYear === competition.year)?.teacherSurname || t("notProvided")}
-                              </p>
-                              <p style={{ margin: '5px 0' }}>
-                                <strong>{t("teacherContact")}:</strong> {registrations.find(r => r.competitionYear === competition.year)?.teacherContact || t("notProvided")}
-                              </p>
+                    return (
+                      <Col lg="6" key={competition.id}>
+                        <Card 
+                          className="mb-4" 
+                          style={{ 
+                            border: isRegistered ? '2px solid #28a745' : competition.started ? '2px solid #dc3545' : '1px solid rgba(255,255,255,0.1)',
+                            transition: 'transform 0.2s, box-shadow 0.2s'
+                          }}
+                        >
+                          <CardHeader style={{ 
+                            background: isRegistered 
+                              ? 'linear-gradient(135deg, rgba(40,167,69,0.15) 0%, transparent 100%)'
+                              : competition.started 
+                                ? 'linear-gradient(135deg, rgba(220,53,69,0.15) 0%, transparent 100%)'
+                                : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%)',
+                            borderBottom: '1px solid rgba(255,255,255,0.1)'
+                          }}>
+                            <Row className="align-items-center">
+                              <Col>
+                                <CardTitle tag="h3" className="mb-0">
+                                  <i className="tim-icons icon-calendar-60 mr-2" style={{ color: '#5e72e4' }} />
+                                  {t("robogamesYear", { year: competition.year })}
+                                </CardTitle>
+                              </Col>
+                              <Col xs="auto">
+                                {isRegistered ? (
+                                  <Badge color="success" style={{ fontSize: '0.8rem', padding: '8px 12px' }}>
+                                    <i className="tim-icons icon-check-2 mr-1" />
+                                    {t("registered") || "Registrován"}
+                                  </Badge>
+                                ) : competition.started ? (
+                                  <Badge color="danger" style={{ fontSize: '0.8rem', padding: '8px 12px' }}>
+                                    <i className="tim-icons icon-lock-circle mr-1" />
+                                    {t("closed") || "Uzavřeno"}
+                                  </Badge>
+                                ) : (
+                                  <Badge color="info" style={{ fontSize: '0.8rem', padding: '8px 12px' }}>
+                                    <i className="tim-icons icon-double-right mr-1" />
+                                    {t("available") || "Dostupné"}
+                                  </Badge>
+                                )}
+                              </Col>
+                            </Row>
+                          </CardHeader>
+                          
+                          <CardBody>
+                            {/* Date and time info */}
+                            <div className="mb-4" style={{ 
+                              background: 'rgba(255,255,255,0.03)', 
+                              borderRadius: '10px', 
+                              padding: '15px' 
+                            }}>
+                              <Row>
+                                <Col xs="12" className="mb-2">
+                                  <div className="d-flex align-items-center">
+                                    <div style={{ 
+                                      width: '40px', 
+                                      height: '40px', 
+                                      borderRadius: '10px', 
+                                      background: 'rgba(244,67,54,0.2)', 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center',
+                                      marginRight: '12px'
+                                    }}>
+                                      <i className="tim-icons icon-calendar-60" style={{ color: '#f44336' }} />
+                                    </div>
+                                    <div>
+                                      <small className="text-muted d-block">{t("compDate_colon").replace(':', '')}</small>
+                                      <strong style={{ fontSize: '1.1rem' }}>{formatDate(competition.date)}</strong>
+                                    </div>
+                                  </div>
+                                </Col>
+                                <Col xs="6">
+                                  <div className="d-flex align-items-center">
+                                    <div style={{ 
+                                      width: '35px', 
+                                      height: '35px', 
+                                      borderRadius: '8px', 
+                                      background: 'rgba(76,175,80,0.2)', 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center',
+                                      marginRight: '10px'
+                                    }}>
+                                      <i className="tim-icons icon-time-alarm" style={{ color: '#4caf50', fontSize: '0.9rem' }} />
+                                    </div>
+                                    <div>
+                                      <small className="text-muted d-block">{t("start") || "Začátek"}</small>
+                                      <strong>{formatTime(competition.startTime)}</strong>
+                                    </div>
+                                  </div>
+                                </Col>
+                                <Col xs="6">
+                                  <div className="d-flex align-items-center">
+                                    <div style={{ 
+                                      width: '35px', 
+                                      height: '35px', 
+                                      borderRadius: '8px', 
+                                      background: 'rgba(255,152,0,0.2)', 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center',
+                                      marginRight: '10px'
+                                    }}>
+                                      <i className="tim-icons icon-bell-55" style={{ color: '#ff9800', fontSize: '0.9rem' }} />
+                                    </div>
+                                    <div>
+                                      <small className="text-muted d-block">{t("endExpect").replace(':', '') || "Konec"}</small>
+                                      <strong>{formatTime(competition.endTime)}</strong>
+                                    </div>
+                                  </div>
+                                </Col>
+                              </Row>
                             </div>
 
-                            <Button color="info" onClick={() => handleManageRobots(competition.year)}>
-                              <i className="tim-icons icon-double-right" />
-                              {t("manageRobots")}
-                              <i className="tim-icons icon-double-left" />
-                            </Button>
+                            {competition.started ? (
+                              <Alert color="danger" className="d-flex align-items-center mb-0">
+                                <i className="tim-icons icon-lock-circle mr-2" />
+                                {t("regImpossible")}
+                              </Alert>
+                            ) : isRegistered ? (
+                              <>
+                                {/* Teacher info card */}
+                                <Card style={{ 
+                                  background: 'rgba(255,255,255,0.03)', 
+                                  border: '1px solid rgba(255,255,255,0.1)',
+                                  marginBottom: '15px'
+                                }}>
+                                  <CardHeader style={{ 
+                                    background: 'rgba(94,114,228,0.1)', 
+                                    padding: '12px 15px',
+                                    borderBottom: '1px solid rgba(255,255,255,0.1)'
+                                  }}>
+                                    <h5 className="mb-0" style={{ fontSize: '0.95rem' }}>
+                                      <i className="tim-icons icon-single-02 mr-2" style={{ color: '#5e72e4' }} />
+                                      {t("teacherInfo")}
+                                    </h5>
+                                  </CardHeader>
+                                  <CardBody style={{ padding: '15px' }}>
+                                    <Row>
+                                      <Col xs="12" sm="6" className="mb-2">
+                                        <small className="text-muted d-block">{t("teacherName")}</small>
+                                        <strong>{registration?.teacherName || t("notProvided")}</strong>
+                                      </Col>
+                                      <Col xs="12" sm="6" className="mb-2">
+                                        <small className="text-muted d-block">{t("teacherSurname")}</small>
+                                        <strong>{registration?.teacherSurname || t("notProvided")}</strong>
+                                      </Col>
+                                      <Col xs="12">
+                                        <small className="text-muted d-block">{t("teacherContact")}</small>
+                                        <strong>{registration?.teacherContact || t("notProvided")}</strong>
+                                      </Col>
+                                    </Row>
+                                  </CardBody>
+                                </Card>
 
-                            <Button color="warning" onClick={() => handleEditTeacherInfo(competition.year)}>
-                              <i className="tim-icons icon-pencil" />
-                              {t("editTeacherInfo")}
-                            </Button>
-
-                            <Button color="danger" onClick={() => unregisterTeam(competition.year)}>
-                              {t("regCancel")}
-                            </Button>
-
-                          </>
-                        ) : (
-                          <Button color="success" onClick={() => registerTeam(competition.year)}>
-                            {t("register")}
-                          </Button>
-                        )}
-                      </CardBody>
-                    </Card>
-                  );
-                })
+                                {/* Action buttons */}
+                                <div className="d-flex flex-wrap gap-2" style={{ gap: '8px' }}>
+                                  <Button 
+                                    color="info" 
+                                    onClick={() => handleManageRobots(competition.year)}
+                                    className="flex-grow-1"
+                                    style={{ marginRight: '5px', marginBottom: '5px' }}
+                                  >
+                                    <i className="tim-icons icon-settings-gear-63 mr-2" />
+                                    {t("manageRobots")}
+                                  </Button>
+                                  <Button 
+                                    color="warning" 
+                                    size="sm"
+                                    onClick={() => handleEditTeacherInfo(competition.year)}
+                                    style={{ marginRight: '5px', marginBottom: '5px' }}
+                                  >
+                                    <i className="tim-icons icon-pencil mr-1" />
+                                    {t("editTeacherInfo")}
+                                  </Button>
+                                  <Button 
+                                    color="danger" 
+                                    size="sm"
+                                    onClick={() => unregisterTeam(competition.year)}
+                                    style={{ marginBottom: '5px' }}
+                                  >
+                                    <i className="tim-icons icon-simple-remove mr-1" />
+                                    {t("regCancel")}
+                                  </Button>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-center">
+                                <p className="text-muted mb-3">
+                                  {t("registerTeamDesc") || "Zaregistrujte svůj tým do tohoto ročníku soutěže"}
+                                </p>
+                                <Button color="success" size="lg" onClick={() => registerTeam(competition.year)}>
+                                  <i className="tim-icons icon-check-2 mr-2" />
+                                  {t("register")}
+                                </Button>
+                              </div>
+                            )}
+                          </CardBody>
+                        </Card>
+                      </Col>
+                    );
+                  })}
+                </Row>
               )}
             </CardBody>
           </Card>

@@ -339,14 +339,17 @@ function MyTeam() {
 
       const result = await response.json();
       if (result.data === "success") {
+        setSearchModal(false); // Zavřít modal po úspěšném odeslání
+        setSearchTerm(''); // Vyčistit vyhledávání
         toast.success(t("inviteSent"));
       } else if (result.data === "failure, user already invited") {
         toast.warning(t("alreadyInvited"));
       } else {
-        toast.error(t("somethingFailed"));
+        toast.error(result.data || t("somethingFailed"));
       }
     } catch (error) {
       console.error('Error:', error);
+      toast.error(t("somethingFailed"));
     }
   };
 
@@ -354,161 +357,251 @@ function MyTeam() {
     return <p>{t("loading")}</p>;
   }
 
+  // Získání unikátních roků registrace
+  const getUniqueYears = () => {
+    if (!team?.registrationYears) return [];
+    const uniqueYears = [...new Set(team.registrationYears.map(y => y.year))];
+    return uniqueYears.sort((a, b) => b - a); // Seřadit sestupně
+  };
+
+  const isLeader = team?.leaderID === parseInt(userID, 10);
+
   return (
     <div className="content">
-      <Row>
-        <Col xs="12">
-          {error || !team ? (
-            <div>
-              <Alert color='danger' >{error}</Alert>
-              <Button color="primary" onClick={() => setCreateModal(true)}>{t("teamCreate")}</Button>
-              <Modal isOpen={createModal} toggle={() => setCreateModal(!createModal)}>
-                <ModalHeader toggle={() => setCreateModal(false)}>{t("teamCreateNew")}</ModalHeader>
-                <ModalBody>
-                  <FormGroup>
-                    <Label for="teamName">{t("teamName")}</Label>
-                    <Input style={{ color: 'black' }}
-                      type="text"
-                      name="teamName"
-                      id="teamName"
-                      placeholder={t("nameEg")}
-                      value={newTeamName}
-                      onChange={e => setNewTeamName(e.target.value)}
-                    />
-                  </FormGroup>
-                  {creationError && <p className="text-danger">{creationError}</p>}
-                </ModalBody>
-                <ModalFooter>
-                  <Button style={{ margin: '10px' }} color="primary" onClick={handleCreateTeam}>{t("create")}</Button>
-                  <Button style={{ margin: '10px' }} color="secondary" onClick={() => setCreateModal(false)}>{t("cancel")}</Button>
-                </ModalFooter>
-              </Modal>
-            </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle tag="h2" style={{ display: 'inline' }}>{team.name}</CardTitle>
-                {(team.leaderID === parseInt(userID, 10) &&
-                  <Button className='m-0 pb-3' color="link" onClick={() => setCreateModal(true)}>
-                    <i className="fa-solid fa-pencil"
-                      style={{ cursor: 'pointer', fontSize: '0.9rem' }}
-                      title={t("rename")}
-                    />
-                  </Button>
-                )}
-                <Modal isOpen={createModal} toggle={() => setCreateModal(!createModal)}>
-                  <ModalHeader toggle={() => setCreateModal(false)}>{t("teamRename")}</ModalHeader>
-                  <ModalBody>
-                    <FormGroup>
-                      <Label for="teamName">{t("teamName")}</Label>
-                      <Input style={{ color: 'black' }}
-                        type="text"
-                        name="teamName"
-                        id="teamName"
-                        placeholder={t("nameEg")}
-                        value={newTeamName}
-                        onChange={e => setNewTeamName(e.target.value)}
-                      />
-                    </FormGroup>
-                    {creationError && <p className="text-danger">{creationError}</p>}
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button style={{ margin: '10px' }} color="primary" onClick={handleRenameTeam}>{t("rename")}</Button>
-                    <Button style={{ margin: '10px' }} color="secondary" onClick={() => setCreateModal(false)}>{t("cancel")}</Button>
-                  </ModalFooter>
-                </Modal>
-              </CardHeader>
-              <CardBody>
-                <Table responsive>
-                  <thead>
-                    <tr>
-                      {/* <th>{t("id")}</th> */}
-                      <th>{t("name")}</th>
-                      <th>{t("surname")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {team.memberNames.map(member => (
-                      <tr key={member.id}>
-                        {/* <td>{member.id}</td> */}
-                        <td>{member.name}</td>
-                        <td>{member.surname}</td>
-
-                        {team.leaderID === parseInt(userID, 10) && member.id !== team.leaderID && (
-                          <td>
-                            <Button color="link" size="sm" onClick={() => removeMember(member.id)}>
-                              <i className="tim-icons icon-trash-simple" />
-                            </Button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-                <p><strong>{t("teamLeader")}</strong> {leaderName}</p>
-                <p><strong>{t("regYears")}</strong> {team.registrationYears.map(year => year.year).join(', ')}</p>
-                {team.leaderID === parseInt(userID, 10) && (
-                  <>
-                    <Button className="text-right" color="success" size="sm" onClick={() => setSearchModal(true)}>{t("teamAddUser")}</Button>
-                    <Modal isOpen={searchModal} toggle={() => setSearchModal(false)}>
-                      <ModalHeader toggle={() => setSearchModal(false)}>{t("findUser")}</ModalHeader>
-                      <ModalBody>
-                        <Input
-                          type="text"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          placeholder={t("enterMailName")}
-                          style={{ color: 'black' }}
-                        />
-
-                        <ListGroup>
-                          {filteredUsers.map((user) => (
-                            <ListGroupItem key={user.id} tag="button" style={{ cursor: "default" }} >
-                              <Button color="link" onClick={() => handleAddUser(user.id)}>
-                                {user.name} {user.surname} - {user.email}
-                                <i className="tim-icons icon-send ml-2" />
-                              </Button>
-                            </ListGroupItem>
-                          ))}
-                        </ListGroup>
-                      </ModalBody>
-                    </Modal>
-                  </>
-                )}
-              </CardBody>
-              <CardFooter>
-                <Button size="sm" color="warning" onClick={leaveTeam}>
-                  {t("teamLeave")}
-                </Button>
-                {team.leaderID === parseInt(userID, 10) && (
-                  <Button className="text-right" color="danger" size="sm" onClick={handleRemoveTeam}>{t("teamRemove")}</Button>
-                )}
-              </CardFooter>
-            </Card>
-          )}
-        </Col>
-      </Row>
-
-      {team && team.leaderID === parseInt(userID, 10) && (
+      {error || !team ? (
+        // Stav kdy uživatel není v týmu
         <Row>
-          <Col xs="12">
+          <Col lg="8" md="10" className="mx-auto">
             <Card>
-              <CardHeader>
-                <CardTitle tag="h5">{t("registerHere")}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                <Button
-                  color="info"
-                  size="lg"
-                  onClick={() => navigate('/admin/competition-registration')}
-                >
-                  <i className="tim-icons icon-tap-02" /> {t("compRegister")} <i className="tim-icons icon-tap-02" />
+              <CardBody className="text-center py-5">
+                <i className="tim-icons icon-molecule-40" style={{ fontSize: '4rem', opacity: 0.3, marginBottom: '20px' }} />
+                <Alert color="info" className="mb-4">
+                  {error}
+                </Alert>
+                <Button color="primary" size="lg" onClick={() => setCreateModal(true)}>
+                  <i className="tim-icons icon-simple-add mr-2" />
+                  {t("teamCreate")}
                 </Button>
               </CardBody>
             </Card>
           </Col>
         </Row>
+      ) : (
+        // Zobrazení týmu
+        <>
+          <Row>
+            <Col lg="8">
+              {/* Hlavní karta týmu */}
+              <Card>
+                <CardHeader>
+                  <Row className="align-items-center">
+                    <Col>
+                      <CardTitle tag="h2" className="mb-0" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <i className="tim-icons icon-molecule-40" style={{ opacity: 0.7 }} />
+                        {team.name}
+                        {isLeader && (
+                          <Button color="link" className="p-0 ml-2" onClick={() => setCreateModal(true)} title={t("rename")}>
+                            <i className="fa-solid fa-pencil" style={{ fontSize: '0.8rem' }} />
+                          </Button>
+                        )}
+                      </CardTitle>
+                    </Col>
+                  </Row>
+                </CardHeader>
+                <CardBody>
+                  {/* Sekce členů */}
+                  <h5 className="mb-3">
+                    <i className="tim-icons icon-single-02 mr-2" />
+                    {t("members")} ({team.memberNames.length})
+                  </h5>
+                  <Table responsive className="table-hover">
+                    <thead className="text-primary">
+                      <tr>
+                        <th>{t("name")}</th>
+                        <th>{t("surname")}</th>
+                        <th>{t("role")}</th>
+                        {isLeader && <th style={{ width: '60px' }}></th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {team.memberNames.map(member => (
+                        <tr key={member.id}>
+                          <td>{member.name}</td>
+                          <td>{member.surname}</td>
+                          <td>
+                            {member.id === team.leaderID ? (
+                              <span className="badge badge-primary">
+                                <i className="tim-icons icon-badge mr-1" />
+                                {t("leader")}
+                              </span>
+                            ) : (
+                              <span className="badge badge-secondary">{t("member") || "Člen"}</span>
+                            )}
+                          </td>
+                          {isLeader && (
+                            <td>
+                              {member.id !== team.leaderID && (
+                                <Button color="link" size="sm" className="text-danger p-0" onClick={() => removeMember(member.id)} title={t("remove")}>
+                                  <i className="tim-icons icon-trash-simple" />
+                                </Button>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+
+                  {/* Tlačítko pro přidání člena */}
+                  {isLeader && (
+                    <Button color="success" size="sm" className="mt-2" onClick={() => setSearchModal(true)}>
+                      <i className="tim-icons icon-simple-add mr-2" />
+                      {t("teamAddUser")}
+                    </Button>
+                  )}
+                </CardBody>
+                <CardFooter className="d-flex justify-content-between align-items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Button size="sm" color="warning" onClick={leaveTeam}>
+                    <i className="tim-icons icon-button-power mr-2" />
+                    {t("teamLeave")}
+                  </Button>
+                  {isLeader && (
+                    <Button color="danger" size="sm" onClick={handleRemoveTeam}>
+                      <i className="tim-icons icon-trash-simple mr-2" />
+                      {t("teamRemove")}
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+            </Col>
+
+            <Col lg="4">
+              {/* Info karta */}
+              <Card>
+                <CardHeader>
+                  <CardTitle tag="h5" className="mb-0">
+                    <i className="tim-icons icon-badge mr-2" />
+                    {t("teamInfo") || "Informace o týmu"}
+                  </CardTitle>
+                </CardHeader>
+                <CardBody>
+                  <div className="mb-3">
+                    <small className="text-muted d-block">{t("teamLeader")}</small>
+                    <strong>{leaderName}</strong>
+                  </div>
+                  <div className="mb-3">
+                    <small className="text-muted d-block">{t("regYears")}</small>
+                    <strong>
+                      {getUniqueYears().length > 0 
+                        ? getUniqueYears().join(', ')
+                        : <span className="text-muted">{t("noRegistrations") || "Žádné registrace"}</span>
+                      }
+                    </strong>
+                  </div>
+                  <div>
+                    <small className="text-muted d-block">{t("membersCount") || "Počet členů"}</small>
+                    <strong>{team.memberNames.length}</strong>
+                  </div>
+                </CardBody>
+              </Card>
+
+              {/* Registrace do soutěže - pouze pro vedoucího */}
+              {isLeader && (
+                <Card className="bg-gradient-primary">
+                  <CardBody className="text-center">
+                    <h5 className="text-white mb-3">
+                      <i className="tim-icons icon-trophy mr-2" />
+                      {t("registerHere")}
+                    </h5>
+                    <Button
+                      color="default"
+                      onClick={() => navigate('/admin/competition-registration')}
+                    >
+                      <i className="tim-icons icon-tap-02 mr-2" />
+                      {t("compRegister")}
+                    </Button>
+                  </CardBody>
+                </Card>
+              )}
+            </Col>
+          </Row>
+        </>
       )}
+
+      {/* Modal pro vytvoření/přejmenování týmu */}
+      <Modal isOpen={createModal} toggle={() => setCreateModal(!createModal)}>
+        <ModalHeader toggle={() => setCreateModal(false)}>
+          {team ? t("teamRename") : t("teamCreateNew")}
+        </ModalHeader>
+        <ModalBody>
+          <FormGroup>
+            <Label for="teamName">{t("teamName")}</Label>
+            <Input
+              style={{ color: 'black' }}
+              type="text"
+              name="teamName"
+              id="teamName"
+              placeholder={t("nameEg")}
+              value={newTeamName}
+              onChange={e => setNewTeamName(e.target.value)}
+            />
+          </FormGroup>
+          {creationError && <Alert color="danger" className="mb-0">{creationError}</Alert>}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onClick={team ? handleRenameTeam : handleCreateTeam}>
+            {team ? t("rename") : t("create")}
+          </Button>
+          <Button color="secondary" onClick={() => { setCreateModal(false); setCreationError(''); }}>
+            {t("cancel")}
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Modal pro vyhledávání uživatelů */}
+      <Modal isOpen={searchModal} toggle={() => setSearchModal(false)}>
+        <ModalHeader toggle={() => setSearchModal(false)}>
+          <i className="tim-icons icon-zoom-split mr-2" />
+          {t("findUser")}
+        </ModalHeader>
+        <ModalBody>
+          <Input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={t("enterMailName")}
+            style={{ color: 'black' }}
+            className="mb-3"
+          />
+          {searchTerm.length > 0 && searchTerm.length < 3 && (
+            <small className="text-muted">{t("minChars") || "Zadejte alespoň 3 znaky"}</small>
+          )}
+          <ListGroup className="mt-2" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            {filteredUsers.map((user) => (
+              <ListGroupItem 
+                key={user.id} 
+                className="d-flex justify-content-between align-items-center"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleAddUser(user.id)}
+              >
+                <div>
+                  <strong>{user.name} {user.surname}</strong>
+                  <br />
+                  <small className="text-muted">{user.email}</small>
+                </div>
+                <Button color="success" size="sm">
+                  <i className="tim-icons icon-send" />
+                </Button>
+              </ListGroupItem>
+            ))}
+            {searchTerm.length >= 3 && filteredUsers.length === 0 && (
+              <ListGroupItem className="text-center text-muted">
+                {t("noUsersFound") || "Žádní uživatelé nenalezeni"}
+              </ListGroupItem>
+            )}
+          </ListGroup>
+        </ModalBody>
+      </Modal>
     </div>
   );
 }
