@@ -7,24 +7,26 @@
 
 */
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
-  Table, Row, Col, Input,
+  Table, Row, Col, Input, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
   Form, FormGroup, Label, FormFeedback
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useAdmin } from "contexts/AdminContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
 
 function RobotConfirmation() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { selectedYear } = useAdmin();
   const [robots, setRobots] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [disciplines, setDisciplines] = useState([]);
   const [registrations, setRegistrations] = useState([]);
 
@@ -38,6 +40,7 @@ function RobotConfirmation() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     fetchDisciplines();
@@ -51,7 +54,7 @@ function RobotConfirmation() {
   }, [selectedYear]);
 
   const handleConfirmRegistration = async (robotId, confirmed) => {
-    if (window.confirm(t("robotAction", { conf: confirmed ? t("confirm_lower") : t("remove_lower") }))) {
+    if (await confirm({ message: t("robotAction", { conf: confirmed ? t("confirm_lower") : t("remove_lower") }) })) {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`, {
           method: 'PUT',
@@ -103,6 +106,27 @@ function RobotConfirmation() {
   };
 
   const filteredRobots = robots.filter(robot => robot.teamName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  // Statistics
+  const totalRobots = robots.length;
+  const confirmedRobots = robots.filter(r => r.confirmed).length;
+  const robotsWithEmptyTeam = robots.filter(r => r.teamMemberCount === 0).length;
+
+  // Update URL when search term changes
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    if (value) {
+      setSearchParams({ search: value });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  // Navigate to robot profile while preserving search term
+  const navigateToProfile = (robotId) => {
+    navigate(`/admin/robot-profile?id=${robotId}&from=confirmation${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`);
+  };
 
   const fetchDisciplines = async () => {
     try {
@@ -222,7 +246,7 @@ function RobotConfirmation() {
 
   // FORCE CONFIRM ROBOT (Admin)
   const handleForceConfirm = async (robotId, confirmed) => {
-    if (!window.confirm(t("robotForceConfirmCheck", { action: confirmed ? t("confirm_lower") : t("remove_lower") }))) return;
+    if (!await confirm({ message: t("robotForceConfirmCheck", { action: confirmed ? t("confirm_lower") : t("remove_lower") }) })) return;
 
     try {
       const response = await fetch(
@@ -248,7 +272,7 @@ function RobotConfirmation() {
 
   // FORCE REMOVE ROBOT (Admin)
   const handleForceRemove = async (robotId) => {
-    if (!window.confirm(t("robotForceRemoveCheck"))) return;
+    if (!await confirm({ message: t("robotForceRemoveCheck") })) return;
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/robot/forceRemove?id=${robotId}`, {
@@ -271,7 +295,7 @@ function RobotConfirmation() {
 
   // REMOVE ROBOT (Admin - normal)
   const handleRemoveRobot = async (robotId) => {
-    if (!window.confirm(t("robotRemoveCheck"))) return;
+    if (!await confirm({ message: t("robotRemoveCheck") })) return;
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/robot/remove?id=${robotId}`, {
@@ -305,6 +329,79 @@ function RobotConfirmation() {
 
   return (
     <div className="content">
+      {/* Statistics Summary */}
+      <Row className="mb-3">
+        <Col md="4">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-spaceship" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("totalRobots")}</p>
+                  <CardTitle tag="h3" className="mb-0">{totalRobots}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md="4">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #2dce89 0%, #2dcecc 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-check-2" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("confirmedRobots")}</p>
+                  <CardTitle tag="h3" className="mb-0">{confirmedRobots} / {totalRobots}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md="4">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #f5365c 0%, #f56036 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-alert-circle-exc" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("robotsEmptyTeam")}</p>
+                  <CardTitle tag="h3" className="mb-0">{robotsWithEmptyTeam}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
       <Row>
         <Col xs="12">
           <Card>
@@ -324,7 +421,7 @@ function RobotConfirmation() {
                 type="text"
                 placeholder={t("findByTeam")}
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 style={{ width: '300px', marginTop: '15px' }}
               />
             </CardHeader>
@@ -346,29 +443,36 @@ function RobotConfirmation() {
                   </thead>
                   <tbody>
                     {filteredRobots.map(robot => (
-                      <tr key={robot.id}>
+                      <tr key={robot.id} style={robot.teamMemberCount === 0 ? { backgroundColor: 'rgba(255, 90, 90, 0.15)' } : {}}>
                         <td>{robot.id}</td>
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
                         <td>{robot.confirmed ? t("yes") : t("no")}</td>
                         <td>{robot.category}</td>
-                        <td>{robot.teamName}</td>
+                        <td>
+                          {robot.teamName}
+                          {robot.teamMemberCount === 0 && (
+                            <Badge color="danger" className="ml-2" title={t("teamHasNoMembers")}>
+                              <i className="tim-icons icon-alert-circle-exc" />
+                            </Badge>
+                          )}
+                        </td>
                         <td>{robot.diciplineName}</td>
                         <td>
                           {robot.diciplineName && (
                             <Button
-                              color={robot.confirmed ? "warning" : "success"}
+                              color={robot.confirmed ? "success" : "warning"}
                               className="btn-icon btn-simple"
                               onClick={() => handleConfirmRegistration(robot.id, !robot.confirmed)}
                             >
-                              <i className={robot.confirmed ? "tim-icons icon-simple-remove" : "tim-icons icon-check-2"} />
+                              <i className={robot.confirmed ? "tim-icons icon-check-2" : "tim-icons icon-simple-remove"} />
                             </Button>)}
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <Button
                             color="info"
                             className="btn-icon btn-simple"
-                            onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
+                            onClick={() => navigateToProfile(robot.id)}
                             title={t("showProfile")}
                           >
                             <i className="tim-icons icon-badge" />

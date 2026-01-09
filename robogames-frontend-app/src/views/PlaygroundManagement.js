@@ -29,6 +29,7 @@ import {
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { ThemeContext, themes } from "contexts/ThemeContext";
 import { t } from "translations/translate";
 
@@ -55,6 +56,7 @@ function PlaygroundManagement() {
 
     const { token, tokenExpired } = useUser();
     const toast = useToast();
+    const { confirm } = useConfirm();
     const { theme } = useContext(ThemeContext);
     const isDark = theme === themes.dark;
 
@@ -99,7 +101,7 @@ function PlaygroundManagement() {
             return;
         }
 
-        if (!window.confirm(t("pgRemoveCheck"))) {
+        if (!await confirm({ message: t("pgRemoveCheck") })) {
             return;
         }
 

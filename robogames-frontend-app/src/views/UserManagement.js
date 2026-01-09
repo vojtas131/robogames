@@ -23,6 +23,7 @@ import {
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
@@ -49,6 +50,7 @@ function UserManagement() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
   const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER'];
 
   useEffect(() => {
@@ -214,7 +216,7 @@ function UserManagement() {
   };
 
   const handleRemoveUser = async (userId) => {
-    if (window.confirm(t("userRemove"))) {
+    if (await confirm({ message: t("userRemove") })) {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/user/remove?id=${userId}`, {
           method: 'DELETE',

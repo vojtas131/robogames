@@ -34,7 +34,7 @@ import RobotConfirmation from "views/RobotConfirmation";
 import RobotProfile from "views/RobotProfile";
 import MatchManagement from "views/MatchManagement";
 import PlaygroundDetail from "views/PlaygroundDetail";
-import CompetitionResults from "views/CompetitonResults";
+import CompetitionResults from "views/CompetitionResults";
 import Contact from "views/Contact";
 import Rules from "views/Rules";
 import AuthCallback from "components/KeyCloak/KeyCloak";

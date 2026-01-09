@@ -6,12 +6,15 @@ const UserContext = createContext();
 
 export const useUser = () => useContext(UserContext);
 
-// Error kody z backendu
-const ERROR_CODES = {
+// Error kody z backendu pro token autentizaci
+const AUTH_ERROR_CODES = {
+  // Token problemy - 401 - MUSI odhlasit
   TOKEN_MISSING: 'TOKEN_MISSING',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOKEN_INVALID: 'TOKEN_INVALID',
-  NO_ROLE: 'NO_ROLE'
+  // Role problemy - 403
+  NO_ROLE: 'NO_ROLE',           // Uzivatel nema zadnou roli - MUSI odhlasit
+  ACCESS_DENIED: 'ACCESS_DENIED' // Uzivatel nema opravneni pro akci - NEOHLASUJE
 };
 
 export const UserProvider = ({ children }) => {
@@ -80,60 +83,64 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // if token expired
-  // Muzete volat bud s jednim parametrem (status code) nebo s dvema (status, responseData)
-  const tokenExpired = (response, responseData = null) => {
-    // 401 = Unauthorized - token je neplatny/expiroval, uzivatel musi znovu prihlasit
-    if (response === 401) {
-      console.log("Token is unauthorized (missing, expired or invalid)");
-      
-      // Pri 401 backend uz odhlasil uzivatele z Keycloaku, takze preskocime Keycloak logout
-      // a jen vycistime local storage
-      let skipKeycloakLogout = true;
-      
-      // Pokud mame response data, zalogujeme presny duvod
+  /**
+   * Kontroluje zda HTTP odpoved indikuje problem s autentizaci/autorizaci
+   * 
+   * POUZITI:
+   * 1. Jednoduche (jen status): if (tokenExpired(response.status)) return;
+   * 2. S response daty: if (tokenExpired(response.status, jsonData)) return;
+   * 
+   * DULEZITE: Tato funkce POUZE kontroluje autentizacni chyby (401, 403 s NO_ROLE).
+   * Business chyby (400, 404, 500) NEJSOU povazovany za problem s tokenem!
+   * 
+   * @param {number} status - HTTP status kod
+   * @param {object} responseData - Volitelne: JSON response body z backendu
+   * @returns {boolean} true pokud uzivatel byl odhlasen, false jinak
+   */
+  const tokenExpired = (status, responseData = null) => {
+    // 401 = Unauthorized - token je neplatny/chybi/expiroval
+    // Toto je JEDINY pripad kdy je jiste ze se jedna o problem s tokenem
+    if (status === 401) {
+      // Zalogujeme presny duvod pokud mame response data
       if (responseData && responseData.errorCode) {
-        switch (responseData.errorCode) {
-          case ERROR_CODES.TOKEN_EXPIRED:
-            console.log("Token expired - session timeout");
-            break;
-          case ERROR_CODES.TOKEN_MISSING:
-            console.log("Token missing");
-            break;
-          case ERROR_CODES.TOKEN_INVALID:
-            console.log("Token invalid");
-            break;
-          default:
-            console.log("Unknown auth error:", responseData.errorCode);
+        const errorCode = responseData.errorCode;
+        if (errorCode === AUTH_ERROR_CODES.TOKEN_EXPIRED) {
+          console.log("Token expired - session timeout");
+        } else if (errorCode === AUTH_ERROR_CODES.TOKEN_MISSING) {
+          console.log("Token missing in request");
+        } else if (errorCode === AUTH_ERROR_CODES.TOKEN_INVALID) {
+          console.log("Token is invalid");
+        } else {
+          console.log("Auth error:", errorCode);
         }
+      } else {
+        console.log("Unauthorized (401) - logging out");
       }
       
-      logout(skipKeycloakLogout);
+      // Pri 401 backend uz odhlasil uzivatele z Keycloaku
+      logout(true);
       return true;
     }
     
-    // 403 = Forbidden - uzivatel je prihlasen, ale nema opravneni k dane akci
-    if (response === 403) {
-      // Pokud mame errorCode NO_ROLE, uzivatel nema zadnou roli - odhlasime
-      if (responseData && responseData.errorCode === ERROR_CODES.NO_ROLE) {
-        console.log("User has no role - forbidden");
-        logout(true); // Backend uz odhlasil
+    // 403 = Forbidden - pouze pokud je errorCode NO_ROLE
+    // Jine 403 chyby (napr. "nemas opravneni na tuto akci") NEOHLASUJEME!
+    if (status === 403) {
+      // Pouze pokud mame errorCode a je to NO_ROLE
+      if (responseData && responseData.errorCode === AUTH_ERROR_CODES.NO_ROLE) {
+        console.log("User has no role - logging out");
+        logout(true);
         return true;
       }
-      // Pro zpetnou kompatibilitu - pokud nemame responseData, pouzijeme stare chovani
-      // (odhlasime uzivatele)
-      if (!responseData) {
-        console.log("Forbidden (legacy behavior - logging out)");
-        logout(true); // Preskocime Keycloak logout - backend uz to udelal
-        return true;
-      }
-      // Jinak je to legitimni "nemas opravneni" - neodhlasujeme
-      console.log("Forbidden - insufficient permissions (not logging out)");
+      // Vsechny ostatni 403 - uzivatel JE prihlasen, jen nema opravneni
+      // NEODHLASUJEME - nechame komponentu aby to zpracovala
+      console.log("Forbidden (403) - user lacks permission, NOT logging out");
       return false;
     }
     
+    // Vsechny ostatni status kody (400, 404, 500, atd.) - NEJSOU problem s tokenem
+    // Tyto chyby musi zpracovat komponenta sama (zobrazit error message, atd.)
     return false;
-  }
+  };
 
   return (
     <UserContext.Provider value={{ user, token, setToken, login, tokenExpired, getUserInfo, logout }}>

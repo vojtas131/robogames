@@ -104,7 +104,7 @@ function Rules() {
                     <li>{t("max500g")}</li>
                   </ul>
 
-                  <img src={sumoring} alt="Sumo Ring" style={{ maxWidth: '50%', height: '400px' }}/>
+                  <img src={sumoring} alt={t("altSumoRing")} style={{ maxWidth: '50%', height: '400px' }}/>
           
                 </Collapse>
               </div>
@@ -147,10 +147,10 @@ function Rules() {
                       <li>{t("track")}</li>
                     </ul>
 
-                    <img src={draha1} alt="Sumo Ring" style={{ maxWidth: '50%', height: '200px' }}/>
+                    <img src={draha1} alt={t("altLineFollowTrack")} style={{ maxWidth: '50%', height: '200px' }}/>
                     <br></br>
                     <br></br>
-                    <img src={draha2} alt="Sumo Ring" style={{ maxWidth: '100%', height: '200px' }}/>
+                    <img src={draha2} alt={t("altLineFollowTrack")} style={{ maxWidth: '100%', height: '200px' }}/>
                   </div>
 
                 </Collapse>
@@ -197,7 +197,7 @@ function Rules() {
                       </li>
                     </ol>
 
-                    <img src={cleaner} alt="Sumo Ring" style={{ maxWidth: '50%', height: 'auto' }}/>
+                    <img src={cleaner} alt={t("altCleanerArena")} style={{ maxWidth: '50%', height: 'auto' }}/>
                   </div>
 
                 </Collapse>

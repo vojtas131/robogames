@@ -9,6 +9,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 
 function MatchCreationPage() {
@@ -27,6 +28,7 @@ function MatchCreationPage() {
 
     const { token, tokenExpired } = useUser();
     const toast = useToast();
+    const { confirm } = useConfirm();
 
     useEffect(() => {
         fetchMatchesForPlayground(playgroundId);
@@ -131,7 +133,7 @@ function MatchCreationPage() {
     };
 
     const handleRemoveMatch = async (matchId) => {
-        if (window.confirm(t("matchRemoveCheck"))) {
+        if (await confirm({ message: t("matchRemoveCheck") })) {
             const apiUrl = `${process.env.REACT_APP_API_URL}api/match/remove?id=${matchId}`;
 
             try {

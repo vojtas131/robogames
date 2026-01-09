@@ -29,6 +29,7 @@ import {
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import { validateName, validateEmail } from "./Register";
 
@@ -48,6 +49,7 @@ function CompetitionRegistration() {
   const navigate = useNavigate();
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -107,7 +109,7 @@ function CompetitionRegistration() {
   };
 
   const unregisterTeam = async (year) => {
-    const confirmUnregistration = window.confirm(t("unreg"));
+    const confirmUnregistration = await confirm({ message: t("unreg"), confirmColor: 'danger' });
     if (!confirmUnregistration) {
       return;
     }

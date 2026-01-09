@@ -206,61 +206,41 @@ function UserProfile() {
 
   return (
     <div className="content">
-      <Row>
-        {/* Levý sloupec - Profil karta */}
-        <Col lg="4" md="5">
-          <Card className="card-user">
-            <CardBody className="text-center">
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                <img
-                  alt="Profilový obrázek"
-                  className="avatar"
-                  src={require("assets/img/profile-picture.png")}
-                  style={{ 
-                    width: '120px', 
-                    height: '120px', 
-                    borderRadius: '50%',
-                    border: '4px solid rgba(255,255,255,0.2)',
-                    marginBottom: '15px'
-                  }}
-                />
-              </div>
-              <h4 className="title mb-2">
-                {userData.name} {userData.surname}
-              </h4>
-              <p className="text-muted mb-3">{userData.email}</p>
-              
-              {/* Role badges */}
-              <div className="mb-4">
+      {/* Hlavní karta profilu */}
+      <Card className="mb-4">
+        <CardBody>
+          <Row className="align-items-center">
+            {/* Avatar a základní info */}
+            <Col md="auto" className="text-center mb-3 mb-md-0">
+              <img
+                alt={t("altProfilePicture")}
+                className="avatar"
+                src={require("assets/img/profile-picture.png")}
+                style={{ 
+                  width: '100px', 
+                  height: '100px', 
+                  borderRadius: '50%',
+                  border: '3px solid rgba(255,255,255,0.2)'
+                }}
+              />
+            </Col>
+            <Col md>
+              <h3 className="mb-1">{userData.name} {userData.surname}</h3>
+              <p className="text-muted mb-2">{userData.email}</p>
+              <div>
                 {userData.roles.map((role, index) => (
                   <Badge 
                     key={index} 
                     color={getRoleBadgeColor(role.name)} 
-                    className="mr-1 mb-1"
-                    style={{ fontSize: '0.75rem', padding: '6px 10px' }}
+                    className="mr-1"
+                    style={{ fontSize: '0.75rem', padding: '5px 10px' }}
                   >
                     {role.name}
                   </Badge>
                 ))}
               </div>
-
-              {/* Statistiky */}
-              <Row className="text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
-                <Col xs="6" style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div>
-                    <small className="text-muted d-block mb-1">{t("age") || "Věk"}</small>
-                    <h5 className="mb-0">{calculateAge(userData.birthDate) || '-'}</h5>
-                  </div>
-                </Col>
-                <Col xs="6">
-                  <div>
-                    <small className="text-muted d-block mb-1">{t("team")}</small>
-                    <h5 className="mb-0">{teamName || '-'}</h5>
-                  </div>
-                </Col>
-              </Row>
-            </CardBody>
-            <CardFooter className="text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            </Col>
+            <Col md="auto" className="text-md-right mt-3 mt-md-0">
               <Button
                 color="info"
                 size="sm"
@@ -275,64 +255,60 @@ function UserProfile() {
                 <i className="tim-icons icon-lock-circle mr-2" />
                 {t("changePassword")}
               </Button>
-            </CardFooter>
-          </Card>
+            </Col>
+          </Row>
+        </CardBody>
+      </Card>
 
-          {/* Info karta */}
+      <Row>
+        {/* Levý sloupec - Přehled */}
+        <Col lg="4">
           <Card>
             <CardHeader>
               <CardTitle tag="h5" className="mb-0">
                 <i className="tim-icons icon-badge mr-2" />
-                {t("accountInfo") || "Informace o účtu"}
+                {t("overview") || "Přehled"}
               </CardTitle>
             </CardHeader>
-            <CardBody>
-              <div className="mb-3">
-                <small className="text-muted d-block">{t("mail")}</small>
-                <strong>{userData.email}</strong>
+            <CardBody className="pt-0">
+              <div className="d-flex justify-content-between align-items-center py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <span className="text-muted">{t("age") || "Věk"}</span>
+                <strong>{calculateAge(userData.birthDate) ? `${calculateAge(userData.birthDate)} ${t("years") || "let"}` : '-'}</strong>
               </div>
-              <div className="mb-3">
-                <small className="text-muted d-block">{t("birthDate")}</small>
-                <strong>{formatDate(userData.birthDate)}</strong>
+              <div className="d-flex justify-content-between align-items-center py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <span className="text-muted">{t("birthDate")}</span>
+                <strong>{formatDate(userData.birthDate) || '-'}</strong>
               </div>
-              <div className="mb-3">
-                <small className="text-muted d-block">{t("rolesLabel") || "Role"}</small>
-                <strong>{userData.roles.map(r => r.name).join(', ') || '-'}</strong>
-              </div>
-              <div>
-                <small className="text-muted d-block">{t("teamMembership") || "Členství v týmu"}</small>
-                <strong>
-                  {userData.teamID !== -1 
-                    ? <span className="text-success">{t("inTeam") || "V týmu"}: {teamName}</span>
-                    : <span className="text-muted">{t("notInTeam") || "Není v týmu"}</span>
-                  }
-                </strong>
+              <div className="d-flex justify-content-between align-items-center py-3">
+                <span className="text-muted">{t("team")}</span>
+                {userData.teamID !== -1 ? (
+                  <strong className="text-success">
+                    <i className="tim-icons icon-check-2 mr-1" />
+                    {teamName || t("loading")}
+                  </strong>
+                ) : (
+                  <span className="text-muted">{t("notInTeam") || "Není v týmu"}</span>
+                )}
               </div>
             </CardBody>
           </Card>
         </Col>
 
         {/* Pravý sloupec - Editace profilu */}
-        <Col lg="8" md="7">
+        <Col lg="8">
           <Card>
             <CardHeader>
-              <CardTitle tag="h4" className="mb-0">
+              <CardTitle tag="h5" className="mb-0">
                 <i className="tim-icons icon-settings mr-2" />
                 {t("infoEdit")}
               </CardTitle>
-              <p className="text-muted mt-2 mb-0" style={{ fontSize: '0.9rem' }}>
-                {t("editProfileDesc") || "Upravte své osobní údaje"}
-              </p>
             </CardHeader>
             <CardBody>
               <Form onSubmit={handleSubmit}>
                 <Row>
                   <Col md="6">
                     <FormGroup>
-                      <label className="d-flex align-items-center">
-                        <i className="tim-icons icon-single-02 mr-2 text-muted" />
-                        {t("name")}
-                      </label>
+                      <label>{t("name")}</label>
                       <Input
                         invalid={!!errors.name}
                         value={userData.name}
@@ -350,10 +326,7 @@ function UserProfile() {
                   </Col>
                   <Col md="6">
                     <FormGroup>
-                      <label className="d-flex align-items-center">
-                        <i className="tim-icons icon-caps-small mr-2 text-muted" />
-                        {t("surname")}
-                      </label>
+                      <label>{t("surname")}</label>
                       <Input
                         invalid={!!errors.surname}
                         value={userData.surname}
@@ -374,26 +347,20 @@ function UserProfile() {
                 <Row>
                   <Col md="6">
                     <FormGroup>
-                      <label className="d-flex align-items-center">
-                        <i className="tim-icons icon-email-85 mr-2 text-muted" />
-                        {t("mail")}
-                      </label>
+                      <label>{t("mail")}</label>
                       <Input
                         value={userData.email}
                         placeholder={t("mail")}
                         type="email"
                         disabled
-                        style={{ opacity: 0.7 }}
+                        style={{ opacity: 0.6 }}
                       />
                       <small className="text-muted">{t("emailCantChange") || "E-mail nelze změnit"}</small>
                     </FormGroup>
                   </Col>
                   <Col md="6">
                     <FormGroup>
-                      <label className="d-flex align-items-center">
-                        <i className="tim-icons icon-calendar-60 mr-2 text-muted" />
-                        {t("birthDate")}
-                      </label>
+                      <label>{t("birthDate")}</label>
                       <Input
                         invalid={!!errors.birthDate}
                         value={userData.birthDate}

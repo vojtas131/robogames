@@ -27,6 +27,7 @@ import {
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import { validateTitle } from "./MyTeam";
 
@@ -50,6 +51,7 @@ function RobotRegistration() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     fetchRobots();
@@ -146,8 +148,8 @@ function RobotRegistration() {
       return;
     }
 
-    // Use window.confirm to prompt the user for confirmation
-    if (window.confirm(t("robotRemoveCheck"))) {
+    const confirmed = await confirm({ message: t("robotRemoveCheck"), confirmColor: 'danger' });
+    if (confirmed) {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/remove?year=${year}&id=${robotId}`, {
           method: 'DELETE',
@@ -359,9 +361,9 @@ function RobotRegistration() {
               ) : (
                 <Row>
                   {robots.map((robot) => (
-                    <Col lg="6" xl="4" key={robot.id}>
+                    <Col lg="6" xl="4" key={robot.id} className="d-flex">
                       <Card 
-                        className="mb-4" 
+                        className="mb-4 w-100 d-flex flex-column" 
                         style={{ 
                           border: robot.confirmed 
                             ? '2px solid #28a745' 
@@ -439,7 +441,7 @@ function RobotRegistration() {
                           </Row>
                         </CardHeader>
                         
-                        <CardBody style={{ padding: '15px', minHeight: '200px', display: 'flex', flexDirection: 'column' }}>
+                        <CardBody style={{ padding: '15px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                           {/* Robot info */}
                           <div className="mb-3" style={{ 
                             background: 'rgba(255,255,255,0.03)', 
@@ -516,13 +518,20 @@ function RobotRegistration() {
                             )}
                           </div>
 
-                          {/* Warning for registered but not confirmed */}
-                          {robot.disciplineID && robot.disciplineID > 0 && !robot.confirmed && (
-                            <Alert color="warning" className="mb-3 py-2 px-3" style={{ fontSize: '0.85rem' }}>
-                              <i className="tim-icons icon-alert-circle-exc mr-2" />
-                              {t("robotRegistered")}
-                            </Alert>
-                          )}
+                          {/* Status message - vždy zobrazeno pro konzistentní výšku */}
+                          <div style={{ minHeight: '52px' }}>
+                            {robot.disciplineID && robot.disciplineID > 0 && !robot.confirmed ? (
+                              <Alert color="warning" className="mb-0 py-2 px-3" style={{ fontSize: '0.85rem' }}>
+                                <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                {t("robotRegistered")}
+                              </Alert>
+                            ) : !robot.confirmed && (!robot.disciplineID || robot.disciplineID <= 0) ? (
+                              <Alert color="secondary" className="mb-0 py-2 px-3" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                                <i className="tim-icons icon-bulb-63 mr-2" />
+                                {t("robotSelectDiscipline")}
+                              </Alert>
+                            ) : null}
+                          </div>
                         </CardBody>
 
                         <CardFooter style={{ 

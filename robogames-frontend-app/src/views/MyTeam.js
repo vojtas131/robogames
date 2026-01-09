@@ -23,6 +23,7 @@ import {
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 
 export function validateTitle(title) {
@@ -56,6 +57,7 @@ function MyTeam() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     if (!token) return;
@@ -235,7 +237,8 @@ function MyTeam() {
   }, [searchTerm, users]);  // React to changes in searchTerm and users
 
   const removeMember = async (memberId) => {
-    if (window.confirm(t("teamRemoveUser"))) {
+    const confirmed = await confirm({ message: t("teamRemoveUser") });
+    if (confirmed) {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/removeMember?id=${memberId}`, {
           method: 'PUT',
@@ -248,12 +251,11 @@ function MyTeam() {
 
         if (response.ok) {
           toast.success(t("teamUserRemoved"));
-          window.location.reload();
+          fetchMyTeam();
         } else {
           toast.error(t("teamUserRemoveFail"));
         }
       } catch (error) {
-        console.error('Error removing the team member:', error);
         toast.error(t("teamUserRemoveError"));
       }
     }
@@ -261,8 +263,7 @@ function MyTeam() {
 
   // funkce pro opuštění týmu
   const leaveTeam = async () => {
-    // Zobrazit potvrzovací dialog a uložit výsledek
-    const confirmLeave = window.confirm(t("teamLeaveCheck"));
+    const confirmLeave = await confirm({ message: t("teamLeaveCheck") });
     if (confirmLeave) {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/leave`, {
@@ -275,24 +276,21 @@ function MyTeam() {
         if (tokenExpired(response.status)) { return; }
 
         if (response.ok) {
-          console.log('Successfully left the team');
-          // navigate('/admin/my-team');
-          window.location.reload();
+          toast.success(t("teamLeft"));
+          fetchMyTeam();
         } else {
-          console.error('Failed to leave the team:', await response.text());
+          toast.error(t("teamLeaveFail"));
         }
       } catch (error) {
-        console.error('Error leaving the team:', error);
+        toast.error(t("teamLeaveError"));
       }
-    } else {
-      console.log('User decided not to leave the team');
     }
   };
 
   const handleRemoveTeam = async () => {
-    if (window.confirm(t("teamRemoveCheck"))) {
+    const confirmed = await confirm({ message: t("teamRemoveCheck"), confirmColor: 'danger' });
+    if (confirmed) {
       if (!token) {
-        console.error('Authentication token is missing');
         return;
       }
 
@@ -312,19 +310,19 @@ function MyTeam() {
           toast.error(t("teamRemoveFail"));
         }
       } catch (error) {
-        console.error('Error removing the team:', error);
+        toast.error(t("teamRemoveError"));
       }
     }
   };
 
   const handleAddUser = async (userId) => {
     if (!token) {
-      console.error('Authentication token is missing');
       return;
     }
 
-    if (!window.confirm(t("inviteUser"))) {
-      return; // If user cancels, exit the function
+    const confirmed = await confirm({ message: t("inviteUser"), confirmColor: 'primary' });
+    if (!confirmed) {
+      return;
     }
 
     try {
@@ -492,14 +490,14 @@ function MyTeam() {
                   <div className="mb-3">
                     <small className="text-muted d-block">{t("regYears")}</small>
                     <strong>
-                      {getUniqueYears().length > 0 
-                        ? getUniqueYears().join(', ')
-                        : <span className="text-muted">{t("noRegistrations") || "Žádné registrace"}</span>
+                      {team.registrationYears && team.registrationYears.length > 0 
+                        ? [...new Set(team.registrationYears.map(r => r.year))].sort((a, b) => b - a).join(', ')
+                        : <span className="text-muted">{t("noRegistrations")}</span>
                       }
                     </strong>
                   </div>
                   <div>
-                    <small className="text-muted d-block">{t("membersCount") || "Počet členů"}</small>
+                    <small className="text-muted d-block">{t("membersCount")}</small>
                     <strong>{team.memberNames.length}</strong>
                   </div>
                 </CardBody>
@@ -525,6 +523,74 @@ function MyTeam() {
               )}
             </Col>
           </Row>
+
+          {/* Sekce robotů pro registrované ročníky */}
+          {team.registrationYears && team.registrationYears.length > 0 && (
+            <Row className="mt-4">
+              <Col xs="12">
+                <Card>
+                  <CardHeader>
+                    <CardTitle tag="h4" className="mb-0">
+                      <i className="tim-icons icon-spaceship mr-2" />
+                      {t("manageRobots")}
+                    </CardTitle>
+                    <p className="text-muted mt-2 mb-0">{t("manageRobotsDesc")}</p>
+                  </CardHeader>
+                  <CardBody>
+                    <Row>
+                      {[...new Map(team.registrationYears.map(r => [r.year, r])).values()]
+                        .sort((a, b) => b.year - a.year)
+                        .map(reg => (
+                          <Col md="4" sm="6" key={reg.id} className="mb-3">
+                            <Card 
+                              className="mb-0" 
+                              style={{ 
+                                cursor: 'pointer',
+                                transition: 'transform 0.2s, box-shadow 0.2s',
+                                border: '1px solid rgba(255,255,255,0.1)'
+                              }}
+                              onClick={() => navigate(`/admin/robot-registration?year=${reg.year}`)}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-3px)';
+                                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }}
+                            >
+                              <CardBody className="text-center py-4">
+                                <div style={{ 
+                                  fontSize: '2.5rem', 
+                                  fontWeight: 'bold',
+                                  background: 'linear-gradient(135deg, #ef6000 0%, #ff8533 100%)',
+                                  WebkitBackgroundClip: 'text',
+                                  WebkitTextFillColor: 'transparent',
+                                  marginBottom: '10px'
+                                }}>
+                                  {reg.year}
+                                </div>
+                                <div className="d-flex align-items-center justify-content-center gap-2">
+                                  <i className="tim-icons icon-spaceship" style={{ opacity: 0.7 }} />
+                                  <span>
+                                    {reg.robotCount} {reg.robotCount === 1 ? t("robot") : t("robots")}
+                                  </span>
+                                </div>
+                                <Button color="info" size="sm" className="mt-3">
+                                  <i className="tim-icons icon-settings-gear-63 mr-1" />
+                                  {t("manage")}
+                                </Button>
+                              </CardBody>
+                            </Card>
+                          </Col>
+                        ))
+                      }
+                    </Row>
+                  </CardBody>
+                </Card>
+              </Col>
+            </Row>
+          )}
         </>
       )}
 
@@ -574,7 +640,7 @@ function MyTeam() {
             className="mb-3"
           />
           {searchTerm.length > 0 && searchTerm.length < 3 && (
-            <small className="text-muted">{t("minChars") || "Zadejte alespoň 3 znaky"}</small>
+            <small className="text-muted">{t("minChars")}</small>
           )}
           <ListGroup className="mt-2" style={{ maxHeight: '300px', overflowY: 'auto' }}>
             {filteredUsers.map((user) => (

@@ -19,6 +19,7 @@ import {
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 
 /**
@@ -40,6 +41,7 @@ function CompetitionManagement() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   const navigate = useNavigate();
 
@@ -132,7 +134,7 @@ function CompetitionManagement() {
   };
 
   const startCompetition = async (id) => {
-    const confirmStart = window.confirm(t("compStartConfirm"));
+    const confirmStart = await confirm({ message: t("compStartConfirm") });
 
     if (confirmStart && token) {
       try {

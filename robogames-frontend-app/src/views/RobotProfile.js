@@ -14,7 +14,8 @@ import {
   Col,
   Table,
   Button,
-  Badge
+  Badge,
+  Alert
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
@@ -23,7 +24,18 @@ import { t } from "translations/translate";
 function RobotProfile() {
   const [searchParams] = useSearchParams();
   const robotId = searchParams.get('id');
+  const fromPage = searchParams.get('from');
+  const savedSearch = searchParams.get('search');
   const navigate = useNavigate();
+
+  // Handle navigation back with preserved search params
+  const handleGoBack = () => {
+    if (fromPage === 'confirmation' && savedSearch) {
+      navigate(`/admin/robot-confirmation?search=${encodeURIComponent(savedSearch)}`);
+    } else {
+      navigate(-1);
+    }
+  };
 
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -167,7 +179,7 @@ function RobotProfile() {
                 <div className="text-center">
                   <h4 className="text-danger">{t("err")}</h4>
                   <p>{error}</p>
-                  <Button color="primary" onClick={() => navigate(-1)}>
+                  <Button color="primary" onClick={handleGoBack}>
                     {t("back")}
                   </Button>
                 </div>
@@ -188,7 +200,7 @@ function RobotProfile() {
               <CardBody>
                 <div className="text-center">
                   <p>{t("noData")}</p>
-                  <Button color="primary" onClick={() => navigate(-1)}>
+                  <Button color="primary" onClick={handleGoBack}>
                     {t("back")}
                   </Button>
                 </div>
@@ -207,7 +219,7 @@ function RobotProfile() {
           <Button
             color="info"
             size="sm"
-            onClick={() => navigate(-1)}
+            onClick={handleGoBack}
             className='mb-3'
           >
             <i className="tim-icons icon-minimal-left mb-1" />
@@ -215,6 +227,28 @@ function RobotProfile() {
           </Button>
         </Col>
       </Row>
+
+      {/* Warning for empty team */}
+      {profile.teamMemberCount === 0 && (
+        <Row>
+          <Col xs="12">
+            <Alert color="danger" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '15px',
+              padding: '15px 20px',
+              borderRadius: '8px',
+              marginBottom: '20px'
+            }}>
+              <i className="tim-icons icon-alert-circle-exc" style={{ fontSize: '24px' }} />
+              <div>
+                <strong>{t("warningEmptyTeam")}</strong>
+                <p className="mb-0" style={{ opacity: 0.9 }}>{t("warningEmptyTeamDesc")}</p>
+              </div>
+            </Alert>
+          </Col>
+        </Row>
+      )}
 
       {/* Robot Confirmation Card - only for admins/leaders/assistants */}
       {canConfirm && (

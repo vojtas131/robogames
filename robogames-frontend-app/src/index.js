@@ -23,6 +23,7 @@ import LoginLayout from "layouts/LoginLayout.js";
 import { UserProvider } from 'contexts/UserContext';
 import { AdminProvider } from 'contexts/AdminContext';
 import { ToastProvider } from 'contexts/ToastContext';
+import { ConfirmProvider } from 'components/ConfirmModal';
 import ToastContainer from 'components/Toast/Toast';
 
 import "assets/scss/black-dashboard-react.scss";
@@ -41,15 +42,17 @@ root.render(
         <UserProvider>
           <AdminProvider>
             <ToastProvider>
-              <Routes>
-                <Route path="/admin/*" element={<AdminLayout />} />
-                <Route path="/robogames/*" element={<LoginLayout />} />
-                <Route
-                  path="*"
-                  element={<Navigate to="/admin/dashboard" replace />}
-                />
-              </Routes>
-              <ToastContainer />
+              <ConfirmProvider>
+                <Routes>
+                  <Route path="/admin/*" element={<AdminLayout />} />
+                  <Route path="/robogames/*" element={<LoginLayout />} />
+                  <Route
+                    path="*"
+                    element={<Navigate to="/admin/dashboard" replace />}
+                  />
+                </Routes>
+                <ToastContainer />
+              </ConfirmProvider>
             </ToastProvider>
           </AdminProvider>
         </UserProvider>

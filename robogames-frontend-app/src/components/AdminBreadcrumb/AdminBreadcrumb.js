@@ -255,7 +255,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
     },
     '/admin/competition-registration': { 
       label: t('compTeamRegister'), 
-      parent: '/admin/dashboard',
+      parent: '/admin/my-team',
       icon: 'icon-badge',
       needsYear: true
     },
@@ -305,7 +305,25 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
 
   // Get current path without query params
   const currentPath = location.pathname;
-  const currentRoute = routeConfig[currentPath];
+  const searchParams = new URLSearchParams(location.search);
+  const fromParam = searchParams.get('from');
+  
+  // Dynamic parent override based on 'from' parameter
+  const getDynamicRoute = (route, path) => {
+    if (!route) return route;
+    
+    // robot-profile has dynamic parent based on where user came from
+    if (path === '/admin/robot-profile' && fromParam === 'confirmation') {
+      return {
+        ...route,
+        parent: '/admin/robot-confirmation'
+      };
+    }
+    
+    return route;
+  };
+  
+  const currentRoute = getDynamicRoute(routeConfig[currentPath], currentPath);
 
   // Build breadcrumb trail
   const buildBreadcrumbs = () => {
@@ -313,11 +331,12 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
     let path = currentPath;
     
     while (path && routeConfig[path]) {
+      const route = getDynamicRoute(routeConfig[path], path);
       breadcrumbs.unshift({
         path,
-        ...routeConfig[path]
+        ...route
       });
-      path = routeConfig[path].parent;
+      path = route.parent;
     }
     
     return breadcrumbs;

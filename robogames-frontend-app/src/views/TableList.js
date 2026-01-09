@@ -22,6 +22,7 @@ import {
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 
 function Tables() {
@@ -44,6 +45,7 @@ function Tables() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   const toggleDropdown = (id) => {
     if (openDropdownId === id) {
@@ -84,7 +86,7 @@ function Tables() {
   };
 
   const handleRemove = async (id) => {
-    if (window.confirm(t("discRemoveCheck"))) {
+    if (await confirm({ message: t("discRemoveCheck") })) {
       const apiUrl = `${process.env.REACT_APP_API_URL}api/discipline/remove?id=${id}`;
       try {
         const response = await fetch(apiUrl, {
@@ -204,9 +206,9 @@ function Tables() {
           <Button style={{ marginBottom: '10px' }} color="primary" onClick={toggleModal}>{t("discAdd")}</Button>
         )}
         <Modal isOpen={modal} toggle={toggleModal}>
-          <form onSubmit={(e) => {
+          <form onSubmit={async (e) => {
             e.preventDefault();
-            if (window.confirm(t("discEditCreate", { edit: editMode ? t("edit_lower") : t("create_lower") }))) {
+            if (await confirm({ message: t("discEditCreate", { edit: editMode ? t("edit_lower") : t("create_lower") }) })) {
               editMode ? handleSubmitEdit() : handleSubmitCreate();
             }
           }}>

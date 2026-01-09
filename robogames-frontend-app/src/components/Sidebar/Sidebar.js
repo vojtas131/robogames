@@ -62,7 +62,7 @@ function Sidebar(props) {
       logoImg = (
         <a href={logo.outterLink} className="simple-text logo-mini" target="_blank" onClick={props.toggleSidebar}>
           <div className="logo-img">
-            <img src={logo.imgSrc} alt="react-logo" />
+            <img src={logo.imgSrc} alt="Robogames" />
           </div>
         </a>
       );
@@ -75,7 +75,7 @@ function Sidebar(props) {
       logoImg = (
         <Link to={logo.innerLink} className="simple-text logo-mini" onClick={props.toggleSidebar}>
           <div className="logo-img">
-            <img src={logo.imgSrc} alt="react-logo" />
+            <img src={logo.imgSrc} alt="Robogames" />
           </div>
         </Link>
       );

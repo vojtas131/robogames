@@ -21,6 +21,7 @@ import {
 import { useUser } from "contexts/UserContext";
 import { useAdmin } from "contexts/AdminContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import { validateName } from "./Register";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
@@ -63,6 +64,7 @@ function RegistrationManagement() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   const categories = ['LOW_AGE_CATEGORY', 'HIGH_AGE_CATEGORY'];
 
@@ -270,7 +272,7 @@ function RegistrationManagement() {
 
   // DELETE REGISTRATION
   const handleDeleteRegistration = async (regId) => {
-    if (!window.confirm(t("registrationRemoveCheck"))) return;
+    if (!await confirm({ message: t("registrationRemoveCheck") })) return;
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/registration/remove?id=${regId}`, {

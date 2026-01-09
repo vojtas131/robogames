@@ -20,6 +20,7 @@ import {
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
+import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
 
@@ -45,6 +46,7 @@ function TeamManagement() {
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     fetchTeams();
@@ -164,7 +166,7 @@ function TeamManagement() {
 
   // DELETE TEAM
   const handleDeleteTeam = async (teamId) => {
-    if (!window.confirm(t("teamRemoveCheck"))) return;
+    if (!await confirm({ message: t("teamRemoveCheck") })) return;
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/team/remove?id=${teamId}`, {
@@ -218,7 +220,7 @@ function TeamManagement() {
 
   // REMOVE USER FROM TEAM
   const handleRemoveUserFromTeam = async (teamId, userId) => {
-    if (!window.confirm(t("teamRemoveUser"))) return;
+    if (!await confirm({ message: t("teamRemoveUser") })) return;
 
     try {
       const response = await fetch(
@@ -244,7 +246,7 @@ function TeamManagement() {
 
   // SET TEAM LEADER
   const handleSetLeader = async (teamId, newLeaderId) => {
-    if (!window.confirm(t("setLeaderConfirm"))) return;
+    if (!await confirm({ message: t("setLeaderConfirm") })) return;
 
     try {
       const response = await fetch(
@@ -289,10 +291,20 @@ function TeamManagement() {
     return selectedTeam.memberNames.map(m => m.id);
   };
 
-  const filteredTeams = teams.filter(team =>
-    team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    team.leaderName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTeams = teams.filter(team => {
+    const searchLower = searchTerm.toLowerCase();
+    // Search by team name
+    if (team.name.toLowerCase().includes(searchLower)) return true;
+    // Search by leader name
+    if (team.leaderName.toLowerCase().includes(searchLower)) return true;
+    // Search by any member name
+    if (team.memberNames.some(member => 
+      `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
+      member.name.toLowerCase().includes(searchLower) ||
+      member.surname.toLowerCase().includes(searchLower)
+    )) return true;
+    return false;
+  });
 
   if (loading) {
     return <div className="content"><p>{t("loading")}</p></div>;
