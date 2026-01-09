@@ -439,7 +439,7 @@ function RobotRegistration() {
                           </Row>
                         </CardHeader>
                         
-                        <CardBody style={{ padding: '15px' }}>
+                        <CardBody style={{ padding: '15px', minHeight: '200px', display: 'flex', flexDirection: 'column' }}>
                           {/* Robot info */}
                           <div className="mb-3" style={{ 
                             background: 'rgba(255,255,255,0.03)', 
@@ -463,7 +463,7 @@ function RobotRegistration() {
                           </div>
 
                           {/* Discipline section */}
-                          <div className="mb-3">
+                          <div className="mb-3" style={{ flexGrow: 1 }}>
                             <small className="text-muted d-block mb-2">{t("discipline") || "Disciplína"}</small>
                             {robot.disciplineID && robot.disciplineID > 0 ? (
                               <div style={{ 

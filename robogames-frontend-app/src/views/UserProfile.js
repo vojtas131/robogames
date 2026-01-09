@@ -54,7 +54,7 @@ function UserProfile() {
           // Fetch team name if user is in a team
           if (jsonResponse.data.teamID && jsonResponse.data.teamID !== -1) {
             try {
-              const teamResponse = await fetch(`${process.env.REACT_APP_API_URL}api/team/byId?id=${jsonResponse.data.teamID}`, {
+              const teamResponse = await fetch(`${process.env.REACT_APP_API_URL}api/team/findByID?id=${jsonResponse.data.teamID}`, {
                 headers: {
                   'Authorization': `Bearer ${token}`
                 }
