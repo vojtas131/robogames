@@ -24,6 +24,7 @@ import {
 import { useUser } from "contexts/UserContext";
 import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
+import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -41,8 +42,7 @@ function UserManagement() {
     birthDate: ''
   });
   const [isAdminOrLeader, setIsAdminOrLeader] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchedUser, setSearchedUser] = useState(null);
+  const [selectedSearchUser, setSelectedSearchUser] = useState(null);
   const [errors, setErrors] = useState({});
 
   const { token, tokenExpired } = useUser();
@@ -231,22 +231,6 @@ function UserManagement() {
     }
   };
 
-  const handleSearch = async () => {
-    const endpoint = searchTerm.includes('@') ? `getByEmail?email=${searchTerm}` : `getByID?id=${searchTerm}`;
-    const response = await fetch(`${process.env.REACT_APP_API_URL}api/user/${endpoint}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (tokenExpired(response.status)) { return; }
-
-    const result = await response.json();
-    if (response.ok) {
-      setSearchedUser(result.data); // Assuming the first result is what we need
-    } else {
-      alert(t("userNotFound"));
-      setSearchedUser(null);
-    }
-  };
-
   // validate new data
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -338,46 +322,56 @@ function UserManagement() {
           <Card>
             <CardHeader>
               <h4 className="card-title">{t("manageUser")}</h4>
-              {/* {isAdminOrLeader && (
-                <Button color="success" onClick={() => setAddModal(true)}>{t("userAdd")}</Button>
-              )} */}
               {isAdminOrLeader && (
-                <div className="search-section">
-                  <Input
-                    type="text"
-                    placeholder={t("userSearch")}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{ width: 'auto', display: 'inline-block', marginRight: '10px' }}
+                <div className="search-section" style={{ marginBottom: '20px' }}>
+                  <Label>{t("userSearch")}</Label>
+                  <UserSearchSelect
+                    onSelect={setSelectedSearchUser}
+                    selectedUser={selectedSearchUser}
+                    placeholder={t("searchUserPlaceholder")}
+                    showTeamInfo={true}
                   />
-                  <Button color="info" onClick={handleSearch}>{t("search")}</Button>
                 </div>
               )}
-              {searchedUser && (
-                <Table responsive>
-                  <thead className="text-primary">
-                    <tr>
-                      {/* <th>{t("id")}</th> */}
-                      {/* <th>{t("uuid")}</th> */}
-                      <th>{t("name")}</th>
-                      <th>{t("surname")}</th>
-                      <th>{t("mail")}</th>
-                      <th>{t("birthDate")}</th>
-                      <th>{t("teamID")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      {/* <td>{searchedUser.id}</td> */}
-                      {/* <td>{searchedUser.uuid}</td> */}
-                      <td>{searchedUser.name}</td>
-                      <td>{searchedUser.surname}</td>
-                      <td>{searchedUser.email}</td>
-                      <td>{searchedUser.birthDate}</td>
-                      <td>{searchedUser.teamID}</td>
-                    </tr>
-                  </tbody>
-                </Table>
+              {selectedSearchUser && (
+                <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                  <h5>{t("selectedUser")}</h5>
+                  <Table responsive>
+                    <thead className="text-primary">
+                      <tr>
+                        <th>{t("name")}</th>
+                        <th>{t("surname")}</th>
+                        <th>{t("mail")}</th>
+                        <th>{t("birthDate")}</th>
+                        <th>{t("teamID")}</th>
+                        <th>{t("action")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{selectedSearchUser.name}</td>
+                        <td>{selectedSearchUser.surname}</td>
+                        <td>{selectedSearchUser.email}</td>
+                        <td>{selectedSearchUser.birthDate}</td>
+                        <td>{selectedSearchUser.teamID}</td>
+                        <td>
+                          {!selectedSearchUser.roles?.some(role => role.name === 'ADMIN') && (
+                            <Button color="primary" size="sm" onClick={() => handleEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
+                              {t("roleEdit")}
+                            </Button>
+                          )}
+                          <Button color="secondary" size="sm" onClick={() => handleUserEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
+                            <i className="fa-solid fa-pencil"></i>
+                          </Button>
+                          <Button color="danger" size="sm" onClick={() => handleRemoveUser(selectedSearchUser.id)}>
+                            <i className="tim-icons icon-trash-simple"></i>
+                          </Button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                  <Button color="link" size="sm" onClick={() => setSelectedSearchUser(null)}>{t("clearSelection")}</Button>
+                </div>
               )}
             </CardHeader>
 

@@ -11,10 +11,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
   Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
-  Table, Row, Col, Input
+  Table, Row, Col, Input,
+  Modal, ModalHeader, ModalBody, ModalFooter,
+  Form, FormGroup, Label, FormFeedback
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
+import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
 
 function RobotConfirmation() {
   const navigate = useNavigate();
@@ -23,16 +26,28 @@ function RobotConfirmation() {
   const [robots, setRobots] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [disciplines, setDisciplines] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+
+  // Admin modal states
+  const [createModal, setCreateModal] = useState(false);
+  const [editModal, setEditModal] = useState(false);
+  const [newRobot, setNewRobot] = useState({ teamRegistrationId: '', name: '', disciplineId: '' });
+  const [editRobot, setEditRobot] = useState({ id: null, name: '', number: '', disciplineId: '', confirmed: false });
+  const [selectedTeamForRobot, setSelectedTeamForRobot] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const { token, tokenExpired } = useUser();
 
   useEffect(() => {
     fetchCompetitionYears();
+    fetchDisciplines();
   }, []);
 
   useEffect(() => {
     if (selectedYear) {
       fetchRobotsForYear(selectedYear);
+      fetchRegistrationsForYear(selectedYear);
     }
   }, [selectedYear]);
 
@@ -105,13 +120,222 @@ function RobotConfirmation() {
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const filteredRobots = robots.filter(robot => robot.teamName.toLowerCase().includes(searchTerm.toLowerCase()));
 
+  const fetchDisciplines = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/discipline/all`);
+      const data = await response.json();
+      if (response.ok && data.type === 'RESPONSE') {
+        setDisciplines(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch disciplines:', error);
+    }
+  };
+
+  const fetchRegistrationsForYear = async (year) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/allRegistrations?year=${year}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (tokenExpired(response.status)) return;
+
+      const data = await response.json();
+      if (response.ok && data.type === 'RESPONSE') {
+        setRegistrations(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch registrations:', error);
+    }
+  };
+
+  // Helper to convert registrations to team-like objects for TeamSearchSelect
+  const getTeamsFromRegistrations = () => {
+    return registrations.map(reg => ({
+      id: reg.id,  // This is the registration ID which we need for creating robot
+      name: reg.teamName,
+      leaderName: null,  // We don't have this info from registration
+      teamId: reg.teamID
+    }));
+  };
+
+  // CREATE ROBOT (Admin)
+  const handleCreateRobot = async () => {
+    let newErrors = {};
+
+    if (!selectedTeamForRobot) {
+      newErrors.teamRegistrationId = t("fieldsRequired");
+    }
+    if (!newRobot.name || newRobot.name.trim().length === 0) {
+      newErrors.name = t("robotFillName");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/robot/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          teamRegistrationId: selectedTeamForRobot.id,
+          name: newRobot.name,
+          disciplineId: newRobot.disciplineId ? parseInt(newRobot.disciplineId) : null
+        })
+      });
+      if (tokenExpired(response.status)) return;
+
+      const result = await response.json();
+      if (response.ok) {
+        alert(t("robotCreated"));
+        setCreateModal(false);
+        setNewRobot({ teamRegistrationId: '', name: '', disciplineId: '' });
+        setSelectedTeamForRobot(null);
+        setErrors({});
+        fetchRobotsForYear(selectedYear);
+      } else {
+        alert(result.data || t("robotCreateFail"));
+      }
+    } catch (error) {
+      alert(t("robotCreateFail"));
+    }
+  };
+
+  // EDIT ROBOT (Admin)
+  const handleEditRobot = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/robot/edit?id=${editRobot.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editRobot.name || null,
+          number: editRobot.number ? parseInt(editRobot.number) : null,
+          disciplineId: editRobot.disciplineId === '' ? null : editRobot.disciplineId === '-1' ? -1 : parseInt(editRobot.disciplineId),
+          confirmed: editRobot.confirmed
+        })
+      });
+      if (tokenExpired(response.status)) return;
+
+      const result = await response.json();
+      if (response.ok) {
+        alert(t("robotEdited"));
+        setEditModal(false);
+        fetchRobotsForYear(selectedYear);
+      } else {
+        alert(result.data || t("robotEditFail"));
+      }
+    } catch (error) {
+      alert(t("robotEditFail"));
+    }
+  };
+
+  // FORCE CONFIRM ROBOT (Admin)
+  const handleForceConfirm = async (robotId, confirmed) => {
+    if (!window.confirm(t("robotForceConfirmCheck", { action: confirmed ? t("confirm_lower") : t("remove_lower") }))) return;
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}api/admin/robot/forceConfirm?id=${robotId}&confirmed=${confirmed}`,
+        {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+      if (tokenExpired(response.status)) return;
+
+      if (response.ok) {
+        alert(t("robotForceConfirmed"));
+        fetchRobotsForYear(selectedYear);
+      } else {
+        const result = await response.json();
+        alert(result.data || t("robotForceConfirmFail"));
+      }
+    } catch (error) {
+      alert(t("robotForceConfirmFail"));
+    }
+  };
+
+  // FORCE REMOVE ROBOT (Admin)
+  const handleForceRemove = async (robotId) => {
+    if (!window.confirm(t("robotForceRemoveCheck"))) return;
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/robot/forceRemove?id=${robotId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (tokenExpired(response.status)) return;
+
+      if (response.ok) {
+        alert(t("robotForceRemoved"));
+        fetchRobotsForYear(selectedYear);
+      } else {
+        const result = await response.json();
+        alert(result.data || t("robotForceRemoveFail"));
+      }
+    } catch (error) {
+      alert(t("robotForceRemoveFail"));
+    }
+  };
+
+  // REMOVE ROBOT (Admin - normal)
+  const handleRemoveRobot = async (robotId) => {
+    if (!window.confirm(t("robotRemoveCheck"))) return;
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/robot/remove?id=${robotId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (tokenExpired(response.status)) return;
+
+      if (response.ok) {
+        alert(t("robotRemoved"));
+        fetchRobotsForYear(selectedYear);
+      } else {
+        const result = await response.json();
+        alert(result.data || t("robotRemoveFail"));
+      }
+    } catch (error) {
+      alert(t("robotRemoveFail"));
+    }
+  };
+
+  const openEditModal = (robot) => {
+    setEditRobot({
+      id: robot.id,
+      name: robot.name,
+      number: robot.number || '',
+      disciplineId: robot.disciplineId || '',
+      confirmed: robot.confirmed
+    });
+    setEditModal(true);
+  };
+
   return (
     <div className="content">
       <Row>
         <Col xs="12">
           <Card>
             <CardHeader>
-              <CardTitle tag="h4">{t("robotOverview")}</CardTitle>
+              <Row className="align-items-center">
+                <Col>
+                  <CardTitle tag="h4">{t("robotOverview")}</CardTitle>
+                </Col>
+                <Col className="text-right">
+                  <Button color="success" onClick={() => setCreateModal(true)}>
+                    <i className="tim-icons icon-simple-add mr-1" />
+                    {t("robotAdd")}
+                  </Button>
+                </Col>
+              </Row>
               <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>
                 <DropdownToggle caret>
                   {selectedYear || t("chooseYear")}
@@ -137,7 +361,7 @@ function RobotConfirmation() {
                 <Table responsive>
                   <thead>
                     <tr>
-                      {/* <th>{t("id")}</th> */}
+                      <th>{t("id")}</th>
                       <th>{t("robotNum")}</th>
                       <th>{t("title")}</th>
                       <th>{t("confirmed")}</th>
@@ -145,13 +369,13 @@ function RobotConfirmation() {
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>
                       <th>{t("confirm")}</th>
-                      <th>{t("profile")}</th>
+                      <th style={{ textAlign: 'center' }}>{t("adminActions")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRobots.map(robot => (
                       <tr key={robot.id}>
-                        {/* <td>{robot.id}</td> */}
+                        <td>{robot.id}</td>
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
                         <td>{robot.confirmed ? t("yes") : t("no")}</td>
@@ -168,7 +392,7 @@ function RobotConfirmation() {
                               <i className={robot.confirmed ? "tim-icons icon-simple-remove" : "tim-icons icon-check-2"} />
                             </Button>)}
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'center' }}>
                           <Button
                             color="info"
                             className="btn-icon btn-simple"
@@ -176,6 +400,22 @@ function RobotConfirmation() {
                             title={t("showProfile")}
                           >
                             <i className="tim-icons icon-badge" />
+                          </Button>
+                          <Button
+                            color="primary"
+                            className="btn-icon btn-simple ml-1"
+                            onClick={() => openEditModal(robot)}
+                            title={t("edit")}
+                          >
+                            <i className="tim-icons icon-pencil" />
+                          </Button>
+                          <Button
+                            color="danger"
+                            className="btn-icon btn-simple ml-1"
+                            onClick={() => handleForceRemove(robot.id)}
+                            title={t("remove")}
+                          >
+                            <i className="tim-icons icon-trash-simple" />
                           </Button>
                         </td>
                       </tr>
@@ -189,6 +429,107 @@ function RobotConfirmation() {
           </Card>
         </Col>
       </Row>
+
+      {/* Create Robot Modal */}
+      <Modal isOpen={createModal} toggle={() => setCreateModal(false)} size="lg">
+        <ModalHeader toggle={() => setCreateModal(false)}>{t("robotAdd")}</ModalHeader>
+        <ModalBody style={{ padding: '20px 25px' }}>
+          <Form>
+            <FormGroup style={{ marginBottom: '15px' }}>
+              <Label>{t("team")} *</Label>
+              <TeamSearchSelect
+                teams={getTeamsFromRegistrations()}
+                onSelect={setSelectedTeamForRobot}
+                selectedTeam={selectedTeamForRobot}
+                placeholder={t("searchTeamPlaceholder")}
+                showLeaderInfo={false}
+              />
+              {errors.teamRegistrationId && <div className="text-danger" style={{ fontSize: '12px', marginTop: '5px' }}>{errors.teamRegistrationId}</div>}
+            </FormGroup>
+            <FormGroup>
+              <Label>{t("robotName")} *</Label>
+              <Input
+                type="text"
+                value={newRobot.name}
+                onChange={e => setNewRobot({ ...newRobot, name: e.target.value })}
+                invalid={!!errors.name}
+                placeholder={t("robotEnterName")}
+              />
+              {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
+            </FormGroup>
+            <FormGroup>
+              <Label>{t("discipline")}</Label>
+              <Input
+                type="select"
+                value={newRobot.disciplineId}
+                onChange={e => setNewRobot({ ...newRobot, disciplineId: e.target.value })}
+              >
+                <option value="">{t("noDiscipline")}</option>
+                {disciplines.map(disc => (
+                  <option key={disc.id} value={disc.id}>{disc.name}</option>
+                ))}
+              </Input>
+            </FormGroup>
+          </Form>
+        </ModalBody>
+        <ModalFooter style={{ padding: '15px 25px' }}>
+          <Button color="success" onClick={handleCreateRobot} style={{ marginRight: '10px' }}>{t("create")}</Button>
+          <Button color="secondary" onClick={() => setCreateModal(false)}>{t("cancel")}</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Edit Robot Modal */}
+      <Modal isOpen={editModal} toggle={() => setEditModal(false)} size="lg">
+        <ModalHeader toggle={() => setEditModal(false)}>{t("robotEdit")}</ModalHeader>
+        <ModalBody style={{ padding: '20px 25px' }}>
+          <Form>
+            <FormGroup>
+              <Label>{t("robotName")}</Label>
+              <Input
+                type="text"
+                value={editRobot.name}
+                onChange={e => setEditRobot({ ...editRobot, name: e.target.value })}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>{t("robotNum")}</Label>
+              <Input
+                type="number"
+                value={editRobot.number}
+                onChange={e => setEditRobot({ ...editRobot, number: e.target.value })}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>{t("discipline")}</Label>
+              <Input
+                type="select"
+                value={editRobot.disciplineId}
+                onChange={e => setEditRobot({ ...editRobot, disciplineId: e.target.value })}
+              >
+                <option value="">{t("noChange")}</option>
+                <option value="-1">{t("removeDiscipline")}</option>
+                {disciplines.map(disc => (
+                  <option key={disc.id} value={disc.id}>{disc.name}</option>
+                ))}
+              </Input>
+            </FormGroup>
+            <FormGroup check>
+              <Label check>
+                <Input
+                  type="checkbox"
+                  checked={editRobot.confirmed}
+                  onChange={e => setEditRobot({ ...editRobot, confirmed: e.target.checked })}
+                />
+                {' '}{t("confirmed")}
+              </Label>
+            </FormGroup>
+          </Form>
+        </ModalBody>
+        <ModalFooter style={{ padding: '15px 25px' }}>
+          <Button color="primary" onClick={handleEditRobot} style={{ marginRight: '10px' }}>{t("save")}</Button>
+          <Button color="secondary" onClick={() => setEditModal(false)}>{t("cancel")}</Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }

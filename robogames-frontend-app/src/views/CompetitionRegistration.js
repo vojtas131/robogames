@@ -455,6 +455,12 @@ function CompetitionRegistration() {
             <strong>{t("note")}:</strong> {t("teacherInfoRequired")}
           </Alert>
 
+          {registrationError && (
+            <Alert color="danger" style={{ marginBottom: '20px' }}>
+              {registrationError}
+            </Alert>
+          )}
+
           <FormGroup style={{ marginBottom: '15px' }}>
             <Label for="teacherName">{t("teacherName")} *</Label>
             <Input
@@ -516,6 +522,12 @@ function CompetitionRegistration() {
           {t("editTeacherInfo")}
         </ModalHeader>
         <ModalBody style={{ padding: '20px' }}>
+          {registrationError && (
+            <Alert color="danger" style={{ marginBottom: '20px' }}>
+              {registrationError}
+            </Alert>
+          )}
+
           <FormGroup style={{ marginBottom: '15px' }}>
             <Label for="editTeacherName">{t("teacherName")} *</Label>
             <Input
