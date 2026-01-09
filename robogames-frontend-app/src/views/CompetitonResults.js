@@ -11,6 +11,7 @@ import logo2 from '../assets/img/robogames-logo2.png'
 import failogo from '../assets/img/fai-logo.png'
 
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 
 function CompetitionResults() {
@@ -24,6 +25,7 @@ function CompetitionResults() {
     const [dropdownOpenDiscipline, setDropdownOpenDiscipline] = useState(false);
     const [dropdownOpenCategory, setDropdownOpenCategory] = useState(false);
     const { tokenExpired } = useUser();
+    const toast = useToast();
 
     useEffect(() => {
         fetchCompetitionYears();
@@ -134,7 +136,7 @@ function CompetitionResults() {
             }
 
             if (!categoryAPI) {
-                alert(t("catInvalid"));
+                toast.warning(t("catInvalid"));
                 return;
             }
 
@@ -145,7 +147,7 @@ function CompetitionResults() {
                 // get the discipline ID from the selected discipline name
                 const discipline = disciplines.find(d => d.name === disciplineName);
                 if (!discipline) {
-                    alert(t("catNotFound"));
+                    toast.error(t("catNotFound"));
                     return;
                 }
                 // filter results to include only those that match the discipline ID
@@ -153,11 +155,11 @@ function CompetitionResults() {
                 setResults(filteredResults);
             } else {
                 console.error('Failed to fetch results:', data);
-                alert(t("resFetchFail",{data: data.data || t("unknownError")}));
+                toast.error(t("resFetchFail",{data: data.data || t("unknownError")}));
             }
         } catch (error) {
             console.error('Error fetching results:', error);
-            alert(t("resFetchError",{message: error.message || t("communicationFail")}));
+            toast.error(t("resFetchError",{message: error.message || t("communicationFail")}));
         }
     };
 

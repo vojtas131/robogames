@@ -19,6 +19,7 @@ import {
   Col,
 } from "reactstrap";
 // import AdminNavbar from "components/Navbars/AdminNavbar";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 
 const customStyles = {
@@ -104,6 +105,7 @@ export function validateEmail(email) {
 
 function Register() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     name: '',
     surname: '',
@@ -221,19 +223,19 @@ function Register() {
           navigate('/robogames/login'); // Redirect to login after successful registration
         } else if (result.type === "ERROR") {
           if (result.data === "failure, user with this email already exists") {
-            alert(t("userExists"));
+            toast.error(t("userExists"));
           } else {
-            alert(t("dataError", { data: result.data })); // Handle other types of errors
+            toast.error(t("dataError", { data: result.data })); // Handle other types of errors
           }
         } else {
           throw new Error(t("typeError"));
         }
       } catch (error) {
         console.error('Chyba při registraci.', error);
-        alert(t("regError", { message: error.message }));
+        toast.error(t("regError", { message: error.message }));
       }
     } else {
-      alert(t("regMistakes"));
+      toast.warning(t("regMistakes"));
     }
   };
 

@@ -19,6 +19,7 @@ import {
   FormFeedback,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
 
@@ -43,6 +44,7 @@ function TeamManagement() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   useEffect(() => {
     fetchTeams();
@@ -111,16 +113,16 @@ function TeamManagement() {
 
       const result = await response.json();
       if (response.ok) {
-        alert(t("teamCreated"));
+        toast.success(t("teamCreated"));
         setCreateModal(false);
         setNewTeam({ name: '', leader: null });
         setErrors({});
         fetchTeams();
       } else {
-        alert(result.data || t("teamCreateFail"));
+        toast.error(result.data || t("teamCreateFail"));
       }
     } catch (error) {
-      alert(t("teamCreateFail"));
+      toast.error(t("teamCreateFail"));
     }
   };
 
@@ -148,15 +150,15 @@ function TeamManagement() {
 
       const result = await response.json();
       if (response.ok) {
-        alert(t("teamEdited"));
+        toast.success(t("teamEdited"));
         setEditModal(false);
         setErrors({});
         fetchTeams();
       } else {
-        alert(result.data || t("teamEditFail"));
+        toast.error(result.data || t("teamEditFail"));
       }
     } catch (error) {
-      alert(t("teamEditFail"));
+      toast.error(t("teamEditFail"));
     }
   };
 
@@ -172,21 +174,21 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("teamRemoved"));
+        toast.success(t("teamRemoved"));
         fetchTeams();
       } else {
         const result = await response.json();
-        alert(result.data || t("teamRemoveFail"));
+        toast.error(result.data || t("teamRemoveFail"));
       }
     } catch (error) {
-      alert(t("teamRemoveFail"));
+      toast.error(t("teamRemoveFail"));
     }
   };
 
   // ADD USER TO TEAM
   const handleAddUserToTeam = async () => {
     if (!selectedUser || !selectedTeam) {
-      alert(t("fieldsRequired"));
+      toast.warning(t("fieldsRequired"));
       return;
     }
 
@@ -201,16 +203,16 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("userAddedToTeam"));
+        toast.success(t("userAddedToTeam"));
         setAddUserModal(false);
         setSelectedUser(null);
         fetchTeams();
       } else {
         const result = await response.json();
-        alert(result.data || t("userAddToTeamFail"));
+        toast.error(result.data || t("userAddToTeamFail"));
       }
     } catch (error) {
-      alert(t("userAddToTeamFail"));
+      toast.error(t("userAddToTeamFail"));
     }
   };
 
@@ -229,14 +231,14 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("teamUserRemoved"));
+        toast.success(t("teamUserRemoved"));
         fetchTeams();
       } else {
         const result = await response.json();
-        alert(result.data || t("teamUserRemoveFail"));
+        toast.error(result.data || t("teamUserRemoveFail"));
       }
     } catch (error) {
-      alert(t("teamUserRemoveFail"));
+      toast.error(t("teamUserRemoveFail"));
     }
   };
 
@@ -255,14 +257,14 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("leaderChanged"));
+        toast.success(t("leaderChanged"));
         fetchTeams();
       } else {
         const result = await response.json();
-        alert(result.data || t("leaderChangeFail"));
+        toast.error(result.data || t("leaderChangeFail"));
       }
     } catch (error) {
-      alert(t("leaderChangeFail"));
+      toast.error(t("leaderChangeFail"));
     }
   };
 

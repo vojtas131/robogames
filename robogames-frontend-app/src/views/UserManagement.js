@@ -22,6 +22,7 @@ import {
   DropdownItem
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
@@ -31,6 +32,7 @@ function UserManagement() {
   const [editModal, setEditModal] = useState(false);
   const [addModal, setAddModal] = useState(false);
   const [userEditModal, setUserEditModal] = useState(false);
+  const [emailExportModal, setEmailExportModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [newRole, setNewRole] = useState('');
@@ -46,6 +48,7 @@ function UserManagement() {
   const [errors, setErrors] = useState({});
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
   const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER'];
 
   useEffect(() => {
@@ -196,17 +199,17 @@ function UserManagement() {
         if (tokenExpired(response.status)) { return; }
 
         if (response.ok) {
-          alert(t("roleAddedRemoved", { action: action === 'add' ? t("added_lower") : t("removed_lower") }));
+          toast.success(t("roleAddedRemoved", { action: action === 'add' ? t("added_lower") : t("removed_lower") }));
           setEditModal(false);
           window.location.reload();
         } else {
           throw new Error(t("roleUpdateFail"));
         }
       } catch (error) {
-        alert(error.message);
+        toast.error(error.message);
       }
     } else {
-      alert(t("selectRoleFirst"));
+      toast.warning(t("selectRoleFirst"));
     }
   };
 
@@ -220,13 +223,13 @@ function UserManagement() {
         if (tokenExpired(response.status)) { return; }
 
         if (response.ok) {
-          alert(t("userRemoved"));
+          toast.success(t("userRemoved"));
           window.location.reload();
         } else {
           throw new Error(t("userRemoveFail"));
         }
       } catch (error) {
-        alert(error.message);
+        toast.error(error.message);
       }
     }
   };
@@ -271,12 +274,42 @@ function UserManagement() {
     setDropdownOpen(false);
   };
 
+  // Get all emails from users
+  const getAllEmails = () => {
+    return users.map(user => user.email).filter(email => email);
+  };
+
+  // Export emails to CSV
+  const exportEmailsToCSV = () => {
+    const emails = getAllEmails();
+    const csvContent = "email\n" + emails.join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `emails_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Copy emails to clipboard
+  const copyEmailsToClipboard = () => {
+    const emails = getAllEmails();
+    navigator.clipboard.writeText(emails.join('\n')).then(() => {
+      toast.success(t("emailsCopied") || "Emaily byly zkopírovány do schránky");
+    }).catch(() => {
+      toast.error(t("emailsCopyFail") || "Nepodařilo se zkopírovat emaily");
+    });
+  };
+
   // edit user info by admin
   const handleUserEditSubmit = async (e) => {
     e.preventDefault();
 
     if (errors.name || errors.surname || errors.birthDate) {
-      alert(t("regMistakes"));
+      toast.warning(t("regMistakes"));
       return;
     }
 
@@ -303,15 +336,15 @@ function UserManagement() {
 
       const result = await response.json();
       if (result.data === "success") {
-        alert(t("dataSaved"));
+        toast.success(t("dataSaved"));
         setEditModal(false);
         window.location.reload();
       } else {
-        alert(t("userUpdateFail"));
+        toast.error(t("userUpdateFail"));
       }
     } catch (error) {
       console.error('Update selhal:', error);
-      alert(t("dataSaveFail"));
+      toast.error(t("dataSaveFail"));
     }
   };
 
@@ -321,7 +354,15 @@ function UserManagement() {
         <Col md="12">
           <Card>
             <CardHeader>
-              <h4 className="card-title">{t("manageUser")}</h4>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <h4 className="card-title" style={{ margin: 0 }}>{t("manageUser")}</h4>
+                {isAdminOrLeader && (
+                  <Button color="info" size="sm" onClick={() => setEmailExportModal(true)}>
+                    <i className="tim-icons icon-email-85" style={{ marginRight: '6px' }} />
+                    {t("exportEmails") || "Export emailů"}
+                  </Button>
+                )}
+              </div>
               {isAdminOrLeader && (
                 <div className="search-section" style={{ marginBottom: '20px' }}>
                   <Label>{t("userSearch")}</Label>
@@ -536,6 +577,47 @@ function UserManagement() {
             <Button color="secondary" onClick={() => setUserEditModal(false)} style={{ margin: '10px' }}>{t("cancel")}</Button>
           </Form>
         </ModalBody>
+      </Modal>
+
+      {/* Email Export Modal */}
+      <Modal isOpen={emailExportModal} toggle={() => setEmailExportModal(false)} size="lg">
+        <ModalHeader toggle={() => setEmailExportModal(false)}>
+          <i className="tim-icons icon-email-85" style={{ marginRight: '8px' }} />
+          {t("exportEmails") || "Export emailů"}
+        </ModalHeader>
+        <ModalBody style={{ padding: '20px 25px' }}>
+          <div style={{ marginBottom: '15px' }}>
+            <strong>{t("totalEmails") || "Celkem emailů"}:</strong> {getAllEmails().length}
+          </div>
+          <div style={{ 
+            maxHeight: '300px', 
+            overflowY: 'auto', 
+            backgroundColor: 'rgba(0,0,0,0.1)', 
+            padding: '15px', 
+            borderRadius: '8px',
+            fontFamily: 'monospace',
+            fontSize: '13px'
+          }}>
+            {getAllEmails().map((email, index) => (
+              <div key={index} style={{ padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                {email}
+              </div>
+            ))}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="success" onClick={exportEmailsToCSV} style={{ margin: '5px' }}>
+            <i className="tim-icons icon-cloud-download-93" style={{ marginRight: '6px' }} />
+            {t("downloadCSV") || "Stáhnout CSV"}
+          </Button>
+          <Button color="info" onClick={copyEmailsToClipboard} style={{ margin: '5px' }}>
+            <i className="tim-icons icon-single-copy-04" style={{ marginRight: '6px' }} />
+            {t("copyToClipboard") || "Kopírovat do schránky"}
+          </Button>
+          <Button color="secondary" onClick={() => setEmailExportModal(false)} style={{ margin: '5px' }}>
+            {t("close")}
+          </Button>
+        </ModalFooter>
       </Modal>
     </div>
   );

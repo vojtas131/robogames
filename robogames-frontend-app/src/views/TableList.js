@@ -21,6 +21,7 @@ import {
   DropdownItem
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 
 function Tables() {
@@ -42,6 +43,7 @@ function Tables() {
   const isAdminOrLeader = rolesArray.some(role => ['ADMIN', 'LEADER'].includes(role));
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   const toggleDropdown = (id) => {
     if (openDropdownId === id) {
@@ -145,7 +147,7 @@ function Tables() {
       }
     } catch (error) {
       console.error('Error editting discipline: ', error);
-      alert(t("typeError"));
+      toast.error(t("typeError"));
     }
   };
 
@@ -172,7 +174,7 @@ function Tables() {
       }
     } catch (error) {
       console.error('Error creating discipline: ', error);
-      alert(t("typeError"));
+      toast.error(t("typeError"));
     }
   };
 

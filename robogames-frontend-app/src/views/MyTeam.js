@@ -22,6 +22,7 @@ import {
   ListGroupItem
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 
 export function validateTitle(title) {
@@ -54,6 +55,7 @@ function MyTeam() {
   const [filteredUsers, setFilteredUsers] = useState([]);
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   useEffect(() => {
     if (!token) return;
@@ -174,7 +176,7 @@ function MyTeam() {
       const data = await response.json();
       if (response.ok && data.type != 'ERROR') {
         console.log('Uložení se podařilo:', data);
-        alert(t("teamRenamed"));
+        toast.success(t("teamRenamed"));
         window.location.reload();
       } else if (data.type === "ERROR" && data.data.includes("already exists")) {
         setCreationError(t("teamExists"));  // Team name is already in database
@@ -183,7 +185,7 @@ function MyTeam() {
       }
     } catch (error) {
       console.error('Update selhal:', error);
-      alert(t("dataSaveFail"));
+      toast.error(t("dataSaveFail"));
     }
   }
 
@@ -245,14 +247,14 @@ function MyTeam() {
         if (tokenExpired(response.status)) { return; }
 
         if (response.ok) {
-          alert(t("teamUserRemoved"));
+          toast.success(t("teamUserRemoved"));
           window.location.reload();
         } else {
-          alert(t("teamUserRemoveFail"));
+          toast.error(t("teamUserRemoveFail"));
         }
       } catch (error) {
         console.error('Error removing the team member:', error);
-        alert(t("teamUserRemoveError"));
+        toast.error(t("teamUserRemoveError"));
       }
     }
   };
@@ -304,10 +306,10 @@ function MyTeam() {
         if (tokenExpired(response.status)) { return; }
 
         if (response.ok) {
-          alert(t("teamRemoved"));
+          toast.success(t("teamRemoved"));
           setTeam(null); // Reset team state
         } else {
-          alert(t("teamRemoveFail"));
+          toast.error(t("teamRemoveFail"));
         }
       } catch (error) {
         console.error('Error removing the team:', error);
@@ -337,11 +339,11 @@ function MyTeam() {
 
       const result = await response.json();
       if (result.data === "success") {
-        alert(t("inviteSent"));
+        toast.success(t("inviteSent"));
       } else if (result.data === "failure, user already invited") {
-        alert(t("alreadyInvited"));
+        toast.warning(t("alreadyInvited"));
       } else {
-        alert(t("somethingFailed"));
+        toast.error(t("somethingFailed"));
       }
     } catch (error) {
       console.error('Error:', error);

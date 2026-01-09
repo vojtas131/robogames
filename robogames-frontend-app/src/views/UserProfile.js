@@ -13,6 +13,7 @@ import {
   Col,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 
@@ -29,6 +30,7 @@ function UserProfile() {
   });
   const [initialUserData, setInitialUserData] = useState({});
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -108,7 +110,7 @@ function UserProfile() {
 
     // check for mistakes
     if (errors.name || errors.surname || errors.birthDate) {
-      alert(t("regMistakes"));
+      toast.warning(t("regMistakes"));
       return;
     }
 
@@ -136,16 +138,16 @@ function UserProfile() {
 
         const result = await response.json();
         if (result.data === "success") {
-          alert(t("dataSaved"));
+          toast.success(t("dataSaved"));
         } else {
-          alert(t("userUpdateFail"));
+          toast.error(t("userUpdateFail"));
         }
       } catch (error) {
         console.error('Update selhal:', error);
-        alert(t("dataSaveFail"));
+        toast.error(t("dataSaveFail"));
       }
     } else {
-      alert(t("noChanges"));
+      toast.info(t("noChanges"));
     }
   };
 

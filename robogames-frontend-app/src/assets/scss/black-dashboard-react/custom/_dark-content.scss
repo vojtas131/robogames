@@ -43,6 +43,12 @@
         background-image: linear-gradient(to bottom left, #8b1027, rgba(75, 31, 31, 0.63), #8b1027) !important;
     }
 
+    .btn-primary.btn-simple {
+        color: #a78bfa;
+        border-color: #a78bfa;
+        background-image: linear-gradient(to bottom left, #5b4a8c, #3d3260, #5b4a8c) !important;
+    }
+
     form label {
         color: $gray-400;
     }

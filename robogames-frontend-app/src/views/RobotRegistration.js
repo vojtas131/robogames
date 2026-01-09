@@ -25,6 +25,7 @@ import {
   CardFooter
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 import { validateTitle } from "./MyTeam";
 
@@ -47,6 +48,7 @@ function RobotRegistration() {
   const year = searchParams.get('year');
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   useEffect(() => {
     fetchRobots();
@@ -123,23 +125,23 @@ function RobotRegistration() {
           }
           return robot;
         }));
-        alert(t("robotRegSuccess"));
+        toast.success(t("robotRegSuccess"));
         window.location.reload();
       } else if (data.type === "ERROR") {
         if (data.data === "failure, you have exceeded the maximum limit of registered robots per discipline") {
-          alert(t("robotRegMax"));
+          toast.error(t("robotRegMax"));
         } else {
-          alert(t("dataError", { data: data.data })); // Handle other error messages
+          toast.error(t("dataError", { data: data.data })); // Handle other error messages
         }
       }
     } else {
-      alert(t("robotRegFail", { message: data.message || t("unknownError") }));
+      toast.error(t("robotRegFail", { message: data.message || t("unknownError") }));
     }
   }
 
   async function handleRemoveRobot(year, robotId) {
     if (!robotId || !year) {
-      alert(t("robotMissing"));
+      toast.error(t("robotMissing"));
       return;
     }
 
@@ -157,19 +159,19 @@ function RobotRegistration() {
 
         const data = await response.json();  // Parse the JSON response from the server
         if (response.ok) {
-          alert(t("robotRemoved"));
+          toast.success(t("robotRemoved"));
           fetchRobots();  // Refresh the robot list after successful deletion
         } else {
           // Handle specific error messages from the server
           if (data.type === "ERROR") {
-            alert(t("robotRemoveError", { data: data.data }));  // Show server error message
+            toast.error(t("robotRemoveError", { data: data.data }));  // Show server error message
           } else {
-            alert(t("robotRemoveFail", { text: response.statusText }));  // Generic error if no specific error is provided
+            toast.error(t("robotRemoveFail", { text: response.statusText }));  // Generic error if no specific error is provided
           }
         }
       } catch (error) {
         console.error('Error while removing robot:', error);
-        alert(t("robotRemoveError", { data: error.message || t("serverCommFail") }));
+        toast.error(t("robotRemoveError", { data: error.message || t("serverCommFail") }));
       }
     }
   }
@@ -187,7 +189,7 @@ function RobotRegistration() {
     if (response.ok) {
       setRobots(robots.map(robot => robot.id === robotId ? { ...robot, disciplineName: '', disciplineID: -1 } : robot));
     } else {
-      alert(t("robotUnregisterFail"));
+      toast.error(t("robotUnregisterFail"));
     }
   }
 
@@ -197,7 +199,7 @@ function RobotRegistration() {
 
   async function handleAddRobot() {
     if (!robotName) {
-      alert(t("robotFillName"));
+      toast.warning(t("robotFillName"));
       return;
     }
 
@@ -235,11 +237,11 @@ function RobotRegistration() {
         if (data.type === "ERROR" && data.data.includes("already exists")) {
           setCreationError(t("robotExists"));  // Show specific error message
         } else {
-          alert(t("robotAddFail", { data: data.data || response.statusText }));  // Fallback error message
+          toast.error(t("robotAddFail", { data: data.data || response.statusText }));  // Fallback error message
         }
       }
     } catch (error) {
-      alert(t("dataError", { data: error.message || t("serverCommFail") }));
+      toast.error(t("dataError", { data: error.message || t("serverCommFail") }));
     }
   }
 
@@ -279,11 +281,11 @@ function RobotRegistration() {
         setCreationError(t("robotExists"));  // Robot name is already in database
       } else {
         console.log('Chyba při ukládání dat:', data);
-        alert(t("dataError", { data: data.data }));
+        toast.error(t("dataError", { data: data.data }));
       }
     } catch (error) {
       console.error('Update selhal:', error);
-      alert(t("dataSaveFail"));
+      toast.error(t("dataSaveFail"));
     }
   }
 

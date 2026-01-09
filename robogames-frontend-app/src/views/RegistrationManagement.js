@@ -17,12 +17,10 @@ import {
   Label,
   Input,
   FormFeedback,
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
+import { useAdmin } from "contexts/AdminContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 import { validateName } from "./Register";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
@@ -31,12 +29,10 @@ import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
  * Admin component for managing team registrations to competitions
  */
 function RegistrationManagement() {
+  const { selectedYear, years } = useAdmin();
   const [registrations, setRegistrations] = useState([]);
   const [teams, setTeams] = useState([]);
-  const [years, setYears] = useState([]);
-  const [selectedYear, setSelectedYear] = useState('');
   const [loading, setLoading] = useState(true);
-  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
 
   // Modals
   const [createModal, setCreateModal] = useState(false);
@@ -46,7 +42,7 @@ function RegistrationManagement() {
   // Form states
   const [newRegistration, setNewRegistration] = useState({
     teamId: '',
-    year: '',
+    year: selectedYear || '',
     teacherName: '',
     teacherSurname: '',
     teacherContact: ''
@@ -66,35 +62,21 @@ function RegistrationManagement() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   const categories = ['LOW_AGE_CATEGORY', 'HIGH_AGE_CATEGORY'];
 
   useEffect(() => {
-    fetchCompetitionYears();
     fetchTeams();
   }, []);
 
   useEffect(() => {
     if (selectedYear) {
       fetchRegistrations(selectedYear);
+      // Pre-fill year in new registration form
+      setNewRegistration(prev => ({ ...prev, year: selectedYear }));
     }
   }, [selectedYear]);
-
-  const fetchCompetitionYears = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/all`);
-      const data = await response.json();
-      if (response.ok && data.type === 'RESPONSE') {
-        const yearsList = data.data.map(item => item.year);
-        setYears(yearsList);
-        if (yearsList.length > 0) {
-          setSelectedYear(yearsList[0]);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch competition years:', error);
-    }
-  };
 
   const fetchTeams = async () => {
     try {
@@ -189,17 +171,17 @@ function RegistrationManagement() {
 
       const result = await response.json();
       if (response.ok) {
-        alert(t("registrationCreated"));
+        toast.success(t("registrationCreated"));
         setCreateModal(false);
         setNewRegistration({ teamId: '', year: '', teacherName: '', teacherSurname: '', teacherContact: '' });
         setSelectedTeamForCreate(null);
         setErrors({});
         fetchRegistrations(selectedYear);
       } else {
-        alert(result.data || t("registrationCreateFail"));
+        toast.error(result.data || t("registrationCreateFail"));
       }
     } catch (error) {
-      alert(t("registrationCreateFail"));
+      toast.error(t("registrationCreateFail"));
     }
   };
 
@@ -244,22 +226,22 @@ function RegistrationManagement() {
 
       const result = await response.json();
       if (response.ok) {
-        alert(t("teacherEdited"));
+        toast.success(t("teacherEdited"));
         setEditTeacherModal(false);
         setErrors({});
         fetchRegistrations(selectedYear);
       } else {
-        alert(result.data || t("teacherEditFail"));
+        toast.error(result.data || t("teacherEditFail"));
       }
     } catch (error) {
-      alert(t("teacherEditFail"));
+      toast.error(t("teacherEditFail"));
     }
   };
 
   // CHANGE CATEGORY
   const handleChangeCategory = async () => {
     if (!categoryChange.category) {
-      alert(t("selectCategory"));
+      toast.warning(t("selectCategory"));
       return;
     }
 
@@ -274,15 +256,15 @@ function RegistrationManagement() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("categoryChanged"));
+        toast.success(t("categoryChanged"));
         setChangeCategoryModal(false);
         fetchRegistrations(selectedYear);
       } else {
         const result = await response.json();
-        alert(result.data || t("categoryChangeFail"));
+        toast.error(result.data || t("categoryChangeFail"));
       }
     } catch (error) {
-      alert(t("categoryChangeFail"));
+      toast.error(t("categoryChangeFail"));
     }
   };
 
@@ -298,14 +280,14 @@ function RegistrationManagement() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("registrationRemoved"));
+        toast.success(t("registrationRemoved"));
         fetchRegistrations(selectedYear);
       } else {
         const result = await response.json();
-        alert(result.data || t("registrationRemoveFail"));
+        toast.error(result.data || t("registrationRemoveFail"));
       }
     } catch (error) {
-      alert(t("registrationRemoveFail"));
+      toast.error(t("registrationRemoveFail"));
     }
   };
 
@@ -347,7 +329,7 @@ function RegistrationManagement() {
             <CardHeader>
               <Row className="align-items-center">
                 <Col>
-                  <CardTitle tag="h4">{t("registrationManagement")}</CardTitle>
+                  <CardTitle tag="h4">{t("registrationManagement")} {selectedYear && `(${selectedYear})`}</CardTitle>
                 </Col>
                 <Col className="text-right">
                   <Button color="success" onClick={() => setCreateModal(true)}>
@@ -357,20 +339,6 @@ function RegistrationManagement() {
                 </Col>
               </Row>
               <Row className="mt-3">
-                <Col md="3">
-                  <Dropdown isOpen={yearDropdownOpen} toggle={() => setYearDropdownOpen(!yearDropdownOpen)}>
-                    <DropdownToggle caret>
-                      {selectedYear || t("chooseYear")}
-                    </DropdownToggle>
-                    <DropdownMenu>
-                      {years.map(year => (
-                        <DropdownItem key={year} onClick={() => setSelectedYear(year)}>
-                          {year}
-                        </DropdownItem>
-                      ))}
-                    </DropdownMenu>
-                  </Dropdown>
-                </Col>
                 <Col md="4">
                   <Input
                     type="text"
@@ -473,7 +441,9 @@ function RegistrationManagement() {
                 invalid={!!errors.year}
               >
                 <option value="">{t("chooseYear")}</option>
-                
+                {years.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
               </Input>
               {errors.year && <FormFeedback>{errors.year}</FormFeedback>}
             </FormGroup>

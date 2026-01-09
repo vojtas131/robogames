@@ -27,6 +27,7 @@ import {
   Alert,
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 import { validateName, validateEmail } from "./Register";
 
@@ -45,6 +46,7 @@ function CompetitionRegistration() {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -123,20 +125,20 @@ function CompetitionRegistration() {
       if (response.ok) {
         if (data.type === 'ERROR') {
           if (data.data === 'failure, team have a robot that is already confirmed') {
-            alert(t("unregImpossible"));
+            toast.error(t("unregImpossible"));
           } else {
-            alert(t("dataError", { data: data.data }));
+            toast.error(t("dataError", { data: data.data }));
           }
         } else {
           window.location.reload();
         }
       } else {
         console.error('Failed to unregister team:', data);
-        alert(t("unregFail", { message: data.message || t("unknownError") }));
+        toast.error(t("unregFail", { message: data.message || t("unknownError") }));
       }
     } catch (error) {
       console.error('Error unregistering team:', error);
-      alert(t("unregError"));
+      toast.error(t("unregError"));
     }
   };
 
@@ -210,7 +212,7 @@ function CompetitionRegistration() {
 
       const data = await response.json();
       if (response.ok && data.type !== 'ERROR') {
-        alert(t("regSuccess"));
+        toast.success(t("regSuccess"));
         setRegistrationModal(false);
         window.location.reload();
       } else if(data.data === 'failure, registration for this competition year is closed'){
@@ -247,11 +249,11 @@ function CompetitionRegistration() {
         setErrors({});
         setEditTeacherModal(true);
       } else {
-        alert(t("dataFetchFail"));
+        toast.error(t("dataFetchFail"));
       }
     } catch (error) {
       console.error('Error fetching teacher info:', error);
-      alert(t("dataFetchError"));
+      toast.error(t("dataFetchError"));
     }
   };
 
@@ -312,7 +314,7 @@ function CompetitionRegistration() {
 
       const data = await response.json();
       if (response.ok && data.type !== 'ERROR') {
-        alert(t("dataSaved"));
+        toast.success(t("dataSaved"));
         setEditTeacherModal(false);
         window.location.reload();
       } else {

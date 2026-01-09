@@ -10,22 +10,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
-  Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
   Table, Row, Col, Input,
   Modal, ModalHeader, ModalBody, ModalFooter,
   Form, FormGroup, Label, FormFeedback
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
+import { useAdmin } from "contexts/AdminContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
 
 function RobotConfirmation() {
   const navigate = useNavigate();
-  const [years, setYears] = useState([]);
-  const [selectedYear, setSelectedYear] = useState('');
+  const { selectedYear } = useAdmin();
   const [robots, setRobots] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [disciplines, setDisciplines] = useState([]);
   const [registrations, setRegistrations] = useState([]);
 
@@ -38,9 +37,9 @@ function RobotConfirmation() {
   const [errors, setErrors] = useState({});
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   useEffect(() => {
-    fetchCompetitionYears();
     fetchDisciplines();
   }, []);
 
@@ -67,28 +66,14 @@ function RobotConfirmation() {
         if (response.ok) {
           fetchRobotsForYear(selectedYear); // Refresh the list of robots to show updated statuses
         } else if (data.type === 'ERROR') {
-          alert(t("dataError", { data: data.data }));
+          toast.error(t("dataError", { data: data.data }));
         } else {
-          alert(t("robotUpdateFail", { message: data.message || t("unknownError") }));
+          toast.error(t("robotUpdateFail", { message: data.message || t("unknownError") }));
         }
       } catch (error) {
         console.error('Error confirming the robot registration:', error);
-        alert(t("robotConfirmError", { message: error.message || t("serverCommFail") }));
+        toast.error(t("robotConfirmError", { message: error.message || t("serverCommFail") }));
       }
-    }
-  };
-
-  const fetchCompetitionYears = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/all`);
-      if (tokenExpired(response.status)) { return; }
-
-      const data = await response.json();
-      if (response.ok && data.type === 'RESPONSE') {
-        setYears(data.data.map(item => item.year));
-      }
-    } catch (error) {
-      console.error('Failed to fetch competition years:', error);
     }
   };
 
@@ -107,17 +92,16 @@ function RobotConfirmation() {
       if (response.ok && data.type === 'RESPONSE') {
         setRobots(data.data);
       } else if (data.type === 'ERROR') {
-        alert(t("dataError", { data: data.data }));
+        toast.error(t("dataError", { data: data.data }));
       } else {
-        alert(t("robotFetchFail", { message: data.message || t("unknownError") }));
+        toast.error(t("robotFetchFail", { message: data.message || t("unknownError") }));
       }
     } catch (error) {
       console.error('Failed to fetch robots for year:', error);
-      alert(t("robotFetchError", { message: error.message || t("serverCommFail") }));
+      toast.error(t("robotFetchError", { message: error.message || t("serverCommFail") }));
     }
   };
 
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const filteredRobots = robots.filter(robot => robot.teamName.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const fetchDisciplines = async () => {
@@ -191,17 +175,17 @@ function RobotConfirmation() {
 
       const result = await response.json();
       if (response.ok) {
-        alert(t("robotCreated"));
+        toast.success(t("robotCreated"));
         setCreateModal(false);
         setNewRobot({ teamRegistrationId: '', name: '', disciplineId: '' });
         setSelectedTeamForRobot(null);
         setErrors({});
         fetchRobotsForYear(selectedYear);
       } else {
-        alert(result.data || t("robotCreateFail"));
+        toast.error(result.data || t("robotCreateFail"));
       }
     } catch (error) {
-      alert(t("robotCreateFail"));
+      toast.error(t("robotCreateFail"));
     }
   };
 
@@ -225,14 +209,14 @@ function RobotConfirmation() {
 
       const result = await response.json();
       if (response.ok) {
-        alert(t("robotEdited"));
+        toast.success(t("robotEdited"));
         setEditModal(false);
         fetchRobotsForYear(selectedYear);
       } else {
-        alert(result.data || t("robotEditFail"));
+        toast.error(result.data || t("robotEditFail"));
       }
     } catch (error) {
-      alert(t("robotEditFail"));
+      toast.error(t("robotEditFail"));
     }
   };
 
@@ -251,14 +235,14 @@ function RobotConfirmation() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("robotForceConfirmed"));
+        toast.success(t("robotForceConfirmed"));
         fetchRobotsForYear(selectedYear);
       } else {
         const result = await response.json();
-        alert(result.data || t("robotForceConfirmFail"));
+        toast.error(result.data || t("robotForceConfirmFail"));
       }
     } catch (error) {
-      alert(t("robotForceConfirmFail"));
+      toast.error(t("robotForceConfirmFail"));
     }
   };
 
@@ -274,14 +258,14 @@ function RobotConfirmation() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("robotForceRemoved"));
+        toast.success(t("robotForceRemoved"));
         fetchRobotsForYear(selectedYear);
       } else {
         const result = await response.json();
-        alert(result.data || t("robotForceRemoveFail"));
+        toast.error(result.data || t("robotForceRemoveFail"));
       }
     } catch (error) {
-      alert(t("robotForceRemoveFail"));
+      toast.error(t("robotForceRemoveFail"));
     }
   };
 
@@ -297,14 +281,14 @@ function RobotConfirmation() {
       if (tokenExpired(response.status)) return;
 
       if (response.ok) {
-        alert(t("robotRemoved"));
+        toast.success(t("robotRemoved"));
         fetchRobotsForYear(selectedYear);
       } else {
         const result = await response.json();
-        alert(result.data || t("robotRemoveFail"));
+        toast.error(result.data || t("robotRemoveFail"));
       }
     } catch (error) {
-      alert(t("robotRemoveFail"));
+      toast.error(t("robotRemoveFail"));
     }
   };
 
@@ -327,7 +311,7 @@ function RobotConfirmation() {
             <CardHeader>
               <Row className="align-items-center">
                 <Col>
-                  <CardTitle tag="h4">{t("robotOverview")}</CardTitle>
+                  <CardTitle tag="h4">{t("robotOverview")} {selectedYear && `(${selectedYear})`}</CardTitle>
                 </Col>
                 <Col className="text-right">
                   <Button color="success" onClick={() => setCreateModal(true)}>
@@ -336,18 +320,6 @@ function RobotConfirmation() {
                   </Button>
                 </Col>
               </Row>
-              <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>
-                <DropdownToggle caret>
-                  {selectedYear || t("chooseYear")}
-                </DropdownToggle>
-                <DropdownMenu>
-                  {years.map(year => (
-                    <DropdownItem key={year} onClick={() => setSelectedYear(year)}>
-                      {year}
-                    </DropdownItem>
-                  ))}
-                </DropdownMenu>
-              </Dropdown>
               <Input
                 type="text"
                 placeholder={t("findByTeam")}
