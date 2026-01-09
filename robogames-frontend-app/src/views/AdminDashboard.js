@@ -67,10 +67,10 @@ function AdminDashboard() {
             </CardTitle>
           </Card>
         </Col>
-        {/* New Card for Team Management */}
+        {/* Card for Admin Team Management */}
         <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
           <Card
-            onClick={() => handleNavigate('/admin/all-teams')}
+            onClick={() => handleNavigate('/admin/team-management')}
             style={{
               cursor: 'pointer',
               width: '300px',
@@ -84,8 +84,30 @@ function AdminDashboard() {
             className="text-white"
           >
             <CardTitle tag="h4" style={{ fontSize: '1.5em' }}>
-              <i className="tim-icons icon-molecule-40 mr-2" /> 
-              {t("teamList")}
+              <i className="tim-icons icon-settings mr-2" /> 
+              {t("teamManagement")}
+            </CardTitle>
+          </Card>
+        </Col>
+        {/* Card for Registration Management */}
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
+          <Card
+            onClick={() => handleNavigate('/admin/registration-management')}
+            style={{
+              cursor: 'pointer',
+              width: '300px',
+              height: '300px',
+              margin: '10px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column'
+            }}
+            className="text-white"
+          >
+            <CardTitle tag="h4" style={{ fontSize: '1.5em' }}>
+              <i className="tim-icons icon-paper mr-2" /> 
+              {t("registrationManagement")}
             </CardTitle>
           </Card>
         </Col>

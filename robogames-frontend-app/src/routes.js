@@ -26,7 +26,6 @@ import UserManagement from "views/UserManagement";
 import AdminDashboard from "views/AdminDashboard";
 import CompetitionManagement from "views/CompetitionManagement";
 import CompetitionDetail from "views/CompetitionDetail";
-import AllTeams from "views/AllTeams";
 import MyTeam from "views/MyTeam";
 import CompetitionRegistration from "views/CompetitionRegistration";
 import RobotRegistration from "views/RobotRegistration";
@@ -39,6 +38,8 @@ import CompetitionResults from "views/CompetitonResults";
 import Contact from "views/Contact";
 import Rules from "views/Rules";
 import AuthCallback from "components/KeyCloak/KeyCloak";
+import TeamManagement from "views/TeamManagement";
+import RegistrationManagement from "views/RegistrationManagement";
 import { t } from "translations/translate";
 
 
@@ -110,15 +111,6 @@ var routes = [
     layout: "/admin",
   },
 
-
-  {
-    path: "/all-teams",
-    name: t("allTeams"),
-    rtlName: "",
-    icon: "tim-icons icon-single-02",
-    component: <AllTeams />,
-    layout: "/admin",
-  },
 
   {
     path: "/contact-us",
@@ -210,6 +202,22 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <RobotConfirmation />,
+    layout: "/admin",
+  },
+  {
+    path: "/team-management",
+    name: t("teamManagement"),
+    rtlName: "",
+    icon: "tim-icons icon-molecule-40",
+    component: <TeamManagement />,
+    layout: "/admin",
+  },
+  {
+    path: "/registration-management",
+    name: t("registrationManagement"),
+    rtlName: "",
+    icon: "tim-icons icon-paper",
+    component: <RegistrationManagement />,
     layout: "/admin",
   },
   {

@@ -8,6 +8,7 @@ import {
 } from 'reactstrap';
 import { useSearchParams } from 'react-router-dom';
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 
 function MatchCreationPage() {
@@ -25,6 +26,7 @@ function MatchCreationPage() {
     const [scoreModal, setScoreModal] = useState(false);
 
     const { token, tokenExpired } = useUser();
+    const toast = useToast();
 
     useEffect(() => {
         fetchMatchesForPlayground(playgroundId);
@@ -77,7 +79,7 @@ function MatchCreationPage() {
 
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
-                alert(t("scoreRecorded"));
+                toast.success(t("scoreRecorded"));
                 setScoreModal(false); // Close the modal
 
                 window.location.reload();
@@ -85,7 +87,7 @@ function MatchCreationPage() {
                 throw new Error(data.data || t("unknownError"));
             }
         } catch (error) {
-            alert(t("scoreSubmitError", { message: error.message || t("serverCommFail") }));
+            toast.error(t("scoreSubmitError", { message: error.message || t("serverCommFail") }));
         }
     };
 
@@ -118,13 +120,13 @@ function MatchCreationPage() {
 
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
-                alert(t("matchesRemoved"));
+                toast.success(t("matchesRemoved"));
 
             } else {
                 throw new Error(data.data || t("matchesRemoveFail"));
             }
         } catch (error) {
-            alert(t("matchesRemoveError", { message: error.message || t("serverCommFail") }));
+            toast.error(t("matchesRemoveError", { message: error.message || t("serverCommFail") }));
         }
     };
 
@@ -144,14 +146,14 @@ function MatchCreationPage() {
 
                 const data = await response.json();
                 if (response.ok && data.type === 'RESPONSE') {
-                    alert(t("matchRemoved"));
+                    toast.success(t("matchRemoved"));
                     window.location.reload();
 
                 } else {
                     throw new Error(data.data || t("matchRemoveFail"));
                 }
             } catch (error) {
-                alert(t("matchRemoveError", { message: error.message || t("serverCommFail") }));
+                toast.error(t("matchRemoveError", { message: error.message || t("serverCommFail") }));
             }
         }
     };
@@ -167,11 +169,11 @@ function MatchCreationPage() {
                 setMatches(data.data);
             } else {
                 console.error('Failed to fetch matches:', data);
-                alert(t("matchFetchFail", { message: data.data || t("unknownError") }));
+                toast.error(t("matchFetchFail", { message: data.data || t("unknownError") }));
             }
         } catch (error) {
             console.error('Error fetching matches:', error);
-            alert(t("matchFetchError", { message: error.message || t("serverCommFail") }));
+            toast.error(t("matchFetchError", { message: error.message || t("serverCommFail") }));
         }
     };
 
@@ -193,13 +195,13 @@ function MatchCreationPage() {
 
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
-                alert(t("matchesCreated"));
+                toast.success(t("matchesCreated"));
                 window.location.reload();
             } else {
-                alert(t("dataError", { data: data.data }));
+                toast.error(t("dataError", { data: data.data }));
             }
         } catch (error) {
-            alert(t("matchesCreateError", { message: error.message }));
+            toast.error(t("matchesCreateError", { message: error.message }));
         }
         toggleModal();
     };

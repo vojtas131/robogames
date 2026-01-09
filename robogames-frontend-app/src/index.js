@@ -21,6 +21,9 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import AdminLayout from "layouts/Admin/Admin.js";
 import LoginLayout from "layouts/LoginLayout.js";
 import { UserProvider } from 'contexts/UserContext';
+import { AdminProvider } from 'contexts/AdminContext';
+import { ToastProvider } from 'contexts/ToastContext';
+import ToastContainer from 'components/Toast/Toast';
 
 import "assets/scss/black-dashboard-react.scss";
 import "assets/css/nucleo-icons.css";
@@ -35,15 +38,20 @@ root.render(
   <ThemeContextWrapper>
     <BackgroundColorWrapper>
       <BrowserRouter>
-        <UserProvider> {/* Wrapping routes with UserProvider */}
-          <Routes>
-            <Route path="/admin/*" element={<AdminLayout />} />
-            <Route path="/robogames/*" element={<LoginLayout />} />
-            <Route
-              path="*"
-              element={<Navigate to="/admin/dashboard" replace />}
-            />
-          </Routes>
+        <UserProvider>
+          <AdminProvider>
+            <ToastProvider>
+              <Routes>
+                <Route path="/admin/*" element={<AdminLayout />} />
+                <Route path="/robogames/*" element={<LoginLayout />} />
+                <Route
+                  path="*"
+                  element={<Navigate to="/admin/dashboard" replace />}
+                />
+              </Routes>
+              <ToastContainer />
+            </ToastProvider>
+          </AdminProvider>
         </UserProvider>
       </BrowserRouter>
     </BackgroundColorWrapper>

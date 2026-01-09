@@ -18,6 +18,7 @@ import {
   Input
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 
 /**
@@ -38,6 +39,7 @@ function CompetitionManagement() {
   });
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
 
   const navigate = useNavigate();
 
@@ -86,13 +88,13 @@ function CompetitionManagement() {
           window.location.reload();
         } else {
           const error = await response.json();
-          alert(t("error", { error: error.error, message: error.message || t("somethingWrong") }));
+          toast.error(t("error", { error: error.error, message: error.message || t("somethingWrong") }));
         }
       } catch (error) {
-        alert(t("compUpdateError", { message: error.message }));
+        toast.error(t("compUpdateError", { message: error.message }));
       }
     } else {
-      alert(t("compWrongFill"));
+      toast.warning(t("compWrongFill"));
     }
   };
 
@@ -145,17 +147,17 @@ function CompetitionManagement() {
             comp.id === id ? { ...comp, started: true } : comp
           );
           setCompetitions(updatedCompetitions);
-          alert(t("compStarted"));
+          toast.success(t("compStarted"));
         } else {
           const error = await response.json();
-          alert(t("error", { error: error.error, message: error.message || t("serverError") }));
+          toast.error(t("error", { error: error.error, message: error.message || t("serverError") }));
         }
       } catch (error) {
         console.error('Error starting competition:', error);
-        alert(t("compStartError", { message: error.message }));
+        toast.error(t("compStartError", { message: error.message }));
       }
     } else if (!token) {
-      alert(t("mustLogin"));
+      toast.warning(t("mustLogin"));
     }
   };
 
@@ -190,15 +192,15 @@ function CompetitionManagement() {
           } else {
             const error = await response.json();
             console.error('Failed to create competition:', error);
-            alert(t("error", { error: error.error, message: error.message }));
+            toast.error(t("error", { error: error.error, message: error.message }));
           }
         } catch (error) {
           console.error('Error creating competition:', error);
-          alert(t("compCreateError", { message: error.message }));
+          toast.error(t("compCreateError", { message: error.message }));
         }
       }
     } else {
-      alert(t("compWrongFill"));
+      toast.warning(t("compWrongFill"));
     }
   };
 
@@ -224,18 +226,18 @@ function CompetitionManagement() {
             setCompetitions(competitions.filter(comp => comp.id !== id));
           } else {
             console.error('Chyba při mazání soutěže');
-            alert(t("compRemoveFail"));
+            toast.error(t("compRemoveFail"));
           }
         } catch (error) {
           console.error('Chyba při mazání soutěže:', error);
-          alert(t("compRemoveError", { message: error.message }));
+          toast.error(t("compRemoveError", { message: error.message }));
         }
       } else {
 
         console.log("Odstranění zrušeno uživatelem.");
       }
     } else {
-      alert(t("mustLogin"));
+      toast.warning(t("mustLogin"));
     }
   };
 

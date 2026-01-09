@@ -119,6 +119,8 @@ function Sidebar(props) {
                 if (prop.path === "/playground-detail") return null; // Always hide playground detail
                 if (prop.path === "/match-generation") return null; // Always hide match generation
                 if (prop.path === "/robot-profile") return null; // Always hide robot profile
+                if (prop.path === "/team-management") return null; // Hide team management from sidebar (accessible via admin dashboard)
+                if (prop.path === "/registration-management") return null; // Hide registration management from sidebar (accessible via admin dashboard)
                 if (prop.path === "/match-management" && !isAdminOrLeaderOrAssistantOrReferee) return null; // Hide match management if the user doesn't have the required roles
                 if (prop.path === "/admin-dashboard" && !isAdminOrLeaderOrAssistant) return null; // Hide admin dashboard if the user doesn't have the required roles
                 if (prop.path === "/user-profile" && !isLoggedIn) return null; // Show user profile only when logged in

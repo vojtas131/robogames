@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 import { useUser } from 'contexts/UserContext';
+import { useToast } from 'contexts/ToastContext';
 import { t } from "translations/translate";
 
 const customStyles = {
@@ -36,6 +37,7 @@ export const logoutFromKeycloak = () => {
 export default function AuthCallback() {
   const navigate = useNavigate();
   const { token, setToken, getUserInfo } = useUser();
+  const toast = useToast();
 
   useEffect(() => {
     async function processLogin() {
@@ -63,7 +65,7 @@ export default function AuthCallback() {
       if (data.type === "ERROR") {
         console.error("Keycloak login failed:", data.data);
         navigate("/admin/dashboard");
-        alert(t("loginFailed"));
+        toast.error(t("loginFailed"));
         return;
       }
 

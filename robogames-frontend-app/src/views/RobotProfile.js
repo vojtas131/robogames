@@ -17,6 +17,7 @@ import {
   Badge
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
+import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 
 function RobotProfile() {
@@ -27,8 +28,14 @@ function RobotProfile() {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const { token, tokenExpired } = useUser();
+  const toast = useToast();
+
+  // Check user roles
+  const roles = localStorage.getItem('roles') || '';
+  const canConfirm = roles.includes('ADMIN') || roles.includes('LEADER') || roles.includes('ASSISTANT');
 
   useEffect(() => {
     if (!robotId) {
@@ -74,7 +81,9 @@ function RobotProfile() {
       }
 
       const data = await response.json();
+      console.log('Robot profile API response:', data);
       if (response.ok && data.type === 'RESPONSE') {
+        console.log('Setting profile, confirmed:', data.data.confirmed);
         setProfile(data.data);
       } else if (data.type === 'ERROR') {
         setError(data.data || t("robotProfileFetchFail"));
@@ -86,6 +95,41 @@ function RobotProfile() {
       setError(t("serverCommFail"));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle robot confirmation
+  const handleConfirmRobot = async (confirmed) => {
+    if (!robotId) return;
+    
+    setIsConfirming(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
+
+      if (tokenExpired(response.status)) return;
+
+      const data = await response.json();
+      if (response.ok && data.type !== 'ERROR') {
+        toast.success(confirmed ? t("robotConfirmed") : t("robotUnconfirmed"));
+        // Update profile state immediately to reflect the change
+        setProfile(prev => ({ ...prev, confirmed: confirmed }));
+      } else {
+        toast.error(data.data || t("robotConfirmFail"));
+      }
+    } catch (error) {
+      console.error('Error confirming robot:', error);
+      toast.error(t("serverCommFail"));
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -171,6 +215,52 @@ function RobotProfile() {
           </Button>
         </Col>
       </Row>
+
+      {/* Robot Confirmation Card - only for admins/leaders/assistants */}
+      {canConfirm && (
+        <Row>
+          <Col xs="12">
+            <Card>
+              <CardBody style={{ padding: '15px 20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <span style={{ fontWeight: 500 }}>{t("robotConfirmStatus")}:</span>
+                    <Badge 
+                      color={profile.confirmed ? 'success' : 'warning'} 
+                      style={{ fontSize: '14px', padding: '8px 15px' }}
+                    >
+                      {profile.confirmed ? t("confirmed") : t("notConfirmed")}
+                    </Badge>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    {!profile.confirmed ? (
+                      <Button 
+                        color="success" 
+                        size="sm"
+                        onClick={() => handleConfirmRobot(true)}
+                        disabled={isConfirming}
+                      >
+                        <i className="tim-icons icon-check-2 mr-1" />
+                        {t("confirmRobot")}
+                      </Button>
+                    ) : (
+                      <Button 
+                        color="warning" 
+                        size="sm"
+                        onClick={() => handleConfirmRobot(false)}
+                        disabled={isConfirming}
+                      >
+                        <i className="tim-icons icon-simple-remove mr-1" />
+                        {t("unconfirmRobot")}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      )}
 
       <Row>
         {/* Main Robot Information Card */}

@@ -394,6 +394,12 @@
     background-image: linear-gradient(to bottom left, rgba(255, 64, 100, 0.82), #ffadbde3, rgba(255, 64, 100, 0.82)) !important;
   }
 
+  .btn-primary.btn-simple {
+    color: #7c3aed;
+    border-color: #7c3aed;
+    background-image: linear-gradient(to bottom left, #c4b5fd, #ede9fe, #c4b5fd) !important;
+  }
+
   nav.bg-white {
     box-shadow: 0px 10px 50px 0px rgba(0, 0, 0, 0.2);
   }
