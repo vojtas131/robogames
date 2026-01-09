@@ -13,6 +13,7 @@ import {
 } from 'reactstrap';
 import { useAdmin } from 'contexts/AdminContext';
 import { useUser } from 'contexts/UserContext';
+import { useToast } from 'contexts/ToastContext';
 import { ThemeContext, themes } from 'contexts/ThemeContext';
 import { t } from 'translations/translate';
 import { loginWithKeycloak, logoutFromKeycloak } from '../KeyCloak/KeyCloak';
@@ -27,6 +28,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
   const { selectedYear, setSelectedYear, years, competitions, loading } = useAdmin();
   const { token, tokenExpired } = useUser();
   const { theme } = useContext(ThemeContext);
+  const toast = useToast();
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [invitations, setInvitations] = useState([]);
@@ -93,24 +95,46 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
 
   const acceptInvitation = async (invitationId) => {
     try {
-      await fetch(`${process.env.REACT_APP_API_URL}api/team/acceptInvitation?id=${invitationId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/acceptInvitation?id=${invitationId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
+      if (tokenExpired(response.status)) return;
+      
+      const result = await response.json();
+      if (response.ok && result.data === "success") {
+        toast.success(t("invitationAccepted") || "Pozvánka byla přijata");
+        // Reload stránky pokud je uživatel na stránce týmu
+        if (location.pathname === '/admin/my-team') {
+          window.location.reload();
+        }
+      } else {
+        toast.error(result.data || t("invitationAcceptFail") || "Nepodařilo se přijmout pozvánku");
+      }
     } catch (error) {
       console.error('Error accepting invitation:', error);
+      toast.error(t("invitationAcceptFail") || "Nepodařilo se přijmout pozvánku");
     }
     fetchInvitations();
   };
 
   const rejectInvitation = async (invitationId) => {
     try {
-      await fetch(`${process.env.REACT_APP_API_URL}api/team/rejectInvitation?id=${invitationId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/rejectInvitation?id=${invitationId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
+      if (tokenExpired(response.status)) return;
+      
+      const result = await response.json();
+      if (response.ok && result.data === "success") {
+        toast.success(t("invitationRejected") || "Pozvánka byla odmítnuta");
+      } else {
+        toast.error(result.data || t("invitationRejectFail") || "Nepodařilo se odmítnout pozvánku");
+      }
     } catch (error) {
       console.error('Error rejecting invitation:', error);
+      toast.error(t("invitationRejectFail") || "Nepodařilo se odmítnout pozvánku");
     }
     fetchInvitations();
   };

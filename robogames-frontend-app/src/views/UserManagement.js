@@ -396,11 +396,9 @@ function UserManagement() {
                         <td>{selectedSearchUser.birthDate}</td>
                         <td>{selectedSearchUser.teamID}</td>
                         <td>
-                          {!selectedSearchUser.roles?.some(role => role.name === 'ADMIN') && (
-                            <Button color="primary" size="sm" onClick={() => handleEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
-                              {t("roleEdit")}
-                            </Button>
-                          )}
+                          <Button color="primary" size="sm" onClick={() => handleEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
+                            {t("roleEdit")}
+                          </Button>
                           <Button color="secondary" size="sm" onClick={() => handleUserEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
                             <i className="fa-solid fa-pencil"></i>
                           </Button>
@@ -442,7 +440,7 @@ function UserManagement() {
                       <td>{user.birthDate}</td>
                       <td>
                         {user.roles.map(role => role.name).join(', ')}
-                        {isAdminOrLeader && !user.roles.some(role => role.name === 'ADMIN') && (
+                        {isAdminOrLeader && (
                           <Button color="primary" size="sm" onClick={() => handleEdit(user)} style={{ marginLeft: '10px' }}>
                             {t("roleEdit")}
                           </Button>

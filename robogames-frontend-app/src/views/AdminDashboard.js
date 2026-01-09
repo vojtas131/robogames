@@ -24,7 +24,7 @@ function AdminDashboard() {
     <div className="content">
       <Row style={{ justifyContent: 'center' }}> 
         {/* Card for User Management */}
-        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
           <Card
             onClick={() => handleNavigate('/admin/user-management')}
             style={{
@@ -46,7 +46,7 @@ function AdminDashboard() {
           </Card>
         </Col>
         {/* Card for Competition Management */}
-        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
           <Card
             onClick={() => handleNavigate('/admin/competition-management')}
             style={{
@@ -68,7 +68,7 @@ function AdminDashboard() {
           </Card>
         </Col>
         {/* Card for Admin Team Management */}
-        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
           <Card
             onClick={() => handleNavigate('/admin/team-management')}
             style={{
@@ -90,7 +90,7 @@ function AdminDashboard() {
           </Card>
         </Col>
         {/* Card for Registration Management */}
-        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
           <Card
             onClick={() => handleNavigate('/admin/registration-management')}
             style={{
@@ -112,7 +112,7 @@ function AdminDashboard() {
           </Card>
         </Col>
         {/* Card for Playground Management */}
-        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
           <Card
             onClick={() => handleNavigate('/admin/playground-management')}
             style={{
@@ -134,7 +134,7 @@ function AdminDashboard() {
           </Card>
         </Col>
         {/* Card for Robot Confirmation */}
-        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center p-3">
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
           <Card
             onClick={() => handleNavigate('/admin/robot-confirmation')}
             style={{

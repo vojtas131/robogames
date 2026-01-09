@@ -22,7 +22,8 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
-  CardFooter
+  CardFooter,
+  Badge
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
@@ -294,105 +295,269 @@ function RobotRegistration() {
       <Row>
         <Col xs="12">
           <Card>
-            <CardHeader>
-              <CardTitle tag="h2">{t("robotYearOverview", { year: year })}</CardTitle>
-              <Button color="primary" onClick={() => {
-                setEditMode(false);
-                setCreationError('')
-                toggleModal();
-              }}> {t("robotAdd")} </Button>
+            <CardHeader className="pb-2">
+              <Row className="align-items-center">
+                <Col>
+                  <Button 
+                    color="link" 
+                    className="p-0 mr-3" 
+                    onClick={() => navigate('/admin/competition-registration')}
+                    style={{ fontSize: '1.2rem' }}
+                  >
+                    <i className="tim-icons icon-minimal-left" />
+                  </Button>
+                  <CardTitle tag="h2" className="d-inline mb-0">
+                    <i className="tim-icons icon-spaceship mr-2" style={{ color: '#5e72e4' }} />
+                    {t("robotYearOverview", { year: year })}
+                  </CardTitle>
+                  <p className="text-muted mt-2 mb-0" style={{ fontSize: '0.9rem' }}>
+                    {t("robotManageDesc") || "Spravujte roboty vašeho týmu pro tuto soutěž"}
+                  </p>
+                </Col>
+                <Col xs="auto">
+                  <Button 
+                    color="primary" 
+                    onClick={() => {
+                      setEditMode(false);
+                      setCreationError('');
+                      toggleModal();
+                    }}
+                  >
+                    <i className="tim-icons icon-simple-add mr-2" />
+                    {t("robotAdd")}
+                  </Button>
+                </Col>
+              </Row>
             </CardHeader>
             <CardBody>
               {isLoading ? (
-                <p>{t("loading")}</p>
+                <div className="text-center py-5">
+                  <i className="tim-icons icon-refresh-02 fa-spin" style={{ fontSize: '2rem' }} />
+                  <p className="mt-3 text-muted">{t("loading")}</p>
+                </div>
               ) : errorMessage ? (
-                <Alert color="warning">{errorMessage}</Alert>
-              ) : robots.map((robot) => (
-                <Card key={robot.id} className="mb-3" id='robotCard'>
+                <Alert color="warning" className="d-flex align-items-center">
+                  <i className="tim-icons icon-alert-circle-exc mr-2" />
+                  {errorMessage}
+                </Alert>
+              ) : robots.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="tim-icons icon-spaceship" style={{ fontSize: '3rem', opacity: 0.5 }} />
+                  <p className="mt-3 text-muted">{t("noRobots") || "Zatím nemáte žádné roboty"}</p>
+                  <Button 
+                    color="primary" 
+                    onClick={() => {
+                      setEditMode(false);
+                      setCreationError('');
+                      toggleModal();
+                    }}
+                  >
+                    <i className="tim-icons icon-simple-add mr-2" />
+                    {t("robotAdd")}
+                  </Button>
+                </div>
+              ) : (
+                <Row>
+                  {robots.map((robot) => (
+                    <Col lg="6" xl="4" key={robot.id}>
+                      <Card 
+                        className="mb-4" 
+                        style={{ 
+                          border: robot.confirmed 
+                            ? '2px solid #28a745' 
+                            : robot.disciplineID && robot.disciplineID > 0 
+                              ? '2px solid #ffc107' 
+                              : '1px solid rgba(255,255,255,0.1)',
+                          transition: 'transform 0.2s'
+                        }}
+                      >
+                        <CardHeader style={{ 
+                          background: robot.confirmed 
+                            ? 'linear-gradient(135deg, rgba(40,167,69,0.15) 0%, transparent 100%)'
+                            : robot.disciplineID && robot.disciplineID > 0
+                              ? 'linear-gradient(135deg, rgba(255,193,7,0.15) 0%, transparent 100%)'
+                              : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%)',
+                          borderBottom: '1px solid rgba(255,255,255,0.1)',
+                          padding: '15px'
+                        }}>
+                          <Row className="align-items-center">
+                            <Col>
+                              <div className="d-flex align-items-center">
+                                <div style={{ 
+                                  width: '45px', 
+                                  height: '45px', 
+                                  borderRadius: '10px', 
+                                  background: 'rgba(94,114,228,0.2)', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'center',
+                                  marginRight: '12px'
+                                }}>
+                                  <i className="tim-icons icon-spaceship" style={{ color: '#5e72e4', fontSize: '1.2rem' }} />
+                                </div>
+                                <div>
+                                  <h4 className="mb-0" style={{ fontSize: '1.1rem' }}>
+                                    {robot.name}
+                                    {!robot.confirmed && (
+                                      <Button 
+                                        color="link" 
+                                        className="p-0 ml-2"
+                                        onClick={() => {
+                                          setEditMode(true);
+                                          setRenameRobotId(robot.id);
+                                          setRobotName(robot.name);
+                                          setCreationError('');
+                                          toggleModal();
+                                        }}
+                                      >
+                                        <i className="fa-solid fa-pencil" style={{ fontSize: '0.8rem' }} title={t("rename")} />
+                                      </Button>
+                                    )}
+                                  </h4>
+                                  <small className="text-muted">#{robot.number}</small>
+                                </div>
+                              </div>
+                            </Col>
+                            <Col xs="auto">
+                              {robot.confirmed ? (
+                                <Badge color="success" style={{ fontSize: '0.75rem', padding: '6px 10px' }}>
+                                  <i className="tim-icons icon-check-2 mr-1" />
+                                  {t("confirmed") || "Potvrzeno"}
+                                </Badge>
+                              ) : robot.disciplineID && robot.disciplineID > 0 ? (
+                                <Badge color="warning" style={{ fontSize: '0.75rem', padding: '6px 10px' }}>
+                                  <i className="tim-icons icon-time-alarm mr-1" />
+                                  {t("pending") || "Čeká"}
+                                </Badge>
+                              ) : (
+                                <Badge color="secondary" style={{ fontSize: '0.75rem', padding: '6px 10px' }}>
+                                  <i className="tim-icons icon-settings mr-1" />
+                                  {t("setup") || "Nastavit"}
+                                </Badge>
+                              )}
+                            </Col>
+                          </Row>
+                        </CardHeader>
+                        
+                        <CardBody style={{ padding: '15px' }}>
+                          {/* Robot info */}
+                          <div className="mb-3" style={{ 
+                            background: 'rgba(255,255,255,0.03)', 
+                            borderRadius: '8px', 
+                            padding: '12px' 
+                          }}>
+                            <Row>
+                              <Col xs="6">
+                                <small className="text-muted d-block">{t("category") || "Kategorie"}</small>
+                                <strong style={{ fontSize: '0.9rem' }}>
+                                  {robot.category === "HIGH_AGE_CATEGORY" ? t("students") : t("pupils")}
+                                </strong>
+                              </Col>
+                              <Col xs="6">
+                                <small className="text-muted d-block">{t("verification") || "Ověření"}</small>
+                                <strong style={{ fontSize: '0.9rem' }} className={robot.confirmed ? 'text-success' : 'text-warning'}>
+                                  {robot.confirmed ? t("yes") : t("no")}
+                                </strong>
+                              </Col>
+                            </Row>
+                          </div>
 
-                  <CardBody>
-                    <Row>
-                      <Col xs="10">
-                        <CardTitle tag="h3" style={{ display: 'inline' }}>{robot.name}</CardTitle>
-
-                        {!robot.confirmed && (
-                          <Button className='m-0 pb-3' color="link"
-                            onClick={() => {
-                              setEditMode(true);
-                              setRenameRobotId(robot.id);
-                              setRobotName(robot.name);
-                              setCreationError('')
-                              toggleModal();
-                            }}>
-                            <i class="fa-solid fa-pencil ml-2"
-                              style={{ cursor: 'pointer', fontSize: '0.9rem' }}
-                              title={t("rename")}
-                            />
-                          </Button>
-                        )}
-                      </Col>
-                      <Col xs="2" className="text-right">
-                        <Button
-                          color="info"
-                          size="sm"
-                          onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
-                          title={t("showProfile")}
-                        >
-                          <i className="tim-icons icon-badge mb-1" /> {t("profile")}
-                        </Button>
-                      </Col>
-                    </Row>
-
-                    <CardText>
-                      <hr></hr>
-                      <p>{t("robotNum_colon", { id: robot.number })}</p>
-                      {t("robotChecked")}
-                      <span className={robot.confirmed ? 'green-text' : 'red-text'}>
-                        {robot.confirmed ? t("yes") : t("no")}
-                      </span><br />
-
-                      {t("categoryData", { data: robot.category === "HIGH_AGE_CATEGORY" ? t("students") : t("pupils") })}<br />
-
-                      {t("disc_colon")} {robot.disciplineID && robot.disciplineID > 0 ? (
-                        <>
-                          <span className='yellow-text'>{robot.diciplineName}</span>
-
-                          {!robot.confirmed && (
-                            <Alert color='warning' style={{ marginTop: '10px' }}>{t("robotRegistered")}</Alert>
-                          )}
-
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            {!robot.confirmed && (
-                              <Button color="danger" onClick={() => handleUnregisterDiscipline(robot.id)}>
-                                {t("regCancel")}
-                              </Button>
-                            )}
-
-                            {!robot.confirmed && (
-                              <Button color="danger" onClick={() => handleRemoveRobot(year, robot.id)} className="btn-icon btn-simple">
-                                <i className="tim-icons icon-trash-simple"></i>
-                              </Button>
+                          {/* Discipline section */}
+                          <div className="mb-3">
+                            <small className="text-muted d-block mb-2">{t("discipline") || "Disciplína"}</small>
+                            {robot.disciplineID && robot.disciplineID > 0 ? (
+                              <div style={{ 
+                                background: 'rgba(255,193,7,0.1)', 
+                                border: '1px solid rgba(255,193,7,0.3)',
+                                borderRadius: '8px', 
+                                padding: '10px 12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
+                              }}>
+                                <span style={{ color: '#ffc107', fontWeight: 'bold' }}>
+                                  <i className="tim-icons icon-trophy mr-2" />
+                                  {robot.diciplineName}
+                                </span>
+                                {!robot.confirmed && (
+                                  <Button 
+                                    color="link" 
+                                    size="sm" 
+                                    className="p-0 text-danger"
+                                    onClick={() => handleUnregisterDiscipline(robot.id)}
+                                    title={t("regCancel")}
+                                  >
+                                    <i className="tim-icons icon-simple-remove" />
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <Dropdown isOpen={robot.dropdownOpen} toggle={() => toggleDropdown(robot.id)}>
+                                <DropdownToggle 
+                                  caret 
+                                  color="info" 
+                                  className="w-100"
+                                  style={{ textAlign: 'left' }}
+                                >
+                                  <i className="tim-icons icon-bullet-list-67 mr-2" />
+                                  {t("robotRegister") || "Vybrat disciplínu"}
+                                </DropdownToggle>
+                                <DropdownMenu style={{ width: '100%' }}>
+                                  {disciplines.map(d => (
+                                    <DropdownItem 
+                                      key={d.id} 
+                                      onClick={() => handleSelectDiscipline(robot.id, d.id, d.name)}
+                                    >
+                                      {d.name}
+                                    </DropdownItem>
+                                  ))}
+                                </DropdownMenu>
+                              </Dropdown>
                             )}
                           </div>
-                        </>
-                      ) : (
-                        <Dropdown isOpen={robot.dropdownOpen} toggle={() => toggleDropdown(robot.id)}>
-                          <DropdownToggle caret>
-                            {robot.disciplineName || t("robotRegister")}
-                          </DropdownToggle>
-                          <DropdownMenu>
-                            {disciplines.map(d => (
-                              <DropdownItem key={d.id} onClick={() => handleSelectDiscipline(robot.id, d.id, d.name)}>
-                                {d.name}
-                              </DropdownItem>
-                            ))}
-                          </DropdownMenu>
-                        </Dropdown>
-                      )}
-                    </CardText>
-                  </CardBody>
-                </Card>
-              ))}
+
+                          {/* Warning for registered but not confirmed */}
+                          {robot.disciplineID && robot.disciplineID > 0 && !robot.confirmed && (
+                            <Alert color="warning" className="mb-3 py-2 px-3" style={{ fontSize: '0.85rem' }}>
+                              <i className="tim-icons icon-alert-circle-exc mr-2" />
+                              {t("robotRegistered")}
+                            </Alert>
+                          )}
+                        </CardBody>
+
+                        <CardFooter style={{ 
+                          borderTop: '1px solid rgba(255,255,255,0.1)', 
+                          padding: '12px 15px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}>
+                          <Button
+                            color="info"
+                            size="sm"
+                            onClick={() => navigate(`/admin/robot-profile?id=${robot.id}`)}
+                          >
+                            <i className="tim-icons icon-badge mr-1" />
+                            {t("profile")}
+                          </Button>
+                          
+                          {!robot.confirmed && (
+                            <Button 
+                              color="danger" 
+                              size="sm"
+                              className="btn-icon"
+                              onClick={() => handleRemoveRobot(year, robot.id)}
+                              title={t("delete") || "Smazat"}
+                            >
+                              <i className="tim-icons icon-trash-simple" />
+                            </Button>
+                          )}
+                        </CardFooter>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
             </CardBody>
           </Card>
         </Col>
