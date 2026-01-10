@@ -341,7 +341,9 @@ function RobotProfile() {
                     <strong>{t("category")}:</strong>
                   </Col>
                   <Col xs="8">
-                    {profile.category}
+                    {profile.category === 'HIGH_AGE_CATEGORY' ? t("students") : 
+                     profile.category === 'LOW_AGE_CATEGORY' ? t("pupils") : 
+                     profile.category}
                   </Col>
                 </Row>
               </div>
@@ -415,6 +417,7 @@ function RobotProfile() {
                       {/* <th>#</th> */}
                       <th>{t("name")}</th>
                       <th>{t("surname")}</th>
+                      <th>E-mail</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -423,6 +426,7 @@ function RobotProfile() {
                         {/* <td>{index + 1}</td> */}
                         <td>{member.name}</td>
                         <td>{member.surname}</td>
+                        <td><a href={`mailto:${member.email}`} style={{ color: '#ef6000' }}>{member.email}</a></td>
                       </tr>
                     ))}
                   </tbody>

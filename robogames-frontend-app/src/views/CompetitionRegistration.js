@@ -46,10 +46,12 @@ function CompetitionRegistration() {
   const [registrationError, setRegistrationError] = useState('');
   const [needsTeacherInfo, setNeedsTeacherInfo] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isLeader, setIsLeader] = useState(false);
   const navigate = useNavigate();
   const { token, tokenExpired } = useUser();
   const toast = useToast();
   const { confirm } = useConfirm();
+  const userID = localStorage.getItem('UserID');
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -348,18 +350,30 @@ function CompetitionRegistration() {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             }
+          }),
+          fetch(`${process.env.REACT_APP_API_URL}api/team/myTeam`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
           })
         ]);
 
         // check token expiration / statuses before parsing JSON
-        if (tokenExpired(responses[0].status) || tokenExpired(responses[1].status)) { return; }
+        if (tokenExpired(responses[0].status) || tokenExpired(responses[1].status) || tokenExpired(responses[2].status)) { return; }
 
-        const [competitionsData, registrationsData] = await Promise.all(responses.map(res => res.json()));
+        const [competitionsData, registrationsData, teamData] = await Promise.all(responses.map(res => res.json()));
         if (responses[0].ok && responses[1].ok) {
           setCompetitions(competitionsData.data);
           setRegistrations(registrationsData.data);
         } else {
           console.error('Failed to fetch data:', competitionsData, registrationsData);
+        }
+        
+        // Check if user is team leader
+        if (responses[2].ok && teamData.type !== 'ERROR') {
+          setIsLeader(teamData.data.leaderID === parseInt(userID, 10));
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -576,35 +590,48 @@ function CompetitionRegistration() {
                                     <i className="tim-icons icon-settings-gear-63 mr-2" />
                                     {t("manageRobots")}
                                   </Button>
-                                  <Button 
-                                    color="warning" 
-                                    size="sm"
-                                    onClick={() => handleEditTeacherInfo(competition.year)}
-                                    style={{ marginRight: '5px', marginBottom: '5px' }}
-                                  >
-                                    <i className="tim-icons icon-pencil mr-1" />
-                                    {t("editTeacherInfo")}
-                                  </Button>
-                                  <Button 
-                                    color="danger" 
-                                    size="sm"
-                                    onClick={() => unregisterTeam(competition.year)}
-                                    style={{ marginBottom: '5px' }}
-                                  >
-                                    <i className="tim-icons icon-simple-remove mr-1" />
-                                    {t("regCancel")}
-                                  </Button>
+                                  {isLeader && (
+                                    <>
+                                      <Button 
+                                        color="warning" 
+                                        size="sm"
+                                        onClick={() => handleEditTeacherInfo(competition.year)}
+                                        style={{ marginRight: '5px', marginBottom: '5px' }}
+                                      >
+                                        <i className="tim-icons icon-pencil mr-1" />
+                                        {t("editTeacherInfo")}
+                                      </Button>
+                                      <Button 
+                                        color="danger" 
+                                        size="sm"
+                                        onClick={() => unregisterTeam(competition.year)}
+                                        style={{ marginBottom: '5px' }}
+                                      >
+                                        <i className="tim-icons icon-simple-remove mr-1" />
+                                        {t("regCancel")}
+                                      </Button>
+                                    </>
+                                  )}
                                 </div>
                               </>
                             ) : (
                               <div className="text-center">
-                                <p className="text-muted mb-3">
-                                  {t("registerTeamDesc") || "Zaregistrujte svůj tým do tohoto ročníku soutěže"}
-                                </p>
-                                <Button color="success" size="lg" onClick={() => registerTeam(competition.year)}>
-                                  <i className="tim-icons icon-check-2 mr-2" />
-                                  {t("register")}
-                                </Button>
+                                {isLeader ? (
+                                  <>
+                                    <p className="text-muted mb-3">
+                                      {t("registerTeamDesc") || "Zaregistrujte svůj tým do tohoto ročníku soutěže"}
+                                    </p>
+                                    <Button color="success" size="lg" onClick={() => registerTeam(competition.year)}>
+                                      <i className="tim-icons icon-check-2 mr-2" />
+                                      {t("register")}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Alert color="info" className="mb-0">
+                                    <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                    {t("onlyLeaderCanRegister") || "Pouze vedoucí týmu může registrovat tým do soutěže"}
+                                  </Alert>
+                                )}
                               </div>
                             )}
                           </CardBody>

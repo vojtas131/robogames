@@ -45,19 +45,11 @@ import { t } from "translations/translate";
 
 var routes = [
   {
-    path: "/match-management",
-    name: t("matchEval"),
+    path: "/dashboard",
+    name: t("home"),
     rtlName: "",
-    icon: "tim-icons icon-puzzle-10",
-    component: <MatchManagement />,
-    layout: "/admin",
-  },
-  {
-    path: "/admin-dashboard",
-    name: t("adminMenu"),
-    rtlName: "",
-    icon: "tim-icons icon-settings-gear-63",
-    component: <AdminDashboard />,
+    icon: "tim-icons icon-app",
+    component: <Dashboard />,
     layout: "/admin",
   },
   {
@@ -76,13 +68,20 @@ var routes = [
     component: <MyTeam />,
     layout: "/admin",
   },
-
   {
-    path: "/dashboard",
-    name: t("home"),
+    path: "/admin-dashboard",
+    name: t("adminMenu"),
     rtlName: "",
-    icon: "tim-icons icon-app",
-    component: <Dashboard />,
+    icon: "tim-icons icon-settings-gear-63",
+    component: <AdminDashboard />,
+    layout: "/admin",
+  },
+  {
+    path: "/match-management",
+    name: t("matchEval"),
+    rtlName: "",
+    icon: "tim-icons icon-puzzle-10",
+    component: <MatchManagement />,
     layout: "/admin",
   },
   {
@@ -93,7 +92,6 @@ var routes = [
     component: <TableList />,
     layout: "/admin",
   },
-
   {
     path: "/competition-results",
     name: t("result"),
@@ -110,8 +108,6 @@ var routes = [
     component: <Rules />,
     layout: "/admin",
   },
-
-
   {
     path: "/contact-us",
     name: t("contact"),

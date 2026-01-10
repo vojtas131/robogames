@@ -295,7 +295,7 @@ function MyTeam() {
       }
 
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/remove?name=${team.name}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/remove`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -303,9 +303,20 @@ function MyTeam() {
         });
         if (tokenExpired(response.status)) { return; }
 
-        if (response.ok) {
+        const data = await response.json();
+        if (response.ok && data.type !== 'ERROR') {
           toast.success(t("teamRemoved"));
           setTeam(null); // Reset team state
+          setError(t("inNoTeam"));
+        } else if (data.type === 'ERROR') {
+          // Handle specific error messages
+          if (data.data.includes('already started')) {
+            toast.error(t("teamRemoveCompStarted"));
+          } else if (data.data.includes('confirmed robot')) {
+            toast.error(t("teamRemoveConfirmedRobot"));
+          } else {
+            toast.error(t("teamRemoveFail"));
+          }
         } else {
           toast.error(t("teamRemoveFail"));
         }
@@ -417,6 +428,7 @@ function MyTeam() {
                       <tr>
                         <th>{t("name")}</th>
                         <th>{t("surname")}</th>
+                        <th>E-mail</th>
                         <th>{t("role")}</th>
                         {isLeader && <th style={{ width: '60px' }}></th>}
                       </tr>
@@ -426,6 +438,7 @@ function MyTeam() {
                         <tr key={member.id}>
                           <td>{member.name}</td>
                           <td>{member.surname}</td>
+                          <td><a href={`mailto:${member.email}`} style={{ color: '#ef6000' }}>{member.email}</a></td>
                           <td>
                             {member.id === team.leaderID ? (
                               <span className="badge badge-primary">
@@ -591,6 +604,62 @@ function MyTeam() {
               </Col>
             </Row>
           )}
+
+          {/* Popis oprávnění členů týmu */}
+          <Row className="mt-4">
+            <Col xs="12">
+              <Card style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                <CardHeader style={{ 
+                  background: 'linear-gradient(135deg, rgba(94,114,228,0.1) 0%, transparent 100%)',
+                  borderBottom: '1px solid rgba(255,255,255,0.1)'
+                }}>
+                  <CardTitle tag="h5" className="mb-3">
+                    <i className="tim-icons icon-badge mr-2" style={{ color: '#5e72e4' }} />
+                    {t("teamPermissions") || "Oprávnění v týmu"}
+                  </CardTitle>
+                </CardHeader>
+                <CardBody>
+                  <Row>
+                    <Col md="6" className="mb-3 mb-md-0">
+                      <div style={{ 
+                        padding: '15px', 
+                        background: 'rgba(239,96,0,0.1)', 
+                        borderRadius: '10px',
+                        border: '1px solid rgba(239,96,0,0.3)'
+                      }}>
+                        <h6 style={{ color: '#ef6000', marginBottom: '12px' }}>
+                          <i className="tim-icons icon-badge mr-2" />
+                          {t("leaderPermissions") || "Vedoucí týmu může:"}
+                        </h6>
+                        <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
+                          <li>{t("leaderPerm1") || "Registrovat / odregistrovat tým ze soutěže"}</li>
+                          <li>{t("leaderPerm2") || "Spravovat roboty (přidávat, upravovat, odstraňovat)"}</li>
+                          <li>{t("leaderPerm3") || "Správa týmu (přidávat/odebírat členy, přejmenovat, odstranit tým)"}</li>
+                          <li>{t("leaderPerm4") || "Upravovat údaje o vedoucím učiteli"}</li>
+                        </ul>
+                      </div>
+                    </Col>
+                    <Col md="6">
+                      <div style={{ 
+                        padding: '15px', 
+                        background: 'rgba(94,114,228,0.1)', 
+                        borderRadius: '10px',
+                        border: '1px solid rgba(94,114,228,0.3)'
+                      }}>
+                        <h6 style={{ color: '#5e72e4', marginBottom: '12px' }}>
+                          <i className="tim-icons icon-single-02 mr-2" />
+                          {t("memberPermissions") || "Člen týmu může:"}
+                        </h6>
+                        <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
+                          <li>{t("memberPerm1") || "Spravovat roboty (přidávat, upravovat, odstraňovat)"}</li>
+                        </ul>
+                      </div>
+                    </Col>
+                  </Row>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
         </>
       )}
 

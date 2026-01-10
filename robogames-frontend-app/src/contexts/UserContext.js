@@ -8,11 +8,11 @@ export const useUser = () => useContext(UserContext);
 
 // Error kody z backendu pro token autentizaci
 const AUTH_ERROR_CODES = {
-  // Token problemy - 401 - MUSI odhlasit
+  // problemy s token - 401 - (MUSI odhlasit)
   TOKEN_MISSING: 'TOKEN_MISSING',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOKEN_INVALID: 'TOKEN_INVALID',
-  // Role problemy - 403
+  // problemy s rolemi - 403
   NO_ROLE: 'NO_ROLE',           // Uzivatel nema zadnou roli - MUSI odhlasit
   ACCESS_DENIED: 'ACCESS_DENIED' // Uzivatel nema opravneni pro akci - NEOHLASUJE
 };

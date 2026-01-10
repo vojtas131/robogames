@@ -129,9 +129,9 @@ function CompetitionResults() {
         try {
             let categoryAPI;
 
-            if (category === t("highAge")) {
+            if (category === t("students")) {
                 categoryAPI = 'HIGH_AGE_CATEGORY';
-            } else if (category === t("lowAge")) {
+            } else if (category === t("pupils")) {
                 categoryAPI = 'LOW_AGE_CATEGORY';
             }
 
@@ -207,8 +207,8 @@ function CompetitionResults() {
                                         {selectedCategory || t("selectCat")}
                                     </DropdownToggle>
                                     <DropdownMenu>
-                                        <DropdownItem onClick={() => setSelectedCategory(t("highAge"))}>{t("highAge")}</DropdownItem>
-                                        <DropdownItem onClick={() => setSelectedCategory(t("lowAge"))}>{t("lowAge")}</DropdownItem>
+                                        <DropdownItem onClick={() => setSelectedCategory(t("students"))}>{t("students")}</DropdownItem>
+                                        <DropdownItem onClick={() => setSelectedCategory(t("pupils"))}>{t("pupils")}</DropdownItem>
                                     </DropdownMenu>
                                 </Dropdown>
                             </div>
