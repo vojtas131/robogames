@@ -723,5 +723,19 @@
     "leaderPerm2": "Spravovat roboty (přidávat, upravovat, odstraňovat)",
     "leaderPerm3": "Správa týmu (přidávat/odebírat členy, přejmenovat, odstranit tým)",
     "leaderPerm4": "Upravovat údaje o vedoucím učiteli",
-    "memberPerm1": "Spravovat roboty (přidávat, upravovat, odstraňovat)"
+    "memberPerm1": "Spravovat roboty (přidávat, upravovat, odstraňovat)",
+    "banned": "Zabanován",
+    "active": "Aktivní",
+    "status": "Stav",
+    "banUser": "Zabanovat uživatele",
+    "unbanUser": "Odbanovat uživatele",
+    "banUserConfirm": "Opravdu chcete zabanovat tohoto uživatele? Uživatel se nebude moci přihlásit do systému.",
+    "unbanUserConfirm": "Opravdu chcete odbanovat tohoto uživatele? Uživatel se bude moci znovu přihlásit.",
+    "userBannedSuccess": "Uživatel byl zabanován",
+    "userUnbannedSuccess": "Uživatel byl odbanován",
+    "banUserFail": "Nepodařilo se zabanovat uživatele",
+    "unbanUserFail": "Nepodařilo se odbanovat uživatele",
+    "userBanned": "Váš účet byl zabanován. Kontaktujte administrátora pro více informací.",
+    "cannotBanSelf": "Nemůžete zabanovat sami sebe",
+    "accountBannedTitle": "Účet zabanován"
 }

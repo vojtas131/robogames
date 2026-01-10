@@ -434,7 +434,14 @@ function MyTeam() {
                       </tr>
                     </thead>
                     <tbody>
-                      {team.memberNames.map(member => (
+                      {[...team.memberNames]
+                        .sort((a, b) => {
+                          // Leader always first
+                          if (a.id === team.leaderID) return -1;
+                          if (b.id === team.leaderID) return 1;
+                          return 0;
+                        })
+                        .map(member => (
                         <tr key={member.id}>
                           <td>{member.name}</td>
                           <td>{member.surname}</td>

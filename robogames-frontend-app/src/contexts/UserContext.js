@@ -12,8 +12,9 @@ const AUTH_ERROR_CODES = {
   TOKEN_MISSING: 'TOKEN_MISSING',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOKEN_INVALID: 'TOKEN_INVALID',
-  // problemy s rolemi - 403
+  // problemy s rolemi/uctem - 403
   NO_ROLE: 'NO_ROLE',           // Uzivatel nema zadnou roli - MUSI odhlasit
+  USER_BANNED: 'USER_BANNED',   // Uzivatel je zabanovan - MUSI odhlasit
   ACCESS_DENIED: 'ACCESS_DENIED' // Uzivatel nema opravneni pro akci - NEOHLASUJE
 };
 
@@ -122,12 +123,19 @@ export const UserProvider = ({ children }) => {
       return true;
     }
     
-    // 403 = Forbidden - pouze pokud je errorCode NO_ROLE
+    // 403 = Forbidden - pouze pokud je errorCode NO_ROLE nebo USER_BANNED
     // Jine 403 chyby (napr. "nemas opravneni na tuto akci") NEOHLASUJEME!
     if (status === 403) {
       // Pouze pokud mame errorCode a je to NO_ROLE
       if (responseData && responseData.errorCode === AUTH_ERROR_CODES.NO_ROLE) {
         console.log("User has no role - logging out");
+        logout(true);
+        return true;
+      }
+      // Uzivatel je zabanovan
+      if (responseData && responseData.errorCode === AUTH_ERROR_CODES.USER_BANNED) {
+        console.log("User is banned - logging out");
+        alert(t("userBanned"));
         logout(true);
         return true;
       }

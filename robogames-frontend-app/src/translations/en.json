@@ -727,5 +727,19 @@
     "leaderPerm4": "Edit teacher information",
     "memberPerm1": "Manage robots (add, edit, remove)",
     "students": "Students and adults",
-    "pupils": "Pupils"
+    "pupils": "Pupils",
+    "banned": "Banned",
+    "active": "Active",
+    "status": "Status",
+    "banUser": "Ban user",
+    "unbanUser": "Unban user",
+    "banUserConfirm": "Are you sure you want to ban this user? The user will not be able to log in to the system.",
+    "unbanUserConfirm": "Are you sure you want to unban this user? The user will be able to log in again.",
+    "userBannedSuccess": "User has been banned",
+    "userUnbannedSuccess": "User has been unbanned",
+    "banUserFail": "Failed to ban user",
+    "unbanUserFail": "Failed to unban user",
+    "userBanned": "Your account has been banned. Please contact the administrator for more information.",
+    "cannotBanSelf": "You cannot ban yourself",
+    "accountBannedTitle": "Account Banned"
 }

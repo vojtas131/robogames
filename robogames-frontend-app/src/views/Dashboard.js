@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Card, CardHeader, CardBody, CardTitle, Button, Row, Col, CardFooter, Badge } from 'reactstrap';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardHeader, CardBody, CardTitle, Button, Row, Col, CardFooter, Badge, Alert } from 'reactstrap';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import robogamesLogo from '../assets/img/robogames-logo.png';
 
 import { loginWithKeycloak } from "../components/KeyCloak/KeyCloak";
@@ -14,13 +14,25 @@ function Dashboard() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [hasTeam, setHasTeam] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [showBannedAlert, setShowBannedAlert] = useState(false);
     const { token } = useUser();
     const { theme } = useContext(ThemeContext);
     const toast = useToast();
     const isDark = theme === themes.dark;
 
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const currentYear = new Date().getFullYear();
+
+    // Check for banned parameter
+    useEffect(() => {
+        if (searchParams.get('banned') === 'true') {
+            setShowBannedAlert(true);
+            // Remove the parameter from URL
+            searchParams.delete('banned');
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
 
     useEffect(() => {
         setIsLoggedIn(!!token);
@@ -138,6 +150,17 @@ function Dashboard() {
 
     return (
         <div className="content">
+            {/* Banned Alert */}
+            {showBannedAlert && (
+                <Alert color="danger" isOpen={showBannedAlert} toggle={() => setShowBannedAlert(false)} style={{ marginBottom: '20px' }}>
+                    <h4 className="alert-heading" style={{ marginBottom: '10px' }}>
+                        <i className="fa-solid fa-ban" style={{ marginRight: '10px' }}></i>
+                        {t("accountBannedTitle")}
+                    </h4>
+                    <p style={{ marginBottom: '0' }}>{t("userBanned")}</p>
+                </Alert>
+            )}
+
             {/* Hero Section */}
             <Row>
                 <Col md="12">
