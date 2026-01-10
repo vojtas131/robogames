@@ -709,5 +709,7 @@
     "backToParent": "Back",
     "adminDashboard": "Administration",
     "manage": "Manage",
-    "manageRobotsDesc": "Select a year to manage your team's robots"
+    "manageRobotsDesc": "Select a year to manage your team's robots",
+    "noPg": "No playgrounds",
+    "noPgDesc": "No playgrounds have been added yet."
 }

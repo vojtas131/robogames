@@ -707,5 +707,7 @@
     "backToParent": "Zpět",
     "adminDashboard": "Administrace",
     "manage": "Spravovat",
-    "manageRobotsDesc": "Vyberte rok pro správu robotů vašeho týmu"
+    "manageRobotsDesc": "Vyberte rok pro správu robotů vašeho týmu",
+    "noPg": "Žádná hřiště",
+    "noPgDesc": "Zatím nebyla přidána žádná hřiště."
 }
