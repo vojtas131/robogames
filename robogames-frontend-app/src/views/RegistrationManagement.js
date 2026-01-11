@@ -312,8 +312,8 @@ function RegistrationManagement() {
   };
 
   const getCategoryDisplay = (category) => {
-    if (category === 'LOW_AGE_CATEGORY') return t("lowAge");
-    if (category === 'HIGH_AGE_CATEGORY') return t("highAge");
+    if (category === 'LOW_AGE_CATEGORY') return t("pupils");
+    if (category === 'HIGH_AGE_CATEGORY') return t("students");
     return category;
   };
 

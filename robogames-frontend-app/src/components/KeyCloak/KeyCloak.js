@@ -64,6 +64,14 @@ export default function AuthCallback() {
       // if login failed go to homepage
       if (data.type === "ERROR") {
         console.error("Keycloak login failed:", data.data);
+        
+        // Check if user is banned
+        if (data.data === "USER_BANNED") {
+          // Redirect to dashboard with banned parameter - will show message there
+          navigate("/admin/dashboard?banned=true");
+          return;
+        }
+        
         navigate("/admin/dashboard");
         toast.error(t("loginFailed"));
         return;

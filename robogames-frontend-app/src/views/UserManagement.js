@@ -45,6 +45,7 @@ function UserManagement() {
     birthDate: ''
   });
   const [isAdminOrLeader, setIsAdminOrLeader] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [selectedSearchUser, setSelectedSearchUser] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -64,6 +65,9 @@ function UserManagement() {
         const userData = await userRes.json();
         if (userRes.ok && userData.data.roles.some(role => ['ADMIN', 'LEADER'].includes(role.name))) {
           setIsAdminOrLeader(true);
+        }
+        if (userRes.ok && userData.data.id) {
+          setCurrentUserId(userData.data.id);
         }
 
         const res = await fetch(`${process.env.REACT_APP_API_URL}api/user/all`, {
@@ -236,6 +240,63 @@ function UserManagement() {
     }
   };
 
+  // Ban user
+  const handleBanUser = async (userId) => {
+    // Prevent self-ban
+    if (userId === currentUserId) {
+      toast.warning(t("cannotBanSelf"));
+      return;
+    }
+    if (await confirm({ message: t("banUserConfirm") })) {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/user/ban?id=${userId}`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (tokenExpired(response.status)) { return; }
+
+        const result = await response.json();
+        if (response.ok && result.type !== 'ERROR') {
+          toast.success(t("userBannedSuccess"));
+          window.location.reload();
+        } else {
+          throw new Error(result.data || t("banUserFail"));
+        }
+      } catch (error) {
+        toast.error(error.message);
+      }
+    }
+  };
+
+  // Unban user
+  const handleUnbanUser = async (userId) => {
+    if (await confirm({ message: t("unbanUserConfirm") })) {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/user/unban?id=${userId}`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (tokenExpired(response.status)) { return; }
+
+        const result = await response.json();
+        if (response.ok && result.type !== 'ERROR') {
+          toast.success(t("userUnbannedSuccess"));
+          window.location.reload();
+        } else {
+          throw new Error(result.data || t("unbanUserFail"));
+        }
+      } catch (error) {
+        toast.error(error.message);
+      }
+    }
+  };
+
   // validate new data
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -387,16 +448,30 @@ function UserManagement() {
                         <th>{t("mail")}</th>
                         <th>{t("birthDate")}</th>
                         <th>{t("teamID")}</th>
+                        <th>{t("status")}</th>
                         <th>{t("action")}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
+                      <tr style={selectedSearchUser.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}}>
                         <td>{selectedSearchUser.name}</td>
                         <td>{selectedSearchUser.surname}</td>
                         <td>{selectedSearchUser.email}</td>
                         <td>{selectedSearchUser.birthDate}</td>
                         <td>{selectedSearchUser.teamID}</td>
+                        <td>
+                          {selectedSearchUser.banned ? (
+                            <span style={{ color: '#f5365c', fontWeight: 'bold' }}>
+                              <i className="fa-solid fa-ban" style={{ marginRight: '5px' }}></i>
+                              {t("banned")}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#2dce89' }}>
+                              <i className="fa-solid fa-check" style={{ marginRight: '5px' }}></i>
+                              {t("active")}
+                            </span>
+                          )}
+                        </td>
                         <td>
                           <Button color="primary" size="sm" onClick={() => handleEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
                             {t("roleEdit")}
@@ -404,6 +479,16 @@ function UserManagement() {
                           <Button color="secondary" size="sm" onClick={() => handleUserEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
                             <i className="fa-solid fa-pencil"></i>
                           </Button>
+                          {!selectedSearchUser.banned && (
+                            <Button color="warning" size="sm" onClick={() => handleBanUser(selectedSearchUser.id)} style={{ marginRight: '5px' }} title={t("banUser")}>
+                              <i className="fa-solid fa-ban"></i>
+                            </Button>
+                          )}
+                          {selectedSearchUser.banned && (
+                            <Button color="success" size="sm" onClick={() => handleUnbanUser(selectedSearchUser.id)} style={{ marginRight: '5px' }} title={t("unbanUser")}>
+                              <i className="fa-solid fa-unlock"></i>
+                            </Button>
+                          )}
                           <Button color="danger" size="sm" onClick={() => handleRemoveUser(selectedSearchUser.id)}>
                             <i className="tim-icons icon-trash-simple"></i>
                           </Button>
@@ -428,12 +513,13 @@ function UserManagement() {
                     <th>{t("birthDate")}</th>
                     <th>{t("role")}</th>
                     <th>{t("teamID")}</th>
+                    <th>{t("status")}</th>
                     <th style={{ textAlign: 'center' }}>{t("action")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user, index) => (
-                    <tr key={index}>
+                    <tr key={index} style={user.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}}>
                       {/* <td>{user.id}</td>
                       <td>{user.uuid}</td> */}
                       <td>{user.name}</td>
@@ -450,9 +536,32 @@ function UserManagement() {
                       </td>
                       <td>{user.teamID}</td>
                       <td>
+                        {user.banned ? (
+                          <span style={{ color: '#f5365c', fontWeight: 'bold' }}>
+                            <i className="fa-solid fa-ban" style={{ marginRight: '5px' }}></i>
+                            {t("banned")}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#2dce89' }}>
+                            <i className="fa-solid fa-check" style={{ marginRight: '5px' }}></i>
+                            {t("active")}
+                          </span>
+                        )}
+                      </td>
+                      <td>
                         {isAdminOrLeader && (
                           <Button color="secondary" size="sm" onClick={() => handleUserEdit(user)} style={{ marginLeft: '10px' }}>
                             <i className="fa-solid fa-pencil"></i>
+                          </Button>
+                        )}
+                        {isAdminOrLeader && !user.banned && (
+                          <Button color="warning" size="sm" onClick={() => handleBanUser(user.id)} style={{ marginLeft: '10px' }} title={t("banUser")}>
+                            <i className="fa-solid fa-ban"></i>
+                          </Button>
+                        )}
+                        {isAdminOrLeader && user.banned && (
+                          <Button color="success" size="sm" onClick={() => handleUnbanUser(user.id)} style={{ marginLeft: '10px' }} title={t("unbanUser")}>
+                            <i className="fa-solid fa-unlock"></i>
                           </Button>
                         )}
                         {isAdminOrLeader && (
