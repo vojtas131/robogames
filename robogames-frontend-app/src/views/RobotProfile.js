@@ -38,6 +38,7 @@ function RobotProfile() {
   };
 
   const [profile, setProfile] = useState(null);
+  const [matches, setMatches] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
@@ -63,6 +64,7 @@ function RobotProfile() {
     }
 
     fetchRobotProfile();
+    fetchRobotMatches();
   }, [robotId, token]);
 
   const fetchRobotProfile = async () => {
@@ -107,6 +109,32 @@ function RobotProfile() {
       setError(t("serverCommFail"));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchRobotMatches = async () => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}api/robot/matches?id=${robotId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
+
+      if (tokenExpired(response.status)) return;
+
+      const data = await response.json();
+      if (response.ok && data.type === 'RESPONSE') {
+        setMatches(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching robot matches:', error);
     }
   };
 
@@ -480,6 +508,67 @@ function RobotProfile() {
                   </Col>
                 </Row>
               </div>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Robot Matches Card */}
+      <Row>
+        <Col xs="12">
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h3">
+                <i className="tim-icons icon-trophy text-warning mr-2" />
+                {t("robotMatches")}
+              </CardTitle>
+            </CardHeader>
+            <CardBody>
+              {matches && matches.length > 0 ? (
+                <Table responsive>
+                  <thead className="text-primary">
+                    <tr>
+                      <th>{t("playground")}</th>
+                      <th>{t("group")}</th>
+                      <th>{t("score")}</th>
+                      <th>{t("status")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matches.map((match, index) => (
+                      <tr key={index}>
+                        <td>
+                          {match.playgroundName} #{match.playgroundNumber}
+                        </td>
+                        <td>
+                          {match.groupId ? `${t("group")} ${match.groupId}` : '-'}
+                        </td>
+                        <td>
+                          <Badge color="info" style={{ fontSize: '13px' }}>
+                            {match.score}
+                          </Badge>
+                        </td>
+                        <td>
+                          <Badge 
+                            color={
+                              match.state === 'DONE' ? 'success' : 
+                              match.state === 'WAITING' ? 'warning' : 
+                              match.state === 'REMATCH' ? 'info' : 'secondary'
+                            }
+                          >
+                            {match.state === 'DONE' ? t("done") :
+                             match.state === 'WAITING' ? t("waiting") :
+                             match.state === 'REMATCH' ? t("rematch") :
+                             match.state}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : (
+                <p className="text-muted">{t("noMatches")}</p>
+              )}
             </CardBody>
           </Card>
         </Col>

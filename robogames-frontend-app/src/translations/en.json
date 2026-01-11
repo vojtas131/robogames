@@ -741,5 +741,35 @@
     "unbanUserFail": "Failed to unban user",
     "userBanned": "Your account has been banned. Please contact the administrator for more information.",
     "cannotBanSelf": "You cannot ban yourself",
-    "accountBannedTitle": "Account Banned"
+    "accountBannedTitle": "Account Banned",
+
+    "matchSchedule": "Match Schedule",
+    "allDisciplines": "All disciplines",
+    "allCategories": "All categories",
+    "autoRotate": "Auto rotate",
+    "rotationInterval": "Rotation interval",
+    "noScheduledMatches": "No scheduled matches",
+    "noScheduledMatchesDesc": "There are currently no matches waiting to be played.",
+    "matchesInQueue": "matches in queue",
+    "matchWaiting": "Waiting",
+    "matchRematch": "Rematch",
+    "scheduledMatchesInfo": "Data is automatically updated every 5 seconds",
+    "totalMatches": "Total matches",
+    "status": "Status",
+    "all": "All",
+
+    "robotMatches": "Robot Matches",
+    "noMatches": "The robot has no scheduled or completed matches yet.",
+    "playground": "Playground",
+    "group": "Group",
+    "done": "Done",
+    "waiting": "Waiting",
+    "rematch": "Rematch",
+
+    "matchCallSystem": "Call System",
+    "matchCallSystemDesc": "Robots currently being called to matches",
+    "noActiveMatches": "No active matches",
+    "noActiveMatchesDesc": "No robots are currently being called to matches.",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
 }

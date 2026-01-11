@@ -40,6 +40,7 @@ import Rules from "views/Rules";
 import AuthCallback from "components/KeyCloak/KeyCloak";
 import TeamManagement from "views/TeamManagement";
 import RegistrationManagement from "views/RegistrationManagement";
+import MatchSchedule from "views/MatchSchedule";
 import { t } from "translations/translate";
 
 
@@ -98,6 +99,14 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-book-bookmark",
     component: <CompetitionResults />,
+    layout: "/admin",
+  },
+  {
+    path: "/match-schedule",
+    name: t("matchSchedule"),
+    rtlName: "",
+    icon: "tim-icons icon-time-alarm",
+    component: <MatchSchedule />,
     layout: "/admin",
   },
   {

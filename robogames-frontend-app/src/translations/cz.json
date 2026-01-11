@@ -737,5 +737,35 @@
     "unbanUserFail": "Nepodařilo se odbanovat uživatele",
     "userBanned": "Váš účet byl zabanován. Kontaktujte administrátora pro více informací.",
     "cannotBanSelf": "Nemůžete zabanovat sami sebe",
-    "accountBannedTitle": "Účet zabanován"
+    "accountBannedTitle": "Účet zabanován",
+
+    "matchSchedule": "Vyzvací systém",
+    "allDisciplines": "Všechny disciplíny",
+    "allCategories": "Všechny kategorie",
+    "autoRotate": "Automatická rotace",
+    "rotationInterval": "Interval rotace",
+    "noScheduledMatches": "Žádné naplánované zápasy",
+    "noScheduledMatchesDesc": "V tuto chvíli nejsou naplánovány žádné zápasy čekající na odehrání.",
+    "matchesInQueue": "zápasů ve frontě",
+    "matchWaiting": "Čeká",
+    "matchRematch": "Opakování",
+    "scheduledMatchesInfo": "Data se automaticky aktualizují každých 5 sekund",
+    "totalMatches": "Celkem zápasů",
+    "status": "Stav",
+    "all": "Vše",
+
+    "robotMatches": "Zápasy robota",
+    "noMatches": "Robot zatím nemá žádné naplánované ani odehrané zápasy.",
+    "playground": "Hřiště",
+    "group": "Skupina",
+    "done": "Odehráno",
+    "waiting": "Čeká",
+    "rematch": "Opakování",
+
+    "matchCallSystem": "Vyvolávací systém",
+    "matchCallSystemDesc": "Roboti, kteří jsou právě voláni k zápasu",
+    "noActiveMatches": "Žádné aktivní zápasy",
+    "noActiveMatchesDesc": "V tuto chvíli nejsou žádní roboti voláni k zápasu.",
+    "fullscreen": "Maximalizovat",
+    "exitFullscreen": "Ukončit maximalizaci"
 }
