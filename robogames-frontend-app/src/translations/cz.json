@@ -467,6 +467,8 @@
     "discCreateFail":"Nebylo možné vytvořit disciplínu.",
     "discAdd":"Přidat disciplínu",
     "discEdit":"Upravit disciplínu",
+    "printBracket":"Tisknout pavouk",
+    "printGroup":"Tisknout skupinu",
     "discAddNew":"Přidat novou disciplínu",
     "discName":"Název disciplíny",
     "descript":"Popis",
@@ -624,6 +626,8 @@
 
     "loggingIn":"Probíhá přihlašování...",
     "loginFailed":"Příhlášení se nezdařilo.",
+    "generate": "Generování",
+    "saveSchedule": "Uložit rozpis",
 
     "teamManagement": "Správa týmů",
     "teamCreated": "Tým byl úspěšně vytvořen!",

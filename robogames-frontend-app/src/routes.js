@@ -41,6 +41,7 @@ import AuthCallback from "components/KeyCloak/KeyCloak";
 import TeamManagement from "views/TeamManagement";
 import RegistrationManagement from "views/RegistrationManagement";
 import MatchSchedule from "views/MatchSchedule";
+import Generate from "views/Generate.js";
 import { t } from "translations/translate";
 
 
@@ -245,6 +246,14 @@ var routes = [
     path: "/auth/callback",
     name: "Auth Callback",
     component: <AuthCallback />,
+    layout: "/admin",
+  },
+  {
+    path: "/generate",
+    name: t("generate"),  // prepozíčny text z translations
+    rtlName: "",
+    icon: "tim-icons icon-puzzle-10",
+    component: <Generate />,
     layout: "/admin",
   }
 

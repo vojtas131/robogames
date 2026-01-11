@@ -467,6 +467,8 @@
     "discCreateFail":"Failed to create discipline.",
     "discAdd": "Add discipline",
     "discEdit": "Edit discipline",
+    "printBracket": "Print bracket",
+    "printGroup": "Print group",
     "discAddNew": "Add new discipline",
     "discName": "Discipline name",
     "descript": "Description",
@@ -626,6 +628,8 @@
 
     "loggingIn":"Login in progress...",
     "loginFailed":"Login failed.",
+    "generate": "Generate",
+    "saveSchedule": "Save schedule",
 
     "teamManagement": "Team Management",
     "teamCreated": "Team created successfully!",
