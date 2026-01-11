@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { Card, CardBody, Row, Col, Badge, Button } from 'reactstrap';
 import { t } from "translations/translate";
+import { ThemeContext, themes } from "contexts/ThemeContext";
 
 /**
  * MatchSchedule - Vyzvací systém pro roboty
@@ -14,6 +15,8 @@ function MatchSchedule() {
     const ITEMS_PER_PAGE = 5;
     const isRefreshing = useRef(false);
     const lastMatchCount = useRef(0);
+    const { theme } = useContext(ThemeContext);
+    const isDarkTheme = theme === themes.dark;
 
     const fetchCurrentMatches = useCallback(async () => {
         isRefreshing.current = true;
@@ -142,7 +145,7 @@ function MatchSchedule() {
         right: 0,
         bottom: 0,
         zIndex: 9999,
-        background: '#1e1e2f',
+        background: isDarkTheme ? '#1e1e2f' : '#f5f6fa',
         padding: '20px',
         overflowY: 'auto',
         overflowX: 'hidden'
