@@ -222,6 +222,7 @@
     "teamRename":"Rename team",
     "rename":"Rename",
     "name": "First name",
+    "names": "Team names",
     "surname": "Last name",
     "teamLeader": "Team leader:",
     "regYears": "Registration years:",
@@ -711,5 +712,8 @@
     "manage": "Manage",
     "manageRobotsDesc": "Select a year to manage your team's robots",
     "noPg": "No playgrounds",
-    "noPgDesc": "No playgrounds have been added yet."
+    "noPgDesc": "No playgrounds have been added yet.",
+
+    "generateDiplomas": "Generate dimplomas",
+    "diplomaTemplate": "Správa templatu diplomu"
 }

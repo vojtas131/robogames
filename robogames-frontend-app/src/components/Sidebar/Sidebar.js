@@ -109,6 +109,7 @@ function Sidebar(props) {
                 if (prop.path === "/auth/callback") return null; // Always hide callback
                 if (prop.path === "/register") return null; // Always hide register
                 if (prop.path === "/user-management") return null; // Always hide user management
+                if (prop.path === "/diploma-template") return null; // Always hide diploma management
                 if (prop.path === "/competition-management") return null; // Always hide competition management
                 if (prop.path === "/competition-detail") return null; // Always hide competition detail
                 if (prop.path === "/competition-registration") return null; // Always hide competition registration

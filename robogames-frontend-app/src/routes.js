@@ -40,6 +40,7 @@ import Rules from "views/Rules";
 import AuthCallback from "components/KeyCloak/KeyCloak";
 import TeamManagement from "views/TeamManagement";
 import RegistrationManagement from "views/RegistrationManagement";
+import DiplomaTemplateManagement from "views/DiplomaTemplateManagement";
 import { t } from "translations/translate";
 
 
@@ -240,6 +241,13 @@ var routes = [
     path: "/auth/callback",
     name: "Auth Callback",
     component: <AuthCallback />,
+    layout: "/admin",
+  },
+  {
+    path: "/diploma-template",
+    name: t("diplomaTemplate"),
+    rtlName: "",
+    component: <DiplomaTemplateManagement />,
     layout: "/admin",
   }
 

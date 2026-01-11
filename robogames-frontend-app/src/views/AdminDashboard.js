@@ -155,6 +155,28 @@ function AdminDashboard() {
             </CardTitle>
           </Card>
         </Col>
+        {/* Card for Managing diploma templates */}
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
+          <Card
+            onClick={() => handleNavigate('/admin/diploma-template')}
+            style={{
+              cursor: 'pointer',
+              width: '300px',
+              height: '300px',
+              margin: '10px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column'
+            }}
+            className="text-white"
+          >
+            <CardTitle tag="h4" style={{ fontSize: '1.5em' }}>
+              <i className="tim-icons icon-paper mr-2" /> 
+              {t("diplomaTemplate")}
+            </CardTitle>
+          </Card>
+        </Col>
       </Row>
     </div>
   );

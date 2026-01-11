@@ -222,6 +222,7 @@
     "teamRename":"Přejmenovat tým",
     "rename":"Přejmenovat",
     "name":"Jméno",
+    "names": "Jména",
     "surname":"Příjmení",
     "teamLeader":"Vedoucí týmu:",
     "regYears":"Roky registrace:",
@@ -709,5 +710,8 @@
     "manage": "Spravovat",
     "manageRobotsDesc": "Vyberte rok pro správu robotů vašeho týmu",
     "noPg": "Žádná hřiště",
-    "noPgDesc": "Zatím nebyla přidána žádná hřiště."
+    "noPgDesc": "Zatím nebyla přidána žádná hřiště.",
+
+    "generateDiplomas": "Vygeneruj diplomy",
+    "diplomaTemplate": "Správa templatu pro diplomy"
 }
