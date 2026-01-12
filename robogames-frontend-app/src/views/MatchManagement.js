@@ -221,20 +221,20 @@ function MatchManagement() {
     const handleOpenEditModal = (match) => {
         setEditingMatch({
             id: match.id,
-            playgroundID: match.playground?.id?.toString() || '',
-            phase: match.phase?.name || 'PRELIMINARY',
+            playgroundID: match.playgroundID?.toString() || '',
+            phase: match.phaseName || 'PRELIMINARY',
             highScoreWin: match.highScoreWin !== undefined ? match.highScoreWin : true
         });
-        setEditRobotA(match.robotA ? {
-            id: match.robotA.id,
-            number: match.robotA.number,
-            name: match.robotA.name,
+        setEditRobotA(match.robotAID ? {
+            id: match.robotAID,
+            number: match.robotANumber,
+            name: match.robotAName,
             teamName: match.teamAName
         } : null);
-        setEditRobotB(match.robotB ? {
-            id: match.robotB.id,
-            number: match.robotB.number,
-            name: match.robotB.name,
+        setEditRobotB(match.robotBID ? {
+            id: match.robotBID,
+            number: match.robotBNumber,
+            name: match.robotBName,
             teamName: match.teamBName
         } : null);
         setShowEditModal(true);
@@ -487,6 +487,8 @@ function MatchManagement() {
                                             <th>{t('score') || 'Skóre'}</th>
                                             <th>{t('phase') || 'Fáze'}</th>
                                             <th>{t('state') || 'Stav'}</th>
+                                            <th>{t('nextMatch') || 'Další zápas'}</th>
+                                            <th>{t('lastUpdate') || 'Poslední změna'}</th>
                                             <th>{t('actions') || 'Akce'}</th>
                                         </tr>
                                     </thead>
@@ -508,9 +510,9 @@ function MatchManagement() {
                                                     </Badge>
                                                 </td>
                                                 <td>
-                                                    {match.robotA ? (
+                                                    {match.robotAID ? (
                                                         <span>
-                                                            <strong>#{match.robotA.number}</strong> {match.robotA.name}
+                                                            <strong>#{match.robotANumber}</strong> {match.robotAName}
                                                             <br />
                                                             <small className="text-muted">{match.teamAName}</small>
                                                         </span>
@@ -519,9 +521,9 @@ function MatchManagement() {
                                                     )}
                                                 </td>
                                                 <td>
-                                                    {match.robotB ? (
+                                                    {match.robotBID ? (
                                                         <span>
-                                                            <strong>#{match.robotB.number}</strong> {match.robotB.name}
+                                                            <strong>#{match.robotBNumber}</strong> {match.robotBName}
                                                             <br />
                                                             <small className="text-muted">{match.teamBName}</small>
                                                         </span>
@@ -533,7 +535,7 @@ function MatchManagement() {
                                                     {match.scoreA !== null ? (
                                                         <span>
                                                             <strong>{match.scoreA}</strong>
-                                                            {match.robotB && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
+                                                            {match.robotBID && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
                                                         </span>
                                                     ) : (
                                                         <span className="text-muted">-</span>
@@ -541,7 +543,7 @@ function MatchManagement() {
                                                 </td>
                                                 <td>
                                                     <Badge color="primary">
-                                                        {getPhaseLabel(match.phase?.name)}
+                                                        {getPhaseLabel(match.phaseName)}
                                                     </Badge>
                                                 </td>
                                                 <td>
@@ -550,15 +552,23 @@ function MatchManagement() {
                                                     </Badge>
                                                 </td>
                                                 <td>
-                                                    <Button
-                                                        color="info"
-                                                        size="sm"
-                                                        className="mr-1"
-                                                        onClick={() => goToScoreEntry(match.id)}
-                                                        title={t('writeScore') || 'Zapsat skóre'}
-                                                    >
-                                                        <i className="tim-icons icon-pencil" />
-                                                    </Button>
+                                                    {match.nextMatchID ? (
+                                                        <span 
+                                                            style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
+                                                            onClick={() => goToScoreEntry(match.nextMatchID)}
+                                                        >
+                                                            #{match.nextMatchID}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-muted">-</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <small className="text-muted">
+                                                        {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
+                                                    </small>
+                                                </td>
+                                                <td>
                                                     <Button
                                                         color="primary"
                                                         size="sm"
@@ -650,7 +660,7 @@ function MatchManagement() {
                             <Alert color="info" className="mb-3">
                                 <i className="tim-icons icon-bulb-63 mr-2" />
                                 {t('selectedDiscipline') || 'Vybraná disciplína'}: <strong>{getSelectedPlaygroundDiscipline(newMatch.playgroundID)}</strong>
-                                {' '}({filteredRobotsForCreate.length} {t('robotsAvailable') || 'robotů k dispozici'})
+                                {' '}({filteredRobotsForCreate.filter(r => r.confirmed).length} {t('confirmedRobotsAvailable') || 'potvrzených robotů k dispozici'})
                             </Alert>
                         )}
 
@@ -665,6 +675,7 @@ function MatchManagement() {
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                         excludeRobotIds={selectedRobotB ? [selectedRobotB.id] : []}
                                         showDisciplineInfo={true}
+                                        showOnlyConfirmed={true}
                                     />
                                 </FormGroup>
                             </Col>
@@ -678,6 +689,7 @@ function MatchManagement() {
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                         excludeRobotIds={selectedRobotA ? [selectedRobotA.id] : []}
                                         showDisciplineInfo={true}
+                                        showOnlyConfirmed={true}
                                     />
                                 </FormGroup>
                             </Col>
@@ -764,6 +776,7 @@ function MatchManagement() {
                                             placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                             excludeRobotIds={editRobotB ? [editRobotB.id] : []}
                                             showDisciplineInfo={true}
+                                            showOnlyConfirmed={true}
                                         />
                                     </FormGroup>
                                 </Col>
@@ -777,6 +790,7 @@ function MatchManagement() {
                                             placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                             excludeRobotIds={editRobotA ? [editRobotA.id] : []}
                                             showDisciplineInfo={true}
+                                            showOnlyConfirmed={true}
                                         />
                                     </FormGroup>
                                 </Col>

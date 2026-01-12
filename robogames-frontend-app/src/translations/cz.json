@@ -337,7 +337,7 @@
     "matchLoadFailed":"Nepodařilo se načíst zápas",
     "winner":"VÍTĚZ",
     "tie":"REMÍZA",
-    "highScoreWinsHint":"Robot s vyšším skóre vyhrává (např. RoboSumo - počet výher)",
+    "highScoreWinsHint":"Robot s vyšším skóre vyhrává",
     "lowScoreWinsHint":"Robot s nižším skóre vyhrává (např. Line Follower - kratší čas)",
     "enterTime":"Zadejte čas",
     "timeHint":"Zadejte čas v sekundách (např. 45.23)",
@@ -860,5 +860,14 @@
     "noActiveMatches": "Žádné aktivní zápasy",
     "noActiveMatchesDesc": "V tuto chvíli nejsou žádní roboti voláni k zápasu.",
     "fullscreen": "Maximalizovat",
-    "exitFullscreen": "Ukončit maximalizaci"
+    "exitFullscreen": "Ukončit maximalizaci",
+
+    "lastUpdate": "Poslední změna",
+    "scoreHintInt": "Zadejte celé číslo",
+    "noDiscipline": "Bez disciplíny",
+    "confirmedRobots": "Potvrzení roboti",
+    "allRobots": "Všichni roboti",
+    "onlyConfirmedRobots": "Pouze potvrzení roboti",
+    "confirmedRobotsAvailable": "potvrzených robotů k dispozici",
+    "opponent": "Soupeř"
 }

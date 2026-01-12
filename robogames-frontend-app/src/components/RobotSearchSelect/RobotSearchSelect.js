@@ -22,6 +22,7 @@ import { t } from "translations/translate";
  * - clearOnSelect: boolean - Whether to clear input after selection
  * - showTeamInfo: boolean - Whether to show team information
  * - showDisciplineInfo: boolean - Whether to show discipline and category info
+ * - showOnlyConfirmed: boolean - Whether to show only confirmed robots (default: false)
  */
 function RobotSearchSelect({
   robots = [],
@@ -33,6 +34,7 @@ function RobotSearchSelect({
   clearOnSelect = false,
   showTeamInfo = true,
   showDisciplineInfo = false,
+  showOnlyConfirmed = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
@@ -70,7 +72,11 @@ function RobotSearchSelect({
   const performSearch = useCallback((term) => {
     if (term.length < 1) {
       // Show all robots when focused but no search term
-      const filtered = robots.filter(robot => !excludeRobotIds.includes(robot.id));
+      const filtered = robots.filter(robot => {
+        if (excludeRobotIds.includes(robot.id)) return false;
+        if (showOnlyConfirmed && !robot.confirmed) return false;
+        return true;
+      });
       setResults(filtered.slice(0, 20));
       return;
     }
@@ -80,6 +86,7 @@ function RobotSearchSelect({
     
     const filtered = robots.filter(robot => {
       if (excludeRobotIds.includes(robot.id)) return false;
+      if (showOnlyConfirmed && !robot.confirmed) return false;
       
       const matchesName = robot.name?.toLowerCase().includes(searchLower);
       const matchesId = robot.id?.toString() === term;
@@ -91,7 +98,7 @@ function RobotSearchSelect({
     
     setResults(filtered.slice(0, 20));
     setIsSearching(false);
-  }, [robots, excludeRobotIds]);
+  }, [robots, excludeRobotIds, showOnlyConfirmed]);
 
   // Debounced search
   useEffect(() => {

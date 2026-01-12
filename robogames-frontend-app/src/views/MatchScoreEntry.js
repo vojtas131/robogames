@@ -77,7 +77,7 @@ function MatchScoreEntry() {
         e.preventDefault();
         
         // Check if at least one robot is assigned
-        if (!match.robotA && !match.robotB) {
+        if (!match.robotAID && !match.robotBID) {
             toast.error(t('noRobotAssigned') || 'Není přiřazen žádný robot');
             return;
         }
@@ -88,7 +88,7 @@ function MatchScoreEntry() {
         }
 
         // For two-robot matches, scoreB is required
-        const isTwoRobotMatch = match.robotA && match.robotB;
+        const isTwoRobotMatch = match.robotAID && match.robotBID;
         if (isTwoRobotMatch && !scoreB && scoreB !== '0') {
             toast.error(t('scoreBRequired') || 'Skóre B je povinné');
             return;
@@ -201,7 +201,7 @@ function MatchScoreEntry() {
 
     // Determine winner based on scores and highScoreWin setting
     const determineWinner = () => {
-        if (!match || !match.robotA || !match.robotB) return null;
+        if (!match || !match.robotAID || !match.robotBID) return null;
         if (scoreA === '' || scoreB === '') return null;
         
         const sA = parseFloat(scoreA);
@@ -253,9 +253,9 @@ function MatchScoreEntry() {
         );
     }
 
-    const noRobotAssigned = !match.robotA && !match.robotB;
-    const isTwoRobotMatch = match.robotA && match.robotB;
-    const isSingleRobotMatch = (match.robotA && !match.robotB) || (!match.robotA && match.robotB);
+    const noRobotAssigned = !match.robotAID && !match.robotBID;
+    const isTwoRobotMatch = match.robotAID && match.robotBID;
+    const isSingleRobotMatch = (match.robotAID && !match.robotBID) || (!match.robotAID && match.robotBID);
     const isDone = match.state?.name === 'DONE';
     const isTimeScore = match.scoreType?.name === 'TIME';
 
@@ -281,24 +281,32 @@ function MatchScoreEntry() {
                             </Row>
                         </CardHeader>
                         <CardBody>
+                            {/* Discipline - Prominent Display */}
+                            <Row className="mb-4">
+                                <Col className="text-center">
+                                    <Badge 
+                                        color="info" 
+                                        style={{ 
+                                            fontSize: '20px', 
+                                            padding: '12px 30px',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        <i className="tim-icons icon-trophy mr-2" />
+                                        {match.disciplineName || (t('noDiscipline') || 'Bez disciplíny')}
+                                    </Badge>
+                                </Col>
+                            </Row>
+
                             {/* Match Details */}
                             <Row className="mb-4">
-                                <Col md="6">
+                                <Col md="12">
                                     <h5 className="text-muted mb-2">
                                         <i className="tim-icons icon-compass-05 mr-2" />
                                         {t('playground') || 'Hřiště'}
                                     </h5>
                                     <p className="mb-0">
                                         <strong>{match.playgroundName}</strong> (#{match.playgroundNumber})
-                                    </p>
-                                </Col>
-                                <Col md="6">
-                                    <h5 className="text-muted mb-2">
-                                        <i className="tim-icons icon-trophy mr-2" />
-                                        {t('discipline') || 'Disciplína'}
-                                    </h5>
-                                    <p className="mb-0">
-                                        <strong>{match.disciplineName || '-'}</strong>
                                     </p>
                                 </Col>
                             </Row>
@@ -310,10 +318,10 @@ function MatchScoreEntry() {
                                         {t('phase') || 'Fáze'}
                                     </h5>
                                     <Badge color="primary">
-                                        {getPhaseLabel(match.phase?.name)}
+                                        {getPhaseLabel(match.phaseName)}
                                     </Badge>
                                 </Col>
-                                <Col md="6">
+                                <Col md="3">
                                     <h5 className="text-muted mb-2">
                                         <i className="tim-icons icon-settings mr-2" />
                                         {t('scoreType') || 'Typ skóre'}
@@ -329,6 +337,18 @@ function MatchScoreEntry() {
                                             }
                                         </Badge>
                                     )}
+                                </Col>
+                                <Col md="3">
+                                    <h5 className="text-muted mb-2">
+                                        <i className="tim-icons icon-time-alarm mr-2" />
+                                        {t('lastUpdate') || 'Poslední změna'}
+                                    </h5>
+                                    <p className="mb-0">
+                                        {match.timestamp 
+                                            ? new Date(match.timestamp).toLocaleString('cs-CZ')
+                                            : '-'
+                                        }
+                                    </p>
                                 </Col>
                             </Row>
 
@@ -366,9 +386,9 @@ function MatchScoreEntry() {
                                                     </Badge>
                                                 )}
                                                 <div style={{ fontSize: '48px', fontWeight: '900', color: '#2dce89' }}>
-                                                    #{match.robotA?.number || '?'}
+                                                    #{match.robotANumber || '?'}
                                                 </div>
-                                                <h4 className="mb-1">{match.robotA?.name || 'Robot A'}</h4>
+                                                <h4 className="mb-1">{match.robotAName || 'Robot A'}</h4>
                                                 <p className="text-muted mb-0">
                                                     <i className="tim-icons icon-single-02 mr-1" />
                                                     {match.teamAName || '-'}
@@ -400,9 +420,9 @@ function MatchScoreEntry() {
                                                     </Badge>
                                                 )}
                                                 <div style={{ fontSize: '48px', fontWeight: '900', color: '#5e72e4' }}>
-                                                    #{match.robotB?.number || '?'}
+                                                    #{match.robotBNumber || '?'}
                                                 </div>
-                                                <h4 className="mb-1">{match.robotB?.name || 'Robot B'}</h4>
+                                                <h4 className="mb-1">{match.robotBName || 'Robot B'}</h4>
                                                 <p className="text-muted mb-0">
                                                     <i className="tim-icons icon-single-02 mr-1" />
                                                     {match.teamBName || '-'}
@@ -429,12 +449,13 @@ function MatchScoreEntry() {
                                                 <FormGroup>
                                                     <Label for="scoreA" className="text-success" style={{ fontSize: '16px' }}>
                                                         <i className="tim-icons icon-chart-pie-36 mr-2" />
-                                                        {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotA?.name}
+                                                        {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotAName}
                                                     </Label>
                                                     <Input
                                                         type="number"
                                                         id="scoreA"
-                                                        step="0.01"
+                                                        step={isTimeScore ? "0.01" : "1"}
+                                                        min="0"
                                                         value={scoreA}
                                                         onChange={(e) => setScoreA(e.target.value)}
                                                         placeholder={isTimeScore ? (t('enterTime') || 'Zadejte čas') : (t('enterScore') || 'Zadejte skóre')}
@@ -450,12 +471,13 @@ function MatchScoreEntry() {
                                                 <FormGroup>
                                                     <Label for="scoreB" className="text-primary" style={{ fontSize: '16px' }}>
                                                         <i className="tim-icons icon-chart-pie-36 mr-2" />
-                                                        {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotB?.name}
+                                                        {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotBName}
                                                     </Label>
                                                     <Input
                                                         type="number"
                                                         id="scoreB"
-                                                        step="0.01"
+                                                        step={isTimeScore ? "0.01" : "1"}
+                                                        min="0"
                                                         value={scoreB}
                                                         onChange={(e) => setScoreB(e.target.value)}
                                                         placeholder={isTimeScore ? (t('enterTime') || 'Zadejte čas') : (t('enterScore') || 'Zadejte skóre')}
@@ -476,9 +498,9 @@ function MatchScoreEntry() {
                                         <Col md={{ size: 6, offset: 3 }} className="text-center">
                                             <div className="robot-info-box p-3" style={{ background: 'rgba(45, 206, 137, 0.1)', borderRadius: '10px' }}>
                                                 <div style={{ fontSize: '64px', fontWeight: '900', color: '#2dce89' }}>
-                                                    #{(match.robotA || match.robotB)?.number || '?'}
+                                                    #{match.robotANumber || match.robotBNumber || '?'}
                                                 </div>
-                                                <h3 className="mb-1">{(match.robotA || match.robotB)?.name || 'Robot'}</h3>
+                                                <h3 className="mb-1">{match.robotAName || match.robotBName || 'Robot'}</h3>
                                                 <p className="text-muted mb-0">
                                                     <i className="tim-icons icon-single-02 mr-1" />
                                                     {match.teamAName || match.teamBName || '-'}
@@ -504,7 +526,8 @@ function MatchScoreEntry() {
                                                     <Input
                                                         type="number"
                                                         id="scoreA"
-                                                        step="0.01"
+                                                        step={isTimeScore ? "0.01" : "1"}
+                                                        min="0"
                                                         value={scoreA}
                                                         onChange={(e) => setScoreA(e.target.value)}
                                                         placeholder={isTimeScore ? (t('enterTime') || 'Zadejte čas (sekundy)') : (t('enterScore') || 'Zadejte skóre')}
@@ -514,7 +537,7 @@ function MatchScoreEntry() {
                                                     <small className="form-text text-muted text-center">
                                                         {isTimeScore 
                                                             ? (t('timeHint') || 'Zadejte čas v sekundách (např. 45.23)')
-                                                            : (t('scoreHint') || 'Zadejte dosažené skóre')
+                                                            : (t('scoreHintInt') || 'Zadejte celé číslo')
                                                         }
                                                     </small>
                                                 </FormGroup>
@@ -528,10 +551,10 @@ function MatchScoreEntry() {
                             {isDone && !noRobotAssigned && (
                                 <Row className="mt-3">
                                     <Col className="text-center">
-                                        <Alert color="success">
+                                        <Alert color="success" style={{ backgroundColor: '#2dce89', color: 'white' }}>
                                             <i className="tim-icons icon-check-2 mr-2" />
                                             {t('currentScore') || 'Aktuální skóre'}: 
-                                            <strong className="ml-2">
+                                            <strong className="ml-2" style={{ color: 'white' }}>
                                                 {match.scoreA !== null ? match.scoreA : '-'}
                                                 {isTwoRobotMatch && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
                                             </strong>

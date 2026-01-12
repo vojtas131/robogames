@@ -528,42 +528,84 @@ function RobotProfile() {
                 <Table responsive>
                   <thead className="text-primary">
                     <tr>
+                      <th>ID</th>
                       <th>{t("playground")}</th>
-                      <th>{t("group")}</th>
+                      <th>{t("opponent") || 'Soupeř'}</th>
                       <th>{t("score")}</th>
+                      <th>{t("time") || 'Čas'}</th>
                       <th>{t("status")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {matches.map((match, index) => (
-                      <tr key={index}>
-                        <td>
-                          {match.playgroundName} #{match.playgroundNumber}
-                        </td>
-                        <td>
-                          {match.groupId ? `${t("group")} ${match.groupId}` : '-'}
-                        </td>
-                        <td>
-                          <Badge color="info" style={{ fontSize: '13px' }}>
-                            {match.score}
-                          </Badge>
-                        </td>
-                        <td>
-                          <Badge 
-                            color={
-                              match.state === 'DONE' ? 'success' : 
-                              match.state === 'WAITING' ? 'warning' : 
-                              match.state === 'REMATCH' ? 'info' : 'secondary'
-                            }
-                          >
-                            {match.state === 'DONE' ? t("done") :
-                             match.state === 'WAITING' ? t("waiting") :
-                             match.state === 'REMATCH' ? t("rematch") :
-                             match.state}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
+                    {matches.map((match, index) => {
+                      // Determine if this robot is robotA or robotB
+                      const isRobotA = match.robotAID?.toString() === robotId;
+                      const myScore = isRobotA ? match.scoreA : match.scoreB;
+                      const opponentScore = isRobotA ? match.scoreB : match.scoreA;
+                      const opponentName = isRobotA ? match.robotBName : match.robotAName;
+                      const opponentNumber = isRobotA ? match.robotBNumber : match.robotANumber;
+                      const opponentTeam = isRobotA ? match.teamBName : match.teamAName;
+                      const isTwoRobotMatch = match.robotAID && match.robotBID;
+                      const isTimeScore = match.scoreTypeName === 'TIME';
+                      
+                      return (
+                        <tr key={index}>
+                          <td>
+                            <Badge color="secondary" style={{ fontSize: '12px' }}>
+                              #{match.id}
+                            </Badge>
+                          </td>
+                          <td>
+                            {match.playgroundName} <Badge color="info">#{match.playgroundNumber}</Badge>
+                          </td>
+                          <td>
+                            {isTwoRobotMatch ? (
+                              <div>
+                                <span className="font-weight-bold">
+                                  #{opponentNumber} {opponentName}
+                                </span>
+                                <br />
+                                <small className="text-muted">{opponentTeam}</small>
+                              </div>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
+                          </td>
+                          <td>
+                            {isTwoRobotMatch ? (
+                              <Badge color={myScore > opponentScore ? 'success' : myScore < opponentScore ? 'danger' : 'warning'} style={{ fontSize: '13px' }}>
+                                {myScore !== null ? myScore : '-'} : {opponentScore !== null ? opponentScore : '-'}
+                              </Badge>
+                            ) : (
+                              <Badge color="info" style={{ fontSize: '13px' }}>
+                                {myScore !== null ? myScore : '-'}
+                              </Badge>
+                            )}
+                          </td>
+                          <td>
+                            {isTimeScore && myScore !== null ? (
+                              <span>{myScore.toFixed(2)}s</span>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
+                          </td>
+                          <td>
+                            <Badge 
+                              color={
+                                (match.state?.name || match.stateName) === 'DONE' ? 'success' : 
+                                (match.state?.name || match.stateName) === 'WAITING' ? 'warning' : 
+                                (match.state?.name || match.stateName) === 'REMATCH' ? 'info' : 'secondary'
+                              }
+                            >
+                              {(match.state?.name || match.stateName) === 'DONE' ? t("done") :
+                               (match.state?.name || match.stateName) === 'WAITING' ? t("waiting") :
+                               (match.state?.name || match.stateName) === 'REMATCH' ? t("rematch") :
+                               (match.state?.name || match.stateName)}
+                            </Badge>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </Table>
               ) : (

@@ -145,11 +145,18 @@ function MatchSchedule() {
 
     // Check if match is a two-robot match
     const isTwoRobotMatch = (match) => {
-        return match.robotB !== null && match.robotB !== undefined;
+        return match.robotBID !== null && match.robotBID !== undefined;
     };
 
-    const totalPages = Math.ceil(currentMatches.length / ITEMS_PER_PAGE);
-    const paginatedMatches = currentMatches.slice(
+    // Check if match has any robot assigned
+    const hasRobots = (match) => {
+        return match.robotAID !== null && match.robotAID !== undefined;
+    };
+
+    // Filter out matches without robots
+    const matchesWithRobots = currentMatches.filter(hasRobots);
+    const totalPages = Math.ceil(matchesWithRobots.length / ITEMS_PER_PAGE);
+    const paginatedMatches = matchesWithRobots.slice(
         currentPage * ITEMS_PER_PAGE, 
         (currentPage + 1) * ITEMS_PER_PAGE
     );
@@ -223,7 +230,7 @@ function MatchSchedule() {
                             textShadow: `0 0 30px ${stateColor}60`
                         }}
                     >
-                        {match.robotA?.number || '?'}
+                        {match.robotANumber || '?'}
                     </div>
 
                     {/* Robot name */}
@@ -235,7 +242,7 @@ function MatchSchedule() {
                             letterSpacing: '1px'
                         }}
                     >
-                        {match.robotA?.name || 'Robot'}
+                        {match.robotAName || 'Robot'}
                     </h3>
 
                     {/* Team - highlighted */}
@@ -248,7 +255,7 @@ function MatchSchedule() {
                     >
                         <span className="text-warning font-weight-bold" style={{ fontSize: '15px' }}>
                             <i className="tim-icons icon-single-02 mr-1" />
-                            {match.teamAName || match.robotA?.teamName || '-'}
+                            {match.teamAName || '-'}
                         </span>
                     </div>
 
@@ -272,19 +279,19 @@ function MatchSchedule() {
                                 {t('category')}:
                             </span>
                             <Badge color="info" style={{ fontSize: '11px' }}>
-                                {getCategoryLabel(match.category)}
+                                {getCategoryLabel(match.categoryA)}
                             </Badge>
                         </div>
 
                         {/* Phase (if set) */}
-                        {match.phase && (
+                        {match.phaseName && (
                             <div className="info-row mt-1">
                                 <span className="info-label text-muted">
                                     <i className="tim-icons icon-chart-bar-32 mr-1" />
                                     {t('phase') || 'Fáze'}:
                                 </span>
                                 <Badge color="primary" style={{ fontSize: '11px' }}>
-                                    {getPhaseLabel(match.phase?.name || match.phase)}
+                                    {getPhaseLabel(match.phaseName)}
                                 </Badge>
                             </div>
                         )}
@@ -316,12 +323,12 @@ function MatchSchedule() {
         </Col>
     );
 
-    // Render two-robot match card (e.g. sumo)
+    // Render two-robot match card (e.g. sumo) - same width as single robot card
     const renderTwoRobotCard = (match, stateColor, isRematch, idx) => (
         <Col 
             style={{ 
-                flex: '0 0 40%', 
-                maxWidth: '40%',
+                flex: '0 0 20%', 
+                maxWidth: '20%',
                 animation: 'fadeIn 0.5s ease-in-out',
                 animationDelay: `${idx * 0.1}s`,
                 animationFillMode: 'both'
@@ -351,106 +358,88 @@ function MatchSchedule() {
                         <span className="font-weight-bold" style={{ fontSize: '14px' }}>
                             {match.playgroundName || 'Hřiště'}
                         </span>
-                        <span>
-                            <Badge color="light" className="text-dark" style={{ fontSize: '12px' }}>
-                                {match.disciplineName || '-'}
-                            </Badge>
-                        </span>
                         <span style={{ fontSize: '20px', fontWeight: '800' }}>
                             #{match.playgroundNumber || 0}
                         </span>
                     </div>
                 </div>
 
-                <CardBody className="py-3 px-3">
-                    {/* Phase badge */}
-                    {match.phase && (
-                        <div className="text-center mb-2">
-                            <Badge color="primary" style={{ fontSize: '12px', padding: '6px 15px' }}>
-                                {getPhaseLabel(match.phase?.name || match.phase)}
+                <CardBody className="text-center py-2 px-2">
+                    {/* Robot A - Top */}
+                    <div 
+                        className="py-1 px-2 mb-1" 
+                        style={{ 
+                            background: 'rgba(45, 206, 137, 0.15)',
+                            borderRadius: '8px'
+                        }}
+                    >
+                        <div 
+                            style={{ 
+                                fontSize: isFullscreen ? '36px' : '28px', 
+                                fontWeight: '900',
+                                lineHeight: '1',
+                                color: '#2dce89'
+                            }}
+                        >
+                            {match.robotANumber || '?'}
+                        </div>
+                        <div className="text-white font-weight-bold" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                            {match.robotAName || 'Robot A'}
+                        </div>
+                        <div className="text-warning" style={{ fontSize: '10px' }}>
+                            {match.teamAName || '-'}
+                        </div>
+                    </div>
+
+                    {/* VS divider */}
+                    <div style={{ fontSize: '16px', fontWeight: '900', color: '#fff', margin: '4px 0' }}>
+                        VS
+                    </div>
+
+                    {/* Robot B - Bottom */}
+                    <div 
+                        className="py-1 px-2 mt-1" 
+                        style={{ 
+                            background: 'rgba(94, 114, 228, 0.15)',
+                            borderRadius: '8px'
+                        }}
+                    >
+                        <div 
+                            style={{ 
+                                fontSize: isFullscreen ? '36px' : '28px', 
+                                fontWeight: '900',
+                                lineHeight: '1',
+                                color: '#5e72e4'
+                            }}
+                        >
+                            {match.robotBNumber || '?'}
+                        </div>
+                        <div className="text-white font-weight-bold" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                            {match.robotBName || 'Robot B'}
+                        </div>
+                        <div className="text-warning" style={{ fontSize: '10px' }}>
+                            {match.teamBName || '-'}
+                        </div>
+                    </div>
+
+                    {/* Discipline & Category */}
+                    <div className="mt-2">
+                        <Badge color="warning" style={{ fontSize: '10px', marginRight: '4px' }}>
+                            {match.disciplineName || '-'}
+                        </Badge>
+                        <Badge color="info" style={{ fontSize: '10px' }}>
+                            {getCategoryLabel(match.categoryA)}
+                        </Badge>
+                    </div>
+
+                    {/* Phase (if set) */}
+                    {match.phaseName && (
+                        <div className="mt-1">
+                            <Badge color="primary" style={{ fontSize: '10px' }}>
+                                {getPhaseLabel(match.phaseName)}
                             </Badge>
                         </div>
                     )}
-
-                    {/* VS layout - Robot A vs Robot B */}
-                    <Row className="align-items-center">
-                        {/* Robot A */}
-                        <Col xs="5" className="text-center">
-                            <div 
-                                style={{ 
-                                    fontSize: isFullscreen ? '48px' : '40px', 
-                                    fontWeight: '900',
-                                    lineHeight: '1',
-                                    color: '#2dce89',
-                                    textShadow: '0 0 20px rgba(45, 206, 137, 0.5)'
-                                }}
-                            >
-                                {match.robotA?.number || '?'}
-                            </div>
-                            <h4 
-                                className="mb-1 font-weight-bold text-white" 
-                                style={{ 
-                                    fontSize: '13px',
-                                    textTransform: 'uppercase'
-                                }}
-                            >
-                                {match.robotA?.name || 'Robot A'}
-                            </h4>
-                            <div className="text-warning" style={{ fontSize: '12px' }}>
-                                <i className="tim-icons icon-single-02 mr-1" />
-                                {match.teamAName || '-'}
-                            </div>
-                        </Col>
-
-                        {/* VS */}
-                        <Col xs="2" className="text-center">
-                            <div 
-                                style={{ 
-                                    fontSize: '24px', 
-                                    fontWeight: '900',
-                                    color: '#fff',
-                                    textShadow: '0 0 10px rgba(255,255,255,0.5)'
-                                }}
-                            >
-                                VS
-                            </div>
-                        </Col>
-
-                        {/* Robot B */}
-                        <Col xs="5" className="text-center">
-                            <div 
-                                style={{ 
-                                    fontSize: isFullscreen ? '48px' : '40px', 
-                                    fontWeight: '900',
-                                    lineHeight: '1',
-                                    color: '#5e72e4',
-                                    textShadow: '0 0 20px rgba(94, 114, 228, 0.5)'
-                                }}
-                            >
-                                {match.robotB?.number || '?'}
-                            </div>
-                            <h4 
-                                className="mb-1 font-weight-bold text-white" 
-                                style={{ 
-                                    fontSize: '13px',
-                                    textTransform: 'uppercase'
-                                }}
-                            >
-                                {match.robotB?.name || 'Robot B'}
-                            </h4>
-                            <div className="text-warning" style={{ fontSize: '12px' }}>
-                                <i className="tim-icons icon-single-02 mr-1" />
-                                {match.teamBName || '-'}
-                            </div>
-                        </Col>
-                    </Row>
-
-                    {/* Category */}
-                    <div className="text-center mt-2">
-                        <Badge color="info" style={{ fontSize: '11px' }}>
-                            {getCategoryLabel(match.category)}
-                        </Badge>
-                    </div>
                 </CardBody>
 
                 {/* Footer - match state */}
@@ -524,7 +513,7 @@ function MatchSchedule() {
             </Row>
 
             {/* Match calls */}
-            {currentMatches.length === 0 ? (
+            {matchesWithRobots.length === 0 ? (
                 <Row>
                     <Col md={{ size: 6, offset: 3 }}>
                         <Card className="text-center">
@@ -548,8 +537,8 @@ function MatchSchedule() {
                 >
                     <Row className="justify-content-center align-items-start">
                         {paginatedMatches.map((match, idx) => {
-                            const stateColor = getMatchStateColor(match.state?.name);
-                            const isRematch = match.state?.name === 'REMATCH';
+                            const stateColor = getMatchStateColor(match.state?.name || match.stateName);
+                            const isRematch = (match.state?.name || match.stateName) === 'REMATCH';
                             
                             // Choose card type based on whether it's a two-robot match
                             if (isTwoRobotMatch(match)) {
