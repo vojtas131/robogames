@@ -125,7 +125,7 @@ function RobotSearchSelect({
     if (clearOnSelect) {
       setSearchTerm('');
     } else {
-      setSearchTerm(`#${robot.number} ${robot.name}`);
+      setSearchTerm(`[${robot.number}] ${robot.name}`);
     }
   };
 
@@ -250,7 +250,7 @@ function RobotSearchSelect({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <Badge color="success" style={{ marginRight: '8px', fontSize: '12px' }}>
-                    #{robot.number}
+                    {robot.number}
                   </Badge>
                   <strong>{robot.name}</strong>
                   {showTeamInfo && robot.teamName && (
@@ -264,7 +264,7 @@ function RobotSearchSelect({
                   )}
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <small style={{ color: secondaryTextColor }}>ID: {robot.id}</small>
+                  <small style={{ color: secondaryTextColor }}>ID: #{robot.id}</small>
                   {showDisciplineInfo && (
                     <div style={{ marginTop: '2px' }}>
                       {robot.diciplineName && (
@@ -329,7 +329,7 @@ function RobotSearchSelect({
           }}
         >
           <div>
-            <Badge color="success" style={{ marginRight: '8px' }}>#{selectedRobot.number}</Badge>
+            <Badge color="success" style={{ marginRight: '8px' }}>{selectedRobot.number}</Badge>
             <strong>{selectedRobot.name}</strong>
             {showTeamInfo && selectedRobot.teamName && (
               <>

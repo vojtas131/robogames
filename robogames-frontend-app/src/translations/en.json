@@ -167,6 +167,11 @@
     "confirmTitle": "Confirmation",
     "confirmYes": "Yes",
     "confirmNo": "No",
+    "confirmSaveScoreTitle": "Save score",
+    "confirmSaveScoreMessage": "Are you sure you want to save the entered score?",
+    "confirmRematchTitle": "Request rematch",
+    "confirmRematchMessage": "Are you sure you want to request a rematch?",
+    "timeFormatHint": "Format: mm:ss.ms",
     
     "login": "Login",
     "mail": "E-mail",

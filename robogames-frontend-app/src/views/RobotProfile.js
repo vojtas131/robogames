@@ -337,7 +337,7 @@ function RobotProfile() {
                   </CardTitle>
                   <h5 className="card-category">
                     {t("robotNum")}:
-                    <Badge color="info" className='ml-2'>#{profile.robotNumber}</Badge>
+                    <Badge color="info" className='ml-2'>{profile.robotNumber}</Badge>
                   </h5>
                 </Col>
                 {/*
@@ -533,6 +533,7 @@ function RobotProfile() {
                       <th>{t("opponent") || 'Soupeř'}</th>
                       <th>{t("score")}</th>
                       <th>{t("time") || 'Čas'}</th>
+                      <th>{t("timestamp") || 'Časová značka'}</th>
                       <th>{t("status")}</th>
                     </tr>
                   </thead>
@@ -544,6 +545,7 @@ function RobotProfile() {
                       const opponentScore = isRobotA ? match.scoreB : match.scoreA;
                       const opponentName = isRobotA ? match.robotBName : match.robotAName;
                       const opponentNumber = isRobotA ? match.robotBNumber : match.robotANumber;
+                      const opponentID = isRobotA ? match.robotBID : match.robotAID;
                       const opponentTeam = isRobotA ? match.teamBName : match.teamAName;
                       const isTwoRobotMatch = match.robotAID && match.robotBID;
                       const isTimeScore = match.scoreTypeName === 'TIME';
@@ -556,14 +558,18 @@ function RobotProfile() {
                             </Badge>
                           </td>
                           <td>
-                            {match.playgroundName} <Badge color="info">#{match.playgroundNumber}</Badge>
+                            {match.playgroundName} <Badge color="info">{match.playgroundNumber}</Badge>
                           </td>
                           <td>
                             {isTwoRobotMatch ? (
                               <div>
-                                <span className="font-weight-bold">
-                                  #{opponentNumber} {opponentName}
-                                </span>
+                                <a
+                                  href="#"
+                                  onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${opponentID}`); }}
+                                  style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                >
+                                  <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{opponentNumber}</span>{opponentName}
+                                </a>
                                 <br />
                                 <small className="text-muted">{opponentTeam}</small>
                               </div>
@@ -585,6 +591,13 @@ function RobotProfile() {
                           <td>
                             {isTimeScore && myScore !== null ? (
                               <span>{myScore.toFixed(2)}s</span>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
+                          </td>
+                          <td>
+                            {match.timestamp ? (
+                              <small>{new Date(match.timestamp).toLocaleString('cs-CZ')}</small>
                             ) : (
                               <span className="text-muted">-</span>
                             )}

@@ -49,8 +49,8 @@ function MatchSchedule() {
 
     useEffect(() => {
         fetchCurrentMatches();
-        // Update every 15 seconds
-        const intervalId = setInterval(fetchCurrentMatches, 15000);
+        // Update every 10 seconds
+        const intervalId = setInterval(fetchCurrentMatches, 10000);
         return () => clearInterval(intervalId);
     }, [fetchCurrentMatches]);
 
@@ -198,7 +198,8 @@ function MatchSchedule() {
                     borderRadius: '20px',
                     overflow: 'hidden',
                     background: `linear-gradient(135deg, rgba(30,30,47,1) 0%, rgba(30,30,47,0.95) 100%)`,
-                    boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 20px ${stateColor}40`
+                    boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 20px ${stateColor}40`,
+                    minHeight: isFullscreen ? '280px' : '250px'
                 }}
             >
                 {/* Header - Playground */}
@@ -213,14 +214,21 @@ function MatchSchedule() {
                         <span className="font-weight-bold" style={{ fontSize: '14px' }}>
                             {match.playgroundName || 'Hřiště'}
                         </span>
-                        <span style={{ fontSize: '20px', fontWeight: '800' }}>
+                        <Badge 
+                            style={{ 
+                                backgroundColor: 'rgba(255,255,255,0.25)', 
+                                color: 'white',
+                                fontSize: '16px',
+                                fontWeight: '800',
+                                padding: '4px 10px'
+                            }}
+                        >
                             #{match.playgroundNumber || 0}
-                        </span>
+                        </Badge>
                     </div>
                 </div>
 
                 <CardBody className="text-center py-2 px-2">
-                    {/* Robot number - largest */}
                     <div 
                         style={{ 
                             fontSize: isFullscreen ? '72px' : '56px', 
@@ -343,7 +351,8 @@ function MatchSchedule() {
                     borderRadius: '20px',
                     overflow: 'hidden',
                     background: `linear-gradient(135deg, rgba(30,30,47,1) 0%, rgba(30,30,47,0.95) 100%)`,
-                    boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 20px ${stateColor}40`
+                    boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 20px ${stateColor}40`,
+                    minHeight: isFullscreen ? '280px' : '250px'
                 }}
             >
                 {/* Header - Playground */}
@@ -358,9 +367,17 @@ function MatchSchedule() {
                         <span className="font-weight-bold" style={{ fontSize: '14px' }}>
                             {match.playgroundName || 'Hřiště'}
                         </span>
-                        <span style={{ fontSize: '20px', fontWeight: '800' }}>
+                        <Badge 
+                            style={{ 
+                                backgroundColor: 'rgba(255,255,255,0.25)', 
+                                color: 'white',
+                                fontSize: '16px',
+                                fontWeight: '800',
+                                padding: '4px 10px'
+                            }}
+                        >
                             #{match.playgroundNumber || 0}
-                        </span>
+                        </Badge>
                     </div>
                 </div>
 

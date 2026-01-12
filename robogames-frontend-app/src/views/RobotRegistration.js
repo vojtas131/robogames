@@ -28,6 +28,7 @@ import {
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
+import { useAdmin } from "contexts/AdminContext";
 import { t } from "translations/translate";
 import { validateTitle } from "./MyTeam";
 
@@ -45,24 +46,35 @@ function RobotRegistration() {
   const [editMode, setEditMode] = useState(false);
   const [renameRobotId, setRenameRobotId] = useState(null);
 
-
-  const searchParams = new URLSearchParams(location.search);
-  const year = searchParams.get('year');
-
   const { token, tokenExpired } = useUser();
   const toast = useToast();
   const { confirm } = useConfirm();
+  const { selectedYear, setSelectedYear } = useAdmin();
+
+  // Check if year is provided in URL and update the selector if so
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const yearParam = searchParams.get('year');
+    if (yearParam) {
+      const yearNum = parseInt(yearParam, 10);
+      if (yearNum && yearNum !== selectedYear) {
+        setSelectedYear(yearNum);
+      }
+    }
+  }, [location.search]);
 
   useEffect(() => {
-    fetchRobots();
-    fetchDisciplines();
-  }, [year]);  // Ensure year is captured from the URL to filter robots accordingly
+    if (selectedYear) {
+      fetchRobots();
+      fetchDisciplines();
+    }
+  }, [selectedYear]);  // Use selectedYear from AdminContext
 
   async function fetchRobots() {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/all?year=${year}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/all?year=${selectedYear}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +163,7 @@ function RobotRegistration() {
     const confirmed = await confirm({ message: t("robotRemoveCheck"), confirmColor: 'danger' });
     if (confirmed) {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/remove?year=${year}&id=${robotId}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/remove?year=${selectedYear}&id=${robotId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -219,7 +231,7 @@ function RobotRegistration() {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/create?year=${year}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/create?year=${selectedYear}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -262,7 +274,7 @@ function RobotRegistration() {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${year}&id=${robotId}&name=${newName}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${selectedYear}&id=${robotId}&name=${newName}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -310,7 +322,7 @@ function RobotRegistration() {
                   </Button>
                   <CardTitle tag="h2" className="d-inline mb-0">
                     <i className="tim-icons icon-spaceship mr-2" style={{ color: '#5e72e4' }} />
-                    {t("robotYearOverview", { year: year })}
+                    {t("robotYearOverview", { year: selectedYear })}
                   </CardTitle>
                   <p className="text-muted mt-2 mb-0" style={{ fontSize: '0.9rem' }}>
                     {t("robotManageDesc") || "Spravujte roboty vašeho týmu pro tuto soutěž"}
@@ -416,7 +428,7 @@ function RobotRegistration() {
                                       </Button>
                                     )}
                                   </h4>
-                                  <small className="text-muted">#{robot.number}</small>
+                                  <small className="text-muted">{robot.number}</small>
                                 </div>
                               </div>
                             </Col>
@@ -555,7 +567,7 @@ function RobotRegistration() {
                               color="danger" 
                               size="sm"
                               className="btn-icon"
-                              onClick={() => handleRemoveRobot(year, robot.id)}
+                              onClick={() => handleRemoveRobot(selectedYear, robot.id)}
                               title={t("delete") || "Smazat"}
                             >
                               <i className="tim-icons icon-trash-simple" />
@@ -588,7 +600,7 @@ function RobotRegistration() {
           <Button color="primary" style={{ margin: '10px' }}
             onClick={() => {
               if (editMode) {
-                handleRenameRobot(year, renameRobotId, robotName);
+                handleRenameRobot(selectedYear, renameRobotId, robotName);
               } else {
                 handleAddRobot();
               }

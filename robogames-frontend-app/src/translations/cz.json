@@ -167,6 +167,11 @@
     "confirmTitle":"Potvrzení",
     "confirmYes":"Ano",
     "confirmNo":"Ne",
+    "confirmSaveScoreTitle":"Uložit skóre",
+    "confirmSaveScoreMessage":"Opravdu chcete uložit zadané skóre?",
+    "confirmRematchTitle":"Opakovat zápas",
+    "confirmRematchMessage":"Opravdu chcete požádat o opakování zápasu?",
+    "timeFormatHint":"Formát: mm:ss.ms",
     
     "login":"Přihlášení",
     "mail":"E-mail",

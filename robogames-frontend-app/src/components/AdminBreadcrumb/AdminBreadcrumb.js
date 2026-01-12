@@ -301,6 +301,43 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       parent: '/admin/dashboard',
       icon: 'icon-chat-33'
     },
+    '/admin/match-score': { 
+      label: t('scoreEntry') || 'Zápis skóre', 
+      parent: '/admin/match-management',
+      icon: 'icon-pencil',
+      needsYear: true
+    },
+    '/admin/match-schedule': { 
+      label: t('matchSchedule') || 'Rozvrh zápasů', 
+      parent: '/admin/dashboard',
+      icon: 'icon-time-alarm',
+      needsYear: true
+    },
+    '/admin/generate': { 
+      label: t('generate') || 'Generování', 
+      parent: '/admin/admin-dashboard',
+      icon: 'icon-puzzle-10',
+      needsYear: true
+    },
+  };
+  
+  // Helper to find route config - supports parameterized paths like /admin/match-score/:id
+  const findRouteConfig = (path) => {
+    // Direct match first
+    if (routeConfig[path]) return { config: routeConfig[path], matchedPath: path };
+    
+    // Try prefix matching for parameterized routes
+    const pathParts = path.split('/');
+    for (const configPath of Object.keys(routeConfig)) {
+      const configParts = configPath.split('/');
+      // Check if the path starts with the config path (e.g., /admin/match-score matches /admin/match-score/12)
+      if (pathParts.length > configParts.length && 
+          configParts.every((part, i) => part === pathParts[i])) {
+        return { config: routeConfig[configPath], matchedPath: configPath };
+      }
+    }
+    
+    return { config: null, matchedPath: null };
   };
 
   // Get current path without query params
@@ -320,16 +357,37 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       };
     }
     
+    // match-score parent depends on where user came from  
+    if (path.startsWith('/admin/match-score') && fromParam === 'playground') {
+      return {
+        ...route,
+        parent: '/admin/playground-detail'
+      };
+    }
+    
     return route;
   };
   
-  const currentRoute = getDynamicRoute(routeConfig[currentPath], currentPath);
+  const { config: currentRouteConfig, matchedPath: currentMatchedPath } = findRouteConfig(currentPath);
+  const currentRoute = getDynamicRoute(currentRouteConfig, currentPath);
 
   // Build breadcrumb trail
   const buildBreadcrumbs = () => {
     const breadcrumbs = [];
     let path = currentPath;
     
+    // Start with current route (may be parameterized)
+    const { config: startConfig, matchedPath: startMatchedPath } = findRouteConfig(path);
+    if (startConfig) {
+      const route = getDynamicRoute(startConfig, path);
+      breadcrumbs.unshift({
+        path: startMatchedPath,
+        ...route
+      });
+      path = route.parent;
+    }
+    
+    // Follow parent chain
     while (path && routeConfig[path]) {
       const route = getDynamicRoute(routeConfig[path], path);
       breadcrumbs.unshift({

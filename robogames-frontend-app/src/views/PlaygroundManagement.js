@@ -411,7 +411,7 @@ function PlaygroundManagement() {
                                                     borderRadius: '4px',
                                                     fontWeight: 600
                                                 }}>
-                                                    #{pg.number}
+                                                    {pg.number}
                                                 </span>
                                             </dd>
                                             <dt className="col-sm-4 mt-2" style={{ color: mutedColor }}>{t("discipline")}:</dt>

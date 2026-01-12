@@ -433,7 +433,7 @@ function MatchManagement() {
                                         <option value="">{t('allPlaygrounds') || 'Všechna hřiště'}</option>
                                         {playgrounds.map(pg => (
                                             <option key={pg.id} value={pg.id}>
-                                                {pg.name} (#{pg.number})
+                                                {pg.name} ({pg.number})
                                             </option>
                                         ))}
                                     </Input>
@@ -506,13 +506,19 @@ function MatchManagement() {
                                                 </td>
                                                 <td>
                                                     <Badge color="info">
-                                                        {match.playgroundName || '-'} (#{match.playgroundNumber})
+                                                        {match.playgroundName || '-'} ({match.playgroundNumber})
                                                     </Badge>
                                                 </td>
                                                 <td>
                                                     {match.robotAID ? (
                                                         <span>
-                                                            <strong>#{match.robotANumber}</strong> {match.robotAName}
+                                                            <a
+                                                                href="#"
+                                                                onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotAID}`); }}
+                                                                style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                            >
+                                                                <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotANumber}</span>{match.robotAName}
+                                                            </a>
                                                             <br />
                                                             <small className="text-muted">{match.teamAName}</small>
                                                         </span>
@@ -523,7 +529,13 @@ function MatchManagement() {
                                                 <td>
                                                     {match.robotBID ? (
                                                         <span>
-                                                            <strong>#{match.robotBNumber}</strong> {match.robotBName}
+                                                            <a
+                                                                href="#"
+                                                                onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotBID}`); }}
+                                                                style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                            >
+                                                                <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotBNumber}</span>{match.robotBName}
+                                                            </a>
                                                             <br />
                                                             <small className="text-muted">{match.teamBName}</small>
                                                         </span>
@@ -578,17 +590,6 @@ function MatchManagement() {
                                                     >
                                                         <i className="tim-icons icon-settings" />
                                                     </Button>
-                                                    {match.state?.name !== 'REMATCH' && (
-                                                        <Button
-                                                            color="warning"
-                                                            size="sm"
-                                                            className="mr-1"
-                                                            onClick={() => handleRematch(match.id)}
-                                                            title={t('rematch') || 'Opakovat'}
-                                                        >
-                                                            <i className="tim-icons icon-refresh-02" />
-                                                        </Button>
-                                                    )}
                                                     <Button
                                                         color="danger"
                                                         size="sm"
@@ -632,7 +633,7 @@ function MatchManagement() {
                                         <option value="">{t('selectPlayground') || 'Vyberte hřiště'}</option>
                                         {playgrounds.map(pg => (
                                             <option key={pg.id} value={pg.id}>
-                                                {pg.name} (#{pg.number}) - {pg.disciplineName}
+                                                {pg.name} ({pg.number}) - {pg.disciplineName}
                                             </option>
                                         ))}
                                     </Input>
@@ -742,7 +743,7 @@ function MatchManagement() {
                                             <option value="">{t('selectPlayground') || 'Vyberte hřiště'}</option>
                                             {playgrounds.map(pg => (
                                                 <option key={pg.id} value={pg.id}>
-                                                    {pg.name} (#{pg.number}) - {pg.disciplineName}
+                                                    {pg.name} ({pg.number}) - {pg.disciplineName}
                                                 </option>
                                             ))}
                                         </Input>

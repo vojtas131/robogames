@@ -444,7 +444,15 @@ function RobotConfirmation() {
                   <tbody>
                     {filteredRobots.map(robot => (
                       <tr key={robot.id} style={robot.teamMemberCount === 0 ? { backgroundColor: 'rgba(255, 90, 90, 0.15)' } : {}}>
-                        <td>{robot.id}</td>
+                        <td>
+                          <a 
+                            href="#" 
+                            onClick={(e) => { e.preventDefault(); navigateToProfile(robot.id); }}
+                            style={{ color: '#5e72e4', cursor: 'pointer', textDecoration: 'underline' }}
+                          >
+                            #{robot.id}
+                          </a>
+                        </td>
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
                         <td>{robot.confirmed ? t("yes") : t("no")}</td>
@@ -470,16 +478,8 @@ function RobotConfirmation() {
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <Button
-                            color="info"
-                            className="btn-icon btn-simple"
-                            onClick={() => navigateToProfile(robot.id)}
-                            title={t("showProfile")}
-                          >
-                            <i className="tim-icons icon-badge" />
-                          </Button>
-                          <Button
                             color="primary"
-                            className="btn-icon btn-simple ml-1"
+                            className="btn-icon btn-simple"
                             onClick={() => openEditModal(robot)}
                             title={t("edit")}
                           >
