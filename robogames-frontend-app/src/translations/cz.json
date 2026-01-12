@@ -890,5 +890,20 @@
     "of": "z",
 
     "groupName": "Název skupiny",
-    "noGroup": "Bez skupiny"
+    "noGroup": "Bez skupiny",
+
+    "competitionManagement": "Správa ročníků",
+    "totalCompetitions": "Celkem ročníků",
+    "allStatuses": "Všechny stavy",
+    "searchCompetition": "Hledat ročník...",
+
+    "totalTeams": "Celkem týmů",
+
+    "playgroundManagement": "Správa hřišť",
+    "totalPlaygrounds": "Celkem hřišť",
+    "disciplines": "Disciplín",
+    "filtered": "Filtrováno",
+    "searchPlayground": "Hledat hřiště...",
+    "allDisciplines": "Všechny disciplíny",
+    "noPlaygroundsFound": "Žádná hřiště nenalezena"
 }

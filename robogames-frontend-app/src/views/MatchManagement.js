@@ -305,7 +305,7 @@ function MatchManagement() {
             };
 
             const response = await fetch(
-                `${process.env.REACT_APP_API_URL}api/match/edit?id=${editingMatch.id}`,
+                `${process.env.REACT_APP_API_URL}api/match/update?id=${editingMatch.id}`,
                 {
                     method: 'PUT',
                     headers: {

@@ -867,5 +867,20 @@
     "of": "of",
 
     "groupName": "Group name",
-    "noGroup": "No group"
+    "noGroup": "No group",
+
+    "competitionManagement": "Competition Management",
+    "totalCompetitions": "Total competitions",
+    "allStatuses": "All statuses",
+    "searchCompetition": "Search competition...",
+
+    "totalTeams": "Total teams",
+
+    "playgroundManagement": "Playground Management",
+    "totalPlaygrounds": "Total playgrounds",
+    "disciplines": "Disciplines",
+    "filtered": "Filtered",
+    "searchPlayground": "Search playground...",
+    "allDisciplines": "All disciplines",
+    "noPlaygroundsFound": "No playgrounds found"
 }
