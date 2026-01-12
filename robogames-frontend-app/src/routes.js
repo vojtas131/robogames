@@ -33,6 +33,7 @@ import PlaygroundManagement from "views/PlaygroundManagement";
 import RobotConfirmation from "views/RobotConfirmation";
 import RobotProfile from "views/RobotProfile";
 import MatchManagement from "views/MatchManagement";
+import MatchScoreEntry from "views/MatchScoreEntry";
 import PlaygroundDetail from "views/PlaygroundDetail";
 import CompetitionResults from "views/CompetitionResults";
 import Contact from "views/Contact";
@@ -80,9 +81,9 @@ var routes = [
   },
   {
     path: "/match-management",
-    name: t("matchEval"),
+    name: t("matchManagement"),
     rtlName: "",
-    icon: "tim-icons icon-puzzle-10",
+    icon: "tim-icons icon-controller",
     component: <MatchManagement />,
     layout: "/admin",
   },
@@ -240,6 +241,14 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <PlaygroundDetail />,
+    layout: "/admin",
+  },
+  {
+    path: "/match-score/:matchId",
+    name: t("scoreEntry"),
+    rtlName: "",
+    icon: "tim-icons icon-pencil",
+    component: <MatchScoreEntry />,
     layout: "/admin",
   },
   {

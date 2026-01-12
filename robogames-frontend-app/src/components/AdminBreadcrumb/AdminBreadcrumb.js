@@ -242,7 +242,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       icon: 'icon-app'
     },
     '/admin/match-management': { 
-      label: t('matchEval'), 
+      label: t('matchManagement'), 
       parent: '/admin/admin-dashboard',
       icon: 'icon-controller',
       needsYear: true
