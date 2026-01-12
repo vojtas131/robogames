@@ -42,6 +42,7 @@ import AuthCallback from "components/KeyCloak/KeyCloak";
 import TeamManagement from "views/TeamManagement";
 import RegistrationManagement from "views/RegistrationManagement";
 import MatchSchedule from "views/MatchSchedule";
+import MatchGroup from "views/MatchGroup";
 import Generate from "views/Generate.js";
 import { t } from "translations/translate";
 
@@ -249,6 +250,14 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-pencil",
     component: <MatchScoreEntry />,
+    layout: "/admin",
+  },
+  {
+    path: "/match-group/:groupName",
+    name: t("matchGroup"),
+    rtlName: "",
+    icon: "tim-icons icon-components",
+    component: <MatchGroup />,
     layout: "/admin",
   },
   {

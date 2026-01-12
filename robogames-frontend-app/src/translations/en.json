@@ -296,6 +296,15 @@
     "time": "Time",
     
     "matchManagement": "Match Management",
+    "matchesList": "Matches List",
+    "matchGroups": "Groups",
+    "matchGroup": "Group",
+    "group": "Group",
+    "noGroupsFound": "No groups found",
+    "noGroupsHint": "Groups are created by assigning a \"group\" attribute to matches.",
+    "totalGroups": "Total Groups",
+    "noMatchesInGroup": "No matches in this group",
+    "position": "Position",
     "createMatch": "Create Match",
     "allMatches": "All Matches",
     "byPlayground": "By Playground",
@@ -851,5 +860,12 @@
     "allRobots": "All robots",
     "onlyConfirmedRobots": "Only confirmed robots",
     "confirmedRobotsAvailable": "confirmed robots available",
-    "opponent": "Opponent"
+    "opponent": "Opponent",
+
+    "showingItems": "Showing",
+    "itemsPerPage": "Per page",
+    "of": "of",
+
+    "groupName": "Group name",
+    "noGroup": "No group"
 }

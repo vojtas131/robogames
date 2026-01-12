@@ -11,6 +11,7 @@ import {
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
 
 // Custom hook to parse query parameters
 function useQuery() {
@@ -27,6 +28,10 @@ function CompetitionDetail() {
   const year = query.get('year');
   const [registrations, setRegistrations] = useState([]);
   const { tokenExpired } = useUser();
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,7 +73,9 @@ function CompetitionDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {registrations.map(reg => (
+                  {registrations
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map(reg => (
                     <tr key={reg.id}>
                       {/* <td>{reg.id}</td> */}
                       {/* <td>{reg.teamID}</td> */}
@@ -79,6 +86,16 @@ function CompetitionDetail() {
                   ))}
                 </tbody>
               </Table>
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={registrations.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+                onItemsPerPageChange={(items) => {
+                  setItemsPerPage(items);
+                  setCurrentPage(1);
+                }}
+              />
               {registrations.length === 0 && <div>{t("noRegsFound")}</div>}
             </CardBody>
           </Card>

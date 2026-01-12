@@ -13,6 +13,7 @@ import failogo from '../assets/img/fai-logo.png'
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
 
 function CompetitionResults() {
     const [years, setYears] = useState([]);
@@ -27,6 +28,10 @@ function CompetitionResults() {
     const { tokenExpired } = useUser();
     const toast = useToast();
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(15);
+
     useEffect(() => {
         fetchCompetitionYears();
         fetchDisciplines();
@@ -36,6 +41,11 @@ function CompetitionResults() {
         if (selectedYear && selectedDiscipline && selectedCategory) {
             fetchResults(selectedYear, selectedDiscipline, selectedCategory);
         }
+    }, [selectedYear, selectedDiscipline, selectedCategory]);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
     }, [selectedYear, selectedDiscipline, selectedCategory]);
 
     const fetchCompetitionYears = async () => {
@@ -217,6 +227,7 @@ function CompetitionResults() {
 
                         <CardBody>
                             {results.length > 0 ? (
+                                <>
                                 <Table responsive>
                                     <thead>
                                         <tr>
@@ -231,10 +242,12 @@ function CompetitionResults() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {results.map((result, index) => (
+                                        {results
+                                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                            .map((result, index) => (
 
                                             <tr key={result.robotID}>
-                                                <td>{index + 1}</td>
+                                                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                                 <td>{result.robotName}</td>
                                                 <td>{result.teamName}</td>
                                                 <td>{result.score}</td>
@@ -242,12 +255,23 @@ function CompetitionResults() {
 
                                                 {isAdminOrLeaderOrAssistantOrReferee && (
                                                 <td>
-                                                    <Button onClick={() => generatePDF(result, index + 1)}>{t("diploma_caps")}</Button>
+                                                    <Button onClick={() => generatePDF(result, (currentPage - 1) * itemsPerPage + index + 1)}>{t("diploma_caps")}</Button>
                                                 </td>)}
                                             </tr>
                                         ))}
                                     </tbody>
                                 </Table>
+                                <TablePagination
+                                    currentPage={currentPage}
+                                    totalItems={results.length}
+                                    itemsPerPage={itemsPerPage}
+                                    onPageChange={(page) => setCurrentPage(page)}
+                                    onItemsPerPageChange={(items) => {
+                                        setItemsPerPage(items);
+                                        setCurrentPage(1);
+                                    }}
+                                />
+                                </>
                             ) : (
                                 <div>{t("noRobotsFound")}</div>
                             )}

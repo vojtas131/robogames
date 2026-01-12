@@ -397,19 +397,15 @@ function MatchScoreEntry() {
                                 </Col>
                                 <Col md="3">
                                     <small className="text-muted d-block">
-                                        <i className="tim-icons icon-settings mr-1" />
-                                        {t('scoreType') || 'Typ skóre'}
+                                        <i className="tim-icons icon-components mr-1" />
+                                        {t('groupName') || 'Skupina'}
                                     </small>
-                                    <Badge color="info" style={{ fontSize: '11px' }}>
-                                        {getScoreTypeLabel(match.scoreTypeName)}
-                                    </Badge>
-                                    {match.highScoreWin !== undefined && (
-                                        <Badge color={match.highScoreWin ? 'success' : 'warning'} className="ml-1" style={{ fontSize: '11px' }}>
-                                            {match.highScoreWin 
-                                                ? (t('highScoreWins') || 'Vyšší vyhrává')
-                                                : (t('lowScoreWins') || 'Nižší vyhrává')
-                                            }
+                                    {match.group ? (
+                                        <Badge color="secondary" style={{ fontSize: '11px' }}>
+                                            {match.group}
                                         </Badge>
+                                    ) : (
+                                        <span className="text-muted">{t('noGroup') || 'Bez skupiny'}</span>
                                     )}
                                 </Col>
                                 <Col md="3">

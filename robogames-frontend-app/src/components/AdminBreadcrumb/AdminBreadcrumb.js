@@ -307,6 +307,12 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       icon: 'icon-pencil',
       needsYear: true
     },
+    '/admin/match-group': { 
+      label: t('matchGroup') || 'Skupina', 
+      parent: '/admin/match-management',
+      icon: 'icon-components',
+      needsYear: true
+    },
     '/admin/match-schedule': { 
       label: t('matchSchedule') || 'Rozvrh zápasů', 
       parent: '/admin/dashboard',

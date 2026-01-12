@@ -20,6 +20,7 @@ import {
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
 
 function RobotProfile() {
   const [searchParams] = useSearchParams();
@@ -42,6 +43,10 @@ function RobotProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
+
+  // Pagination for matches table
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -525,6 +530,7 @@ function RobotProfile() {
             </CardHeader>
             <CardBody>
               {matches && matches.length > 0 ? (
+                <>
                 <Table responsive>
                   <thead className="text-primary">
                     <tr>
@@ -533,12 +539,14 @@ function RobotProfile() {
                       <th>{t("opponent") || 'Soupeř'}</th>
                       <th>{t("score")}</th>
                       <th>{t("time") || 'Čas'}</th>
-                      <th>{t("timestamp") || 'Časová značka'}</th>
+                      <th>{t("groupName") || 'Skupina'}</th>
                       <th>{t("status")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {matches.map((match, index) => {
+                    {matches
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map((match, index) => {
                       // Determine if this robot is robotA or robotB
                       const isRobotA = match.robotAID?.toString() === robotId;
                       const myScore = isRobotA ? match.scoreA : match.scoreB;
@@ -589,15 +597,17 @@ function RobotProfile() {
                             )}
                           </td>
                           <td>
-                            {isTimeScore && myScore !== null ? (
-                              <span>{myScore.toFixed(2)}s</span>
+                            {match.timestamp ? (
+                              <span>{new Date(match.timestamp).toLocaleString('cs-CZ')}</span>
                             ) : (
                               <span className="text-muted">-</span>
                             )}
                           </td>
                           <td>
-                            {match.timestamp ? (
-                              <small>{new Date(match.timestamp).toLocaleString('cs-CZ')}</small>
+                            {match.group ? (
+                              <Badge color="secondary">
+                                {match.group}
+                              </Badge>
                             ) : (
                               <span className="text-muted">-</span>
                             )}
@@ -621,6 +631,17 @@ function RobotProfile() {
                     })}
                   </tbody>
                 </Table>
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={matches.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  onItemsPerPageChange={(items) => {
+                    setItemsPerPage(items);
+                    setCurrentPage(1);
+                  }}
+                />
+                </>
               ) : (
                 <p className="text-muted">{t("noMatches")}</p>
               )}

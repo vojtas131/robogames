@@ -10,10 +10,15 @@ import {
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
 
 function AllTeams() {
   const [teams, setTeams] = useState([]);
   const { token, tokenExpired } = useUser();
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -71,7 +76,9 @@ function AllTeams() {
                   </tr>
                 </thead>
                 <tbody>
-                  {teams.map((team) => (
+                  {teams
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((team) => (
                     <tr key={team.id}>
                       {/* <td>{team.id}</td> */}
                       <td>{team.name}</td>
@@ -83,6 +90,16 @@ function AllTeams() {
                   ))}
                 </tbody>
               </Table>
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={teams.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+                onItemsPerPageChange={(items) => {
+                  setItemsPerPage(items);
+                  setCurrentPage(1);
+                }}
+              />
             </CardBody>
           </Card>
         </Col>

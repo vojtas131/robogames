@@ -294,6 +294,15 @@
     "time":"Čas",
     
     "matchManagement":"Správa zápasů",
+    "matchesList":"Seznam zápasů",
+    "matchGroups":"Skupiny",
+    "matchGroup":"Skupina",
+    "group":"Skupina",
+    "noGroupsFound":"Žádné skupiny nenalezeny",
+    "noGroupsHint":"Skupiny se vytvoří přiřazením atributu \"group\" k zápasům.",
+    "totalGroups":"Celkem skupin",
+    "noMatchesInGroup":"V této skupině nejsou žádné zápasy",
+    "position":"Pozice",
     "createMatch":"Vytvořit zápas",
     "allMatches":"Všechny zápasy",
     "byPlayground":"Podle hřiště",
@@ -874,5 +883,12 @@
     "allRobots": "Všichni roboti",
     "onlyConfirmedRobots": "Pouze potvrzení roboti",
     "confirmedRobotsAvailable": "potvrzených robotů k dispozici",
-    "opponent": "Soupeř"
+    "opponent": "Soupeř",
+
+    "showingItems": "Zobrazeno",
+    "itemsPerPage": "Na stránku",
+    "of": "z",
+
+    "groupName": "Název skupiny",
+    "noGroup": "Bez skupiny"
 }

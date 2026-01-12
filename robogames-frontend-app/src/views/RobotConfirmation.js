@@ -20,6 +20,7 @@ import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
+import TablePagination from "components/TablePagination";
 
 function RobotConfirmation() {
   const navigate = useNavigate();
@@ -106,6 +107,15 @@ function RobotConfirmation() {
   };
 
   const filteredRobots = robots.filter(robot => robot.teamName.toLowerCase().includes(searchTerm.toLowerCase()));
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Statistics
   const totalRobots = robots.length;
@@ -427,6 +437,7 @@ function RobotConfirmation() {
             </CardHeader>
             <CardBody>
               {robots.length > 0 ? (
+                <>
                 <Table responsive>
                   <thead>
                     <tr>
@@ -442,7 +453,9 @@ function RobotConfirmation() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRobots.map(robot => (
+                    {filteredRobots
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map(robot => (
                       <tr key={robot.id} style={robot.teamMemberCount === 0 ? { backgroundColor: 'rgba(255, 90, 90, 0.15)' } : {}}>
                         <td>
                           <a 
@@ -498,6 +511,15 @@ function RobotConfirmation() {
                     ))}
                   </tbody>
                 </Table>
+                
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={filteredRobots.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+                />
+                </>
               ) : (
                 <div>{t("noRobotsFoundYear")}</div>
               )}
