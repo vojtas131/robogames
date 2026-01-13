@@ -10,7 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
-  Table, Row, Col, Input, Badge,
+  Table, Row, Col, Input, InputGroup, InputGroupText, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
   Form, FormGroup, Label, FormFeedback
 } from 'reactstrap';
@@ -28,8 +28,16 @@ function RobotConfirmation() {
   const { selectedYear } = useAdmin();
   const [robots, setRobots] = useState([]);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'number', 'name', 'team', 'discipline', 'category'
   const [disciplines, setDisciplines] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+
+  // Helper function for category display
+  const getCategoryDisplay = (category) => {
+    if (category === 'LOW_AGE_CATEGORY') return t("pupils");
+    if (category === 'HIGH_AGE_CATEGORY') return t("students");
+    return category;
+  };
 
   // Admin modal states
   const [createModal, setCreateModal] = useState(false);
@@ -106,7 +114,34 @@ function RobotConfirmation() {
     }
   };
 
-  const filteredRobots = robots.filter(robot => robot.teamName.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredRobots = robots.filter(robot => {
+    const searchLower = searchTerm.toLowerCase();
+    if (!searchTerm) return true;
+    
+    switch (searchType) {
+      case 'id':
+        return robot.id?.toString().includes(searchTerm);
+      case 'number':
+        return robot.number?.toString().includes(searchTerm);
+      case 'name':
+        return robot.name?.toLowerCase().includes(searchLower);
+      case 'team':
+        return robot.teamName?.toLowerCase().includes(searchLower);
+      case 'discipline':
+        return robot.diciplineName?.toLowerCase().includes(searchLower);
+      case 'category':
+        return robot.category?.toLowerCase().includes(searchLower) ||
+               getCategoryDisplay(robot.category).toLowerCase().includes(searchLower);
+      case 'all':
+      default:
+        return robot.id?.toString().includes(searchTerm) ||
+               robot.number?.toString().includes(searchTerm) ||
+               robot.name?.toLowerCase().includes(searchLower) ||
+               robot.teamName?.toLowerCase().includes(searchLower) ||
+               robot.diciplineName?.toLowerCase().includes(searchLower) ||
+               getCategoryDisplay(robot.category).toLowerCase().includes(searchLower);
+    }
+  });
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -115,7 +150,7 @@ function RobotConfirmation() {
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, searchType]);
 
   // Statistics
   const totalRobots = robots.length;
@@ -416,7 +451,7 @@ function RobotConfirmation() {
         <Col xs="12">
           <Card>
             <CardHeader>
-              <Row className="align-items-center">
+              <Row className="align-items-center mb-3">
                 <Col>
                   <CardTitle tag="h4">{t("robotOverview")} {selectedYear && `(${selectedYear})`}</CardTitle>
                 </Col>
@@ -427,13 +462,53 @@ function RobotConfirmation() {
                   </Button>
                 </Col>
               </Row>
-              <Input
-                type="text"
-                placeholder={t("findByTeam")}
-                value={searchTerm}
-                onChange={handleSearchChange}
-                style={{ width: '300px', marginTop: '15px' }}
-              />
+              <Row>
+                <Col md="3">
+                  <Input
+                    type="select"
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}
+                  >
+                    <option value="all">{t('searchAll') || 'Vše'}</option>
+                    <option value="id">ID</option>
+                    <option value="number">{t('searchByNumber') || 'Číslo'}</option>
+                    <option value="name">{t('searchByRobotName') || 'Název robota'}</option>
+                    <option value="team">{t('searchByTeamName') || 'Tým'}</option>
+                    <option value="discipline">{t('searchByDiscipline') || 'Disciplína'}</option>
+                    <option value="category">{t('searchByCategory') || 'Kategorie'}</option>
+                  </Input>
+                </Col>
+                <Col md="6">
+                  <InputGroup>
+                    <InputGroupText>
+                      <i className="tim-icons icon-zoom-split" />
+                    </InputGroupText>
+                    <Input
+                      type="text"
+                      placeholder={
+                        searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                        searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
+                        searchType === 'name' ? (t('enterRobotName') || 'Zadejte název robota...') :
+                        searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                        searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
+                        searchType === 'category' ? (t('enterCategory') || 'Zadejte kategorii...') :
+                        (t('findByTeam') || 'Hledat...')
+                      }
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                    />
+                    {searchTerm && (
+                      <InputGroupText 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => { setSearchTerm(''); setSearchParams({}); }}
+                        title={t('clearSearch') || 'Vymazat'}
+                      >
+                        <i className="tim-icons icon-simple-remove" />
+                      </InputGroupText>
+                    )}
+                  </InputGroup>
+                </Col>
+              </Row>
             </CardHeader>
             <CardBody>
               {robots.length > 0 ? (
@@ -469,7 +544,7 @@ function RobotConfirmation() {
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
                         <td>{robot.confirmed ? t("yes") : t("no")}</td>
-                        <td>{robot.category}</td>
+                        <td>{getCategoryDisplay(robot.category)}</td>
                         <td>
                           {robot.teamName}
                           {robot.teamMemberCount === 0 && (

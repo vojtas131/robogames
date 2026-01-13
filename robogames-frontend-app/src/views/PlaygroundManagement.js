@@ -58,6 +58,7 @@ function PlaygroundManagement() {
 
     // Filters & Pagination
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'number', 'discipline'
     const [filterDiscipline, setFilterDiscipline] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -121,15 +122,37 @@ function PlaygroundManagement() {
     // Reset page when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, filterDiscipline]);
+    }, [searchQuery, searchType, filterDiscipline]);
 
     // Filter playgrounds
     const filteredPlaygrounds = playgrounds.filter(pg => {
         const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = !searchQuery ||
-            pg.name?.toLowerCase().includes(searchLower) ||
-            pg.number?.toString().includes(searchQuery) ||
-            pg.disciplineName?.toLowerCase().includes(searchLower);
+        
+        let matchesSearch = !searchQuery;
+        if (searchQuery) {
+            switch (searchType) {
+                case 'id':
+                    matchesSearch = pg.id?.toString().includes(searchQuery);
+                    break;
+                case 'name':
+                    matchesSearch = pg.name?.toLowerCase().includes(searchLower);
+                    break;
+                case 'number':
+                    matchesSearch = pg.number?.toString().includes(searchQuery);
+                    break;
+                case 'discipline':
+                    matchesSearch = pg.disciplineName?.toLowerCase().includes(searchLower);
+                    break;
+                case 'all':
+                default:
+                    matchesSearch = 
+                        pg.id?.toString().includes(searchQuery) ||
+                        pg.name?.toLowerCase().includes(searchLower) ||
+                        pg.number?.toString().includes(searchQuery) ||
+                        pg.disciplineName?.toLowerCase().includes(searchLower);
+                    break;
+            }
+        }
 
         const matchesDiscipline = !filterDiscipline ||
             pg.disciplineName === filterDiscipline;
@@ -308,19 +331,47 @@ function PlaygroundManagement() {
 
                             {/* Filters */}
                             <Row className="mb-4">
-                                <Col md="6">
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={searchType}
+                                        onChange={(e) => setSearchType(e.target.value)}
+                                    >
+                                        <option value="all">{t('searchAll') || 'Vše'}</option>
+                                        <option value="id">{t('searchById') || 'ID'}</option>
+                                        <option value="name">{t('searchByName') || 'Název'}</option>
+                                        <option value="number">{t('searchByNumber') || 'Číslo'}</option>
+                                        <option value="discipline">{t('searchByDiscipline') || 'Disciplína'}</option>
+                                    </Input>
+                                </Col>
+                                <Col md="5">
                                     <InputGroup>
                                         <InputGroupText>
                                             <i className="tim-icons icon-zoom-split" />
                                         </InputGroupText>
                                         <Input
-                                            placeholder={t('searchPlayground') || 'Hledat hřiště...'}
+                                            placeholder={
+                                                searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                                                searchType === 'name' ? (t('enterName') || 'Zadejte název...') :
+                                                searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
+                                                searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
+                                                (t('searchPlayground') || 'Hledat hřiště...')
+                                            }
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
+                                        {searchQuery && (
+                                            <InputGroupText 
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => setSearchQuery('')}
+                                                title={t('clearSearch') || 'Vymazat'}
+                                            >
+                                                <i className="tim-icons icon-simple-remove" />
+                                            </InputGroupText>
+                                        )}
                                     </InputGroup>
                                 </Col>
-                                <Col md="6">
+                                <Col md="5">
                                     <Input
                                         type="select"
                                         value={filterDiscipline}

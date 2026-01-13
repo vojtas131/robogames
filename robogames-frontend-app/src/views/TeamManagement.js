@@ -16,6 +16,8 @@ import {
   FormGroup,
   Label,
   Input,
+  InputGroup,
+  InputGroupText,
   FormFeedback,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
@@ -43,7 +45,10 @@ function TeamManagement() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [errors, setErrors] = useState({});
+  
+  // Search/Filter
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'leader', 'member'
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,7 +57,7 @@ function TeamManagement() {
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, searchType]);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -303,17 +308,37 @@ function TeamManagement() {
 
   const filteredTeams = teams.filter(team => {
     const searchLower = searchTerm.toLowerCase();
-    // Search by team name
-    if (team.name.toLowerCase().includes(searchLower)) return true;
-    // Search by leader name
-    if (team.leaderName.toLowerCase().includes(searchLower)) return true;
-    // Search by any member name
-    if (team.memberNames.some(member => 
-      `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
-      member.name.toLowerCase().includes(searchLower) ||
-      member.surname.toLowerCase().includes(searchLower)
-    )) return true;
-    return false;
+    if (!searchTerm) return true;
+    
+    switch (searchType) {
+      case 'id':
+        return team.id.toString().includes(searchTerm);
+      case 'name':
+        return team.name.toLowerCase().includes(searchLower);
+      case 'leader':
+        return team.leaderName.toLowerCase().includes(searchLower);
+      case 'member':
+        return team.memberNames.some(member => 
+          `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
+          member.name.toLowerCase().includes(searchLower) ||
+          member.surname.toLowerCase().includes(searchLower)
+        );
+      case 'all':
+      default:
+        // Search by team ID
+        if (team.id.toString().includes(searchTerm)) return true;
+        // Search by team name
+        if (team.name.toLowerCase().includes(searchLower)) return true;
+        // Search by leader name
+        if (team.leaderName.toLowerCase().includes(searchLower)) return true;
+        // Search by any member name
+        if (team.memberNames.some(member => 
+          `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
+          member.name.toLowerCase().includes(searchLower) ||
+          member.surname.toLowerCase().includes(searchLower)
+        )) return true;
+        return false;
+    }
   });
 
   if (loading) {
@@ -326,7 +351,7 @@ function TeamManagement() {
         <Col xs="12">
           <Card>
             <CardHeader>
-              <Row className="align-items-center">
+              <Row className="align-items-center mb-3">
                 <Col>
                   <CardTitle tag="h4">{t("teamManagement")}</CardTitle>
                 </Col>
@@ -337,13 +362,49 @@ function TeamManagement() {
                   </Button>
                 </Col>
               </Row>
-              <Input
-                type="text"
-                placeholder={t("searchTeam")}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{ width: '300px', marginTop: '15px' }}
-              />
+              <Row>
+                <Col md="3">
+                  <Input
+                    type="select"
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}
+                  >
+                    <option value="all">{t('searchAll') || 'Vše'}</option>
+                    <option value="id">{t('searchById') || 'ID'}</option>
+                    <option value="name">{t('searchByTeamName') || 'Název týmu'}</option>
+                    <option value="leader">{t('searchByLeader') || 'Vedoucí'}</option>
+                    <option value="member">{t('searchByMember') || 'Člen'}</option>
+                  </Input>
+                </Col>
+                <Col md="6">
+                  <InputGroup>
+                    <InputGroupText>
+                      <i className="tim-icons icon-zoom-split" />
+                    </InputGroupText>
+                    <Input
+                      type="text"
+                      placeholder={
+                        searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                        searchType === 'name' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                        searchType === 'leader' ? (t('enterLeaderName') || 'Zadejte jméno vedoucího...') :
+                        searchType === 'member' ? (t('enterMemberName') || 'Zadejte jméno člena...') :
+                        (t('searchTeam') || 'Hledat tým...')
+                      }
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <InputGroupText 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSearchTerm('')}
+                        title={t('clearSearch') || 'Vymazat'}
+                      >
+                        <i className="tim-icons icon-simple-remove" />
+                      </InputGroupText>
+                    )}
+                  </InputGroup>
+                </Col>
+              </Row>
             </CardHeader>
             <CardBody>
               <Table responsive>

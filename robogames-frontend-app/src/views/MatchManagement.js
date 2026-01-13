@@ -636,7 +636,7 @@ function MatchManagement() {
                                                 <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>
                                             </Input>
                                         </Col>
-                                        <Col md="2">
+                                        <Col md="4">
                                             <InputGroup>
                                                 <InputGroupText>
                                                     <i className="tim-icons icon-zoom-split" />
@@ -652,6 +652,15 @@ function MatchManagement() {
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                 />
+                                                {searchQuery && (
+                                                    <InputGroupText 
+                                                        style={{ cursor: 'pointer' }}
+                                                        onClick={() => setSearchQuery('')}
+                                                        title={t('clearSearch') || 'Vymazat'}
+                                                    >
+                                                        <i className="tim-icons icon-simple-remove" />
+                                                    </InputGroupText>
+                                                )}
                                             </InputGroup>
                                         </Col>
                                         <Col md="2">
@@ -693,19 +702,6 @@ function MatchManagement() {
                                                 <option value="DONE">{t('done') || 'Hotové'}</option>
                                                 <option value="REMATCH">{t('rematch') || 'Opakování'}</option>
                                             </Input>
-                                        </Col>
-                                        <Col md="2" className="d-flex align-items-center">
-                                            {searchQuery && (
-                                                <Button
-                                                    color="link"
-                                                    size="sm"
-                                                    className="text-muted p-0"
-                                                    onClick={() => setSearchQuery('')}
-                                                >
-                                                    <i className="tim-icons icon-simple-remove mr-1" />
-                                                    {t('clearSearch') || 'Vymazat'}
-                                                </Button>
-                                            )}
                                         </Col>
                                     </Row>
 

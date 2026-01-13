@@ -16,6 +16,8 @@ import {
   FormGroup,
   Label,
   Input,
+  InputGroup,
+  InputGroupText,
   FormFeedback,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
@@ -61,7 +63,10 @@ function RegistrationManagement() {
     category: ''
   });
   const [errors, setErrors] = useState({});
+  
+  // Search/Filter
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'team', 'category', 'teacher'
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -322,16 +327,37 @@ function RegistrationManagement() {
     return category;
   };
 
-  const filteredRegistrations = registrations.filter(reg =>
-    reg.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.teacherName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.teacherSurname?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRegistrations = registrations.filter(reg => {
+    const searchLower = searchTerm.toLowerCase();
+    if (!searchTerm) return true;
+    
+    switch (searchType) {
+      case 'id':
+        return reg.id?.toString().includes(searchTerm);
+      case 'team':
+        return reg.teamName?.toLowerCase().includes(searchLower) ||
+               reg.teamID?.toString().includes(searchTerm);
+      case 'category':
+        return reg.category?.toLowerCase().includes(searchLower) ||
+               getCategoryDisplay(reg.category).toLowerCase().includes(searchLower);
+      case 'teacher':
+        return reg.teacherName?.toLowerCase().includes(searchLower) ||
+               reg.teacherSurname?.toLowerCase().includes(searchLower) ||
+               `${reg.teacherName} ${reg.teacherSurname}`.toLowerCase().includes(searchLower);
+      case 'all':
+      default:
+        return reg.id?.toString().includes(searchTerm) ||
+               reg.teamName?.toLowerCase().includes(searchLower) ||
+               reg.teacherName?.toLowerCase().includes(searchLower) ||
+               reg.teacherSurname?.toLowerCase().includes(searchLower) ||
+               getCategoryDisplay(reg.category).toLowerCase().includes(searchLower);
+    }
+  });
 
   // Reset page when search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, searchType]);
 
   return (
     <div className="content">
@@ -339,7 +365,7 @@ function RegistrationManagement() {
         <Col xs="12">
           <Card>
             <CardHeader>
-              <Row className="align-items-center">
+              <Row className="align-items-center mb-3">
                 <Col>
                   <CardTitle tag="h4">{t("registrationManagement")} {selectedYear && `(${selectedYear})`}</CardTitle>
                 </Col>
@@ -350,14 +376,47 @@ function RegistrationManagement() {
                   </Button>
                 </Col>
               </Row>
-              <Row className="mt-3">
-                <Col md="4">
+              <Row>
+                <Col md="3">
                   <Input
-                    type="text"
-                    placeholder={t("searchRegistration")}
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                  />
+                    type="select"
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}
+                  >
+                    <option value="all">{t('searchAll') || 'Vše'}</option>
+                    <option value="id">{t('searchById') || 'ID'}</option>
+                    <option value="team">{t('searchByTeamName') || 'Tým'}</option>
+                    <option value="category">{t('searchByCategory') || 'Kategorie'}</option>
+                    <option value="teacher">{t('searchByTeacher') || 'Učitel'}</option>
+                  </Input>
+                </Col>
+                <Col md="6">
+                  <InputGroup>
+                    <InputGroupText>
+                      <i className="tim-icons icon-zoom-split" />
+                    </InputGroupText>
+                    <Input
+                      type="text"
+                      placeholder={
+                        searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                        searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                        searchType === 'category' ? (t('enterCategory') || 'Zadejte kategorii...') :
+                        searchType === 'teacher' ? (t('enterTeacher') || 'Zadejte jméno učitele...') :
+                        (t('searchRegistration') || 'Hledat registraci...')
+                      }
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <InputGroupText 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSearchTerm('')}
+                        title={t('clearSearch') || 'Vymazat'}
+                      >
+                        <i className="tim-icons icon-simple-remove" />
+                      </InputGroupText>
+                    )}
+                  </InputGroup>
                 </Col>
               </Row>
             </CardHeader>
