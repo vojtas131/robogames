@@ -35,7 +35,9 @@ function Tables() {
     description: '',
     scoreAggregation: 'MIN',
     time: '',
-    maxRounds: ''
+    maxRounds: '',
+    scoreType: 'SCORE',
+    highScoreWin: true
   });
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
@@ -64,7 +66,9 @@ function Tables() {
       description: '',
       scoreAggregation: 'MIN',
       time: '',
-      maxRounds: ''
+      maxRounds: '',
+      scoreType: 'SCORE',
+      highScoreWin: true
     });
   };
 
@@ -80,7 +84,9 @@ function Tables() {
       description: discipline.description,
       scoreAggregation: discipline.scoreAggregation?.name || discipline.scoreAggregation || 'MIN',
       time: discipline.time,
-      maxRounds: discipline.maxRounds
+      maxRounds: discipline.maxRounds,
+      scoreType: discipline.scoreTypeName || 'SCORE',
+      highScoreWin: discipline.highScoreWin !== undefined ? discipline.highScoreWin : true
     });
     setModal(true);
   };
@@ -238,6 +244,31 @@ function Tables() {
                 <Label for="maxRounds">{t("maxRounds")}</Label>
                 <Input style={{ color: 'black' }} type="number" name="maxRounds" id="maxRounds" value={formData.maxRounds} onChange={handleInputChange} required />
               </FormGroup>
+              <FormGroup>
+                <Label for="scoreType">{t("scoreType") || "Typ skóre"}</Label>
+                <Input style={{ color: 'black' }} type="select" name="scoreType" id="scoreType" value={formData.scoreType} onChange={handleInputChange}>
+                  <option value="SCORE">{t("scoreTypeScore") || "Body"}</option>
+                  <option value="TIME">{t("scoreTypeTime") || "Čas"}</option>
+                </Input>
+              </FormGroup>
+              <FormGroup check className="mb-3">
+                <Label check>
+                  <Input 
+                    type="checkbox" 
+                    name="highScoreWin" 
+                    id="highScoreWin" 
+                    checked={formData.highScoreWin} 
+                    onChange={(e) => setFormData({ ...formData, highScoreWin: e.target.checked })} 
+                  />
+                  {t("highScoreWins") || "Vyšší skóre vyhrává"}
+                </Label>
+                <small className="form-text text-muted">
+                  {formData.highScoreWin 
+                    ? (t("highScoreWinsDesc") || "Robot s vyšším skóre vyhrává (např. RoboSumo)")
+                    : (t("lowScoreWinsDesc") || "Robot s nižším skóre vyhrává (např. čas u Line followeru)")
+                  }
+                </small>
+              </FormGroup>
             </ModalBody>
             <ModalFooter>
               <Button type="submit" style={{ margin: '10px' }} color="primary">
@@ -260,6 +291,12 @@ function Tables() {
                       <p><strong>{t("evalType")}</strong> {discipline.scoreAggregation?.name || discipline.scoreAggregation || '-'}</p>)}
                     <p><strong>{t("time_colon")}</strong> {t("secs", { time: discipline.time })}</p>
                     <p><strong>{t("maxRounds_colon")}</strong> {discipline.maxRounds === -1 ? t("unlimited") : discipline.maxRounds}</p>
+                    {isAdminOrLeader && (
+                      <>
+                        <p><strong>{t("scoreType") || "Typ skóre"}:</strong> {discipline.scoreTypeName === 'TIME' ? (t("scoreTypeTime") || "Čas") : (t("scoreTypeScore") || "Body")}</p>
+                        <p><strong>{t("winCondition") || "Podmínka výhry"}:</strong> {discipline.highScoreWin ? (t("highScoreWins") || "Vyšší vyhrává") : (t("lowScoreWins") || "Nižší vyhrává")}</p>
+                      </>
+                    )}
                     <p>{discipline.description}</p>
                   </CardBody>
 

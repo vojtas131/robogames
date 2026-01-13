@@ -155,6 +155,28 @@ function AdminDashboard() {
             </CardTitle>
           </Card>
         </Col>
+        {/* Card for Match Management */}
+        <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
+          <Card
+            onClick={() => handleNavigate('/admin/match-management')}
+            style={{
+              cursor: 'pointer',
+              width: '300px',
+              height: '300px',
+              margin: '10px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column'
+            }}
+            className="text-white"
+          >
+            <CardTitle tag="h4" style={{ fontSize: '1.5em' }}>
+              <i className="tim-icons icon-controller mr-2" /> 
+              {t("matchManagement") || "Správa zápasů"}
+            </CardTitle>
+          </Card>
+        </Col>
       </Row>
     </div>
   );

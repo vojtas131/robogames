@@ -23,6 +23,7 @@ import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
+import TablePagination from "components/TablePagination";
 
 /**
  * Admin component for managing teams - CRUD operations, user management within teams
@@ -43,6 +44,15 @@ function TeamManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [errors, setErrors] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -347,7 +357,9 @@ function TeamManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTeams.map((team) => (
+                  {filteredTeams
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((team) => (
                     <tr key={team.id}>
                       <td>{team.id}</td>
                       <td>{team.name}</td>
@@ -360,9 +372,10 @@ function TeamManagement() {
                             {member.id !== team.leaderID && (
                               <>
                                 <Button
-                                  color="warning"
+                                  color="info"
                                   size="sm"
-                                  className="btn-icon btn-simple ml-1"
+                                  className="btn-icon ml-1"
+                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
                                   onClick={() => handleSetLeader(team.id, member.id)}
                                   title={t("setAsLeader")}
                                 >
@@ -371,7 +384,8 @@ function TeamManagement() {
                                 <Button
                                   color="danger"
                                   size="sm"
-                                  className="btn-icon btn-simple ml-1"
+                                  className="btn-icon ml-1"
+                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
                                   onClick={() => handleRemoveUserFromTeam(team.id, member.id)}
                                   title={t("removeFromTeam")}
                                 >
@@ -416,6 +430,15 @@ function TeamManagement() {
                   ))}
                 </tbody>
               </Table>
+              
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={filteredTeams.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+                onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+              />
+              
               {filteredTeams.length === 0 && (
                 <p className="text-center">{t("noTeamsFound")}</p>
               )}

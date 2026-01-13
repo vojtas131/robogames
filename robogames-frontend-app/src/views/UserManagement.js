@@ -27,6 +27,7 @@ import { useConfirm } from "components/ConfirmModal";
 import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
+import TablePagination from "components/TablePagination";
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -48,6 +49,10 @@ function UserManagement() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [selectedSearchUser, setSelectedSearchUser] = useState(null);
   const [errors, setErrors] = useState({});
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -505,8 +510,7 @@ function UserManagement() {
               <Table responsive>
                 <thead className="text-primary">
                   <tr>
-                    {/* <th>{t("id")}</th>
-                    <th>{t("uuid")}</th> */}
+                    <th>{t("id")}</th>
                     <th>{t("name")}</th>
                     <th>{t("surname")}</th>
                     <th>{t("mail")}</th>
@@ -518,10 +522,11 @@ function UserManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user, index) => (
+                  {users
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((user, index) => (
                     <tr key={index} style={user.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}}>
-                      {/* <td>{user.id}</td>
-                      <td>{user.uuid}</td> */}
+                      <td>#{user.id}</td>
                       <td>{user.name}</td>
                       <td>{user.surname}</td>
                       <td>{user.email}</td>
@@ -574,6 +579,14 @@ function UserManagement() {
                   ))}
                 </tbody>
               </Table>
+              
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={users.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+                onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+              />
             </CardBody>
           </Card>
         </Col>

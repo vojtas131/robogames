@@ -10,10 +10,15 @@ import {
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
 
 function AllTeams() {
   const [teams, setTeams] = useState([]);
   const { token, tokenExpired } = useUser();
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -64,16 +69,18 @@ function AllTeams() {
               <Table responsive>
                 <thead className="text-primary">
                   <tr>
-                    {/* <th>{t("id")}</th> */}
+                    <th>{t("id")}</th>
                     <th>{t("title")}</th>
                     <th>{t("leader")}</th>
                     <th>{t("members")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {teams.map((team) => (
+                  {teams
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((team) => (
                     <tr key={team.id}>
-                      {/* <td>{team.id}</td> */}
+                      <td>#{team.id}</td>
                       <td>{team.name}</td>
                       <td>{team.leaderName}</td>
                       <td>
@@ -83,6 +90,16 @@ function AllTeams() {
                   ))}
                 </tbody>
               </Table>
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={teams.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+                onItemsPerPageChange={(items) => {
+                  setItemsPerPage(items);
+                  setCurrentPage(1);
+                }}
+              />
             </CardBody>
           </Card>
         </Col>

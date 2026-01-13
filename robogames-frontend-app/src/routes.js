@@ -33,6 +33,7 @@ import PlaygroundManagement from "views/PlaygroundManagement";
 import RobotConfirmation from "views/RobotConfirmation";
 import RobotProfile from "views/RobotProfile";
 import MatchManagement from "views/MatchManagement";
+import MatchScoreEntry from "views/MatchScoreEntry";
 import PlaygroundDetail from "views/PlaygroundDetail";
 import CompetitionResults from "views/CompetitionResults";
 import Contact from "views/Contact";
@@ -41,11 +42,21 @@ import AuthCallback from "components/KeyCloak/KeyCloak";
 import TeamManagement from "views/TeamManagement";
 import RegistrationManagement from "views/RegistrationManagement";
 import MatchSchedule from "views/MatchSchedule";
+import MatchGroup from "views/MatchGroup";
+import PlaygroundMatches from "views/PlaygroundMatches";
 import Generate from "views/Generate.js";
 import { t } from "translations/translate";
 
 
 var routes = [
+  {
+    path: "/admin-dashboard",
+    name: t("adminMenu"),
+    rtlName: "",
+    icon: "tim-icons icon-settings-gear-63",
+    component: <AdminDashboard />,
+    layout: "/admin",
+  },
   {
     path: "/dashboard",
     name: t("home"),
@@ -71,18 +82,10 @@ var routes = [
     layout: "/admin",
   },
   {
-    path: "/admin-dashboard",
-    name: t("adminMenu"),
-    rtlName: "",
-    icon: "tim-icons icon-settings-gear-63",
-    component: <AdminDashboard />,
-    layout: "/admin",
-  },
-  {
     path: "/match-management",
-    name: t("matchEval"),
+    name: t("matchManagement"),
     rtlName: "",
-    icon: "tim-icons icon-puzzle-10",
+    icon: "tim-icons icon-controller",
     component: <MatchManagement />,
     layout: "/admin",
   },
@@ -126,33 +129,6 @@ var routes = [
     component: <Contact />,
     layout: "/admin",
   },
-
-  // {
-  //   path: "/login",
-  //   name: t("login"),
-  //   rtlName: "",
-  //   icon: "tim-icons icon-single-02",
-  //   component: <Login />,
-  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
-  // },
-
-  // {
-  //   path: "/register",
-  //   name: t("registration"),
-  //   rtlName: "",
-  //   icon: "tim-icons icon-single-02",
-  //   component: <Register />,
-  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
-  // },
-  // {
-  //   path: "/register",
-  //   name: t("registration"),
-  //   rtlName: "",
-  //   icon: "tim-icons icon-single-02",
-  //   component: <Register />,
-  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
-  // },
-
   {
     path: "/user-management",
     name: t("manageUser"),
@@ -243,6 +219,31 @@ var routes = [
     layout: "/admin",
   },
   {
+    path: "/match-score/:matchId",
+    name: t("scoreEntry"),
+    rtlName: "",
+    icon: "tim-icons icon-pencil",
+    component: <MatchScoreEntry />,
+    layout: "/admin",
+  },
+  {
+    path: "/match-group/:groupName",
+    name: t("matchGroup"),
+    rtlName: "",
+    icon: "tim-icons icon-components",
+    component: <MatchGroup />,
+    layout: "/admin",
+  },
+  {
+    path: "/playground-matches/:playgroundId",
+    name: t("playgroundMatches"),
+    rtlName: "",
+    icon: "tim-icons icon-square-pin",
+    component: <PlaygroundMatches />,
+    layout: "/admin",
+    hidden: true,
+  },
+  {
     path: "/auth/callback",
     name: "Auth Callback",
     component: <AuthCallback />,
@@ -255,6 +256,7 @@ var routes = [
     icon: "tim-icons icon-puzzle-10",
     component: <Generate />,
     layout: "/admin",
+    hidden: true,
   }
 
 ];

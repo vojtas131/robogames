@@ -25,6 +25,7 @@ import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import { validateName } from "./Register";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
+import TablePagination from "components/TablePagination";
 
 /**
  * Admin component for managing team registrations to competitions
@@ -61,6 +62,10 @@ function RegistrationManagement() {
   });
   const [errors, setErrors] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -323,6 +328,11 @@ function RegistrationManagement() {
     reg.teacherSurname?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
     <div className="content">
       <Row>
@@ -355,6 +365,7 @@ function RegistrationManagement() {
               {loading ? (
                 <p>{t("loading")}</p>
               ) : (
+                <>
                 <Table responsive>
                   <thead className="text-primary">
                     <tr>
@@ -368,9 +379,11 @@ function RegistrationManagement() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRegistrations.map((reg) => (
+                    {filteredRegistrations
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map((reg) => (
                       <tr key={reg.id}>
-                        <td>{reg.id}</td>
+                        <td>#{reg.id}</td>
                         <td>{reg.teamName} (ID: {reg.teamID})</td>
                         <td>{getCategoryDisplay(reg.category)}</td>
                         <td>{reg.teacherName || t("notProvided")}</td>
@@ -409,6 +422,17 @@ function RegistrationManagement() {
                     ))}
                   </tbody>
                 </Table>
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={filteredRegistrations.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  onItemsPerPageChange={(items) => {
+                    setItemsPerPage(items);
+                    setCurrentPage(1);
+                  }}
+                />
+                </>
               )}
               {!loading && filteredRegistrations.length === 0 && (
                 <p className="text-center">{t("noRegsFound")}</p>
