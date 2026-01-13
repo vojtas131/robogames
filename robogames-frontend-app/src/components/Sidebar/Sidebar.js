@@ -10,7 +10,7 @@
 * @param {object} props.logo - An object with properties `innerLink`, `outterLink`, `text`, and `imgSrc` to configure the sidebar logo.
 * @returns {JSX.Element} - The rendered Sidebar component.
 */
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { PropTypes } from "prop-types";
 import PerfectScrollbar from "perfect-scrollbar";
@@ -24,8 +24,9 @@ function Sidebar(props) {
   const sidebarRef = useRef(null); // Create a ref to the sidebar element
   const { user } = useUser(); // Assuming useUser is the correct hook to access user context
   const [isLoggedIn, setIsLoggedIn] = React.useState(false); // State to track if the user is logged in
+  const [userTeamId, setUserTeamId] = useState(null); // Track if user is in a team
 
-  const { token } = useUser();
+  const { token, tokenExpired } = useUser();
 
   // Effect to initialize PerfectScrollbar and check if the user is logged in
   useEffect(() => {
@@ -37,6 +38,24 @@ function Sidebar(props) {
       });
     }
     setIsLoggedIn(!!token); // Check if a token exists in localStorage to determine if the user is logged in
+    
+    // Fetch user team info
+    if (token) {
+      fetch(`${process.env.REACT_APP_API_URL}api/user/info`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(response => {
+          if (tokenExpired && tokenExpired(response.status)) return null;
+          return response.ok ? response.json() : null;
+        })
+        .then(result => {
+          if (result && result.data) {
+            setUserTeamId(result.data.teamID);
+          }
+        })
+        .catch(error => console.error('Error fetching user info:', error));
+    }
+    
     return () => {
       if (ps && navigator.platform.indexOf("Win") > -1) {
         ps.destroy(); // Destroy PerfectScrollbar instance on component unmount
@@ -127,6 +146,8 @@ function Sidebar(props) {
                 if (prop.path === "/admin-dashboard" && !isAdminOrLeaderOrAssistant) return null; // Hide admin dashboard if the user doesn't have the required roles
                 if (prop.path === "/user-profile" && !isLoggedIn) return null; // Show user profile only when logged in
                 if (prop.path === "/my-team" && !isLoggedIn) return null; // Show my team only when logged in
+                if (prop.path === "/browse-teams") return null; // Always hide browse teams from sidebar (shown on my-team page)
+                if (prop.path === "/match-group/:groupName") return null; // Always hide match group from sidebar
                 return (
                   <li className={activeRoute(prop.layout + prop.path) + (prop.pro ? " active-pro" : "")} key={key}>
                     <NavLink to={prop.layout + prop.path} className="nav-link" onClick={linkOnClick}>
