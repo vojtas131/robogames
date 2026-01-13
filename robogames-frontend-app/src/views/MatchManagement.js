@@ -51,6 +51,7 @@ function MatchManagement() {
 
     // Search/Filter
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'robotName', 'robotNumber', 'teamName'
     const [filterPlayground, setFilterPlayground] = useState('');
     const [filterPhase, setFilterPhase] = useState('');
     const [filterState, setFilterState] = useState('');
@@ -180,28 +181,55 @@ function MatchManagement() {
     // Reset page when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, filterPlayground, filterPhase, filterState]);
+    }, [searchQuery, searchType, filterPlayground, filterPhase, filterState]);
 
     // Filter matches
     const filteredMatches = matches.filter(match => {
-        // Search by robot name or team name
+        // Search based on selected search type
         const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = !searchQuery || 
-            (match.robotA?.name?.toLowerCase().includes(searchLower)) ||
-            (match.robotB?.name?.toLowerCase().includes(searchLower)) ||
-            (match.teamAName?.toLowerCase().includes(searchLower)) ||
-            (match.teamBName?.toLowerCase().includes(searchLower)) ||
-            (match.robotA?.number?.toString().includes(searchQuery)) ||
-            (match.robotB?.number?.toString().includes(searchQuery)) ||
-            match.id.toString().includes(searchQuery);
+        let matchesSearch = !searchQuery;
+        
+        if (searchQuery) {
+            switch (searchType) {
+                case 'id':
+                    matchesSearch = match.id.toString().includes(searchQuery);
+                    break;
+                case 'robotName':
+                    matchesSearch = 
+                        (match.robotAName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotBName?.toLowerCase().includes(searchLower));
+                    break;
+                case 'robotNumber':
+                    matchesSearch = 
+                        (match.robotANumber?.toString().includes(searchQuery)) ||
+                        (match.robotBNumber?.toString().includes(searchQuery));
+                    break;
+                case 'teamName':
+                    matchesSearch = 
+                        (match.teamAName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamBName?.toLowerCase().includes(searchLower));
+                    break;
+                case 'all':
+                default:
+                    matchesSearch = 
+                        (match.robotAName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotBName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamAName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamBName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotANumber?.toString().includes(searchQuery)) ||
+                        (match.robotBNumber?.toString().includes(searchQuery)) ||
+                        match.id.toString().includes(searchQuery);
+                    break;
+            }
+        }
 
         // Filter by playground
         const matchesPlayground = !filterPlayground || 
-            match.playground?.id?.toString() === filterPlayground;
+            match.playgroundID?.toString() === filterPlayground;
 
         // Filter by phase
         const matchesPhase = !filterPhase || 
-            match.phase?.name === filterPhase;
+            match.phaseName === filterPhase;
 
         // Filter by state
         const matchesState = !filterState || 
@@ -595,19 +623,38 @@ function MatchManagement() {
 
                                     {/* Filters */}
                                     <Row className="mb-4">
-                                        <Col md="3">
+                                        <Col md="2">
+                                            <Input
+                                                type="select"
+                                                value={searchType}
+                                                onChange={(e) => setSearchType(e.target.value)}
+                                            >
+                                                <option value="all">{t('searchAll') || 'Vše'}</option>
+                                                <option value="id">{t('searchById') || 'ID zápasu'}</option>
+                                                <option value="robotName">{t('searchByRobotName') || 'Jméno robota'}</option>
+                                                <option value="robotNumber">{t('searchByRobotNumber') || 'Číslo robota'}</option>
+                                                <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>
+                                            </Input>
+                                        </Col>
+                                        <Col md="2">
                                             <InputGroup>
                                                 <InputGroupText>
                                                     <i className="tim-icons icon-zoom-split" />
                                                 </InputGroupText>
                                                 <Input
-                                                    placeholder={t('searchMatchPlaceholder') || 'ID, robot, tým...'}
+                                                    placeholder={
+                                                        searchType === 'id' ? (t('enterMatchId') || 'Zadejte ID...') :
+                                                        searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
+                                                        searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
+                                                        searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
+                                                        (t('searchMatchPlaceholder') || 'ID, robot, tým...')
+                                                    }
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                 />
                                             </InputGroup>
                                         </Col>
-                                        <Col md="3">
+                                        <Col md="2">
                                             <Input
                                                 type="select"
                                                 value={filterPlayground}
@@ -621,7 +668,7 @@ function MatchManagement() {
                                                 ))}
                                             </Input>
                                         </Col>
-                                        <Col md="3">
+                                        <Col md="2">
                                             <Input
                                                 type="select"
                                                 value={filterPhase}
@@ -635,7 +682,7 @@ function MatchManagement() {
                                                 ))}
                                             </Input>
                                         </Col>
-                                        <Col md="3">
+                                        <Col md="2">
                                             <Input
                                                 type="select"
                                                 value={filterState}
@@ -646,6 +693,19 @@ function MatchManagement() {
                                                 <option value="DONE">{t('done') || 'Hotové'}</option>
                                                 <option value="REMATCH">{t('rematch') || 'Opakování'}</option>
                                             </Input>
+                                        </Col>
+                                        <Col md="2" className="d-flex align-items-center">
+                                            {searchQuery && (
+                                                <Button
+                                                    color="link"
+                                                    size="sm"
+                                                    className="text-muted p-0"
+                                                    onClick={() => setSearchQuery('')}
+                                                >
+                                                    <i className="tim-icons icon-simple-remove mr-1" />
+                                                    {t('clearSearch') || 'Vymazat'}
+                                                </Button>
+                                            )}
                                         </Col>
                                     </Row>
 
