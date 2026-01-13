@@ -1,6 +1,6 @@
 /**
- * MatchGroup - View for displaying matches within a specific group
- * Accessible from the groups tab in MatchManagement
+ * PlaygroundMatches - View for displaying matches on a specific playground
+ * Accessible from the playgrounds tab in MatchManagement
  */
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -19,9 +19,8 @@ import { t } from "translations/translate";
 import TablePagination from "components/TablePagination";
 import RobotSearchSelect from "components/RobotSearchSelect";
 
-function MatchGroup() {
-    const { groupName } = useParams();
-    const decodedGroupName = decodeURIComponent(groupName || '');
+function PlaygroundMatches() {
+    const { playgroundId } = useParams();
     
     const { selectedYear } = useAdmin();
     const { token, tokenExpired } = useUser();
@@ -32,10 +31,11 @@ function MatchGroup() {
     const isDark = theme === themes.dark;
 
     // State
+    const [playground, setPlayground] = useState(null);
     const [matches, setMatches] = useState([]);
-    const [playgrounds, setPlaygrounds] = useState([]);
     const [robots, setRobots] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loadingPlayground, setLoadingPlayground] = useState(false);
     
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -44,22 +44,48 @@ function MatchGroup() {
     // Create Match Modal
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newMatch, setNewMatch] = useState({
-        playgroundID: '',
         phase: 'PRELIMINARY',
-        highScoreWin: true
+        highScoreWin: true,
+        groupName: ''
     });
     const [selectedRobotA, setSelectedRobotA] = useState(null);
     const [selectedRobotB, setSelectedRobotB] = useState(null);
 
     const phases = ['PRELIMINARY', 'QUARTERFINAL', 'SEMIFINAL', 'FINAL', 'THIRD_PLACE'];
 
-    // Fetch matches for this group
+    // Fetch playground info
+    const fetchPlayground = useCallback(async () => {
+        if (!playgroundId) return;
+        setLoadingPlayground(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/playground/getByID?id=${playgroundId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+            
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setPlayground(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch playground:', error);
+        } finally {
+            setLoadingPlayground(false);
+        }
+    }, [playgroundId, token, tokenExpired]);
+
+    // Fetch matches for this playground
     const fetchMatches = useCallback(async () => {
-        if (!selectedYear || !decodedGroupName) return;
+        if (!selectedYear || !playgroundId) return;
         setLoading(true);
         try {
             const response = await fetch(
-                `${process.env.REACT_APP_API_URL}api/match/byGroup?year=${selectedYear}&group=${encodeURIComponent(decodedGroupName)}`,
+                `${process.env.REACT_APP_API_URL}api/match/byPlayground?year=${selectedYear}&playgroundID=${playgroundId}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -77,33 +103,15 @@ function MatchGroup() {
         } finally {
             setLoading(false);
         }
-    }, [selectedYear, decodedGroupName, token, tokenExpired]);
+    }, [selectedYear, playgroundId, token, tokenExpired]);
 
-    // Fetch playgrounds
-    const fetchPlaygrounds = useCallback(async () => {
-        try {
-            const response = await fetch(
-                `${process.env.REACT_APP_API_URL}api/playground/all`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-            if (tokenExpired(response.status)) return;
-            
-            const data = await response.json();
-            if (response.ok && data.type === 'RESPONSE') {
-                setPlaygrounds(data.data || []);
-            }
-        } catch (error) {
-            console.error('Failed to fetch playgrounds:', error);
-        }
-    }, [token, tokenExpired]);
-
-    // Fetch robots for the selected year
+    // Fetch robots for the selected year and discipline
     const fetchRobots = useCallback(async () => {
-        if (!selectedYear) return;
+        if (!selectedYear || !playground?.disciplineID) {
+            console.log('fetchRobots skipped:', { selectedYear, disciplineID: playground?.disciplineID });
+            return;
+        }
+        console.log('fetchRobots called:', { selectedYear, disciplineID: playground?.disciplineID });
         try {
             const response = await fetch(
                 `${process.env.REACT_APP_API_URL}api/robot/allForYear?year=${selectedYear}`,
@@ -117,25 +125,41 @@ function MatchGroup() {
             
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
-                setRobots(data.data || []);
+                // Filter robots by discipline
+                const allRobots = data.data || [];
+                const disciplineFiltered = allRobots.filter(
+                    robot => robot.disciplineID === playground.disciplineID
+                );
+                console.log('Robots loaded:', { total: allRobots.length, filtered: disciplineFiltered.length, disciplineID: playground.disciplineID });
+                setRobots(disciplineFiltered);
             }
         } catch (error) {
             console.error('Failed to fetch robots:', error);
         }
-    }, [selectedYear, token, tokenExpired]);
+    }, [selectedYear, playground?.disciplineID, token, tokenExpired]);
+
+    useEffect(() => {
+        fetchPlayground();
+    }, [fetchPlayground]);
 
     useEffect(() => {
         fetchMatches();
-        fetchPlaygrounds();
-        fetchRobots();
-    }, [fetchMatches, fetchPlaygrounds, fetchRobots]);
+    }, [fetchMatches]);
+
+    useEffect(() => {
+        // Fetch robots when playground is loaded and selectedYear is available
+        if (playground && selectedYear) {
+            console.log('Triggering fetchRobots:', { playground: playground.id, selectedYear });
+            fetchRobots();
+        }
+    }, [playground, selectedYear, fetchRobots]);
 
     // Reset create modal
     const resetCreateModal = () => {
         setNewMatch({
-            playgroundID: '',
             phase: 'PRELIMINARY',
-            highScoreWin: true
+            highScoreWin: true,
+            groupName: ''
         });
         setSelectedRobotA(null);
         setSelectedRobotB(null);
@@ -143,17 +167,12 @@ function MatchGroup() {
 
     // Create match
     const handleCreateMatch = async () => {
-        if (!newMatch.playgroundID) {
-            toast.error(t('playgroundRequired') || 'Hřiště je povinné');
-            return;
-        }
-
         try {
             const requestBody = {
-                playgroundID: parseInt(newMatch.playgroundID),
+                playgroundID: parseInt(playgroundId),
                 phase: newMatch.phase,
                 highScoreWin: newMatch.highScoreWin,
-                group: decodedGroupName,
+                group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
             
@@ -192,17 +211,12 @@ function MatchGroup() {
 
     // Create match and navigate to score entry
     const handleCreateMatchAndScore = async () => {
-        if (!newMatch.playgroundID) {
-            toast.error(t('playgroundRequired') || 'Hřiště je povinné');
-            return;
-        }
-
         try {
             const requestBody = {
-                playgroundID: parseInt(newMatch.playgroundID),
+                playgroundID: parseInt(playgroundId),
                 phase: newMatch.phase,
                 highScoreWin: newMatch.highScoreWin,
-                group: decodedGroupName,
+                group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
             
@@ -233,7 +247,7 @@ function MatchGroup() {
                 // Navigate to score entry
                 const matchId = data.data?.id;
                 if (matchId) {
-                    navigate(`/admin/match-score/${matchId}?from=group`);
+                    navigate(`/admin/match-score/${matchId}?from=playground`);
                 }
             } else {
                 toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
@@ -245,7 +259,7 @@ function MatchGroup() {
 
     // Navigate to score entry
     const goToScoreEntry = (matchId) => {
-        navigate(`/admin/match-score/${matchId}?from=group`);
+        navigate(`/admin/match-score/${matchId}?from=playground`);
     };
 
     const getStateColor = (state) => {
@@ -268,28 +282,14 @@ function MatchGroup() {
         }
     };
 
-    // Get playground discipline ID
-    const getSelectedPlaygroundDisciplineId = (playgroundId) => {
-        const pg = playgrounds.find(p => p.id.toString() === playgroundId);
-        return pg?.disciplineID || null;
-    };
-
-    // Filter robots by discipline (based on selected playground)
-    const getFilteredRobotsForPlayground = (playgroundId) => {
-        if (!playgroundId) return [];
-        const disciplineId = getSelectedPlaygroundDisciplineId(playgroundId);
-        if (!disciplineId) return robots;
-        return robots.filter(robot => robot.disciplineID === disciplineId);
-    };
-
-    // Get filtered robots for create modal
-    const filteredRobotsForCreate = getFilteredRobotsForPlayground(newMatch.playgroundID);
-
     // Calculate statistics
     const totalMatches = matches.length;
     const doneMatches = matches.filter(m => m.state?.name === 'DONE').length;
     const waitingMatches = matches.filter(m => m.state?.name === 'WAITING').length;
     const rematchMatches = matches.filter(m => m.state?.name === 'REMATCH').length;
+
+    // Get filtered robots (only confirmed)
+    const filteredRobots = robots.filter(r => r.confirmed);
 
     return (
         <div className="content">
@@ -302,13 +302,22 @@ function MatchGroup() {
                                     <Button 
                                         color="link" 
                                         className="p-0 mr-3"
-                                        onClick={() => navigate('/admin/match-management?tab=2')}
+                                        onClick={() => navigate('/admin/match-management?tab=3')}
                                     >
                                         <i className="tim-icons icon-minimal-left" style={{ fontSize: '1.5rem' }} />
                                     </Button>
                                     <CardTitle tag="h4" className="d-inline-block mb-0">
-                                        <i className="tim-icons icon-components mr-2" />
-                                        {t('group') || 'Skupina'}: <strong>{decodedGroupName}</strong>
+                                        <i className="tim-icons icon-square-pin mr-2" />
+                                        {loadingPlayground ? (
+                                            <Spinner size="sm" />
+                                        ) : playground ? (
+                                            <>
+                                                {playground.name} <Badge color="info">#{playground.number}</Badge>
+                                                <small className="text-muted ml-2">({playground.disciplineName})</small>
+                                            </>
+                                        ) : (
+                                            t('playground') || 'Hřiště'
+                                        )}
                                         {selectedYear && ` (${selectedYear})`}
                                     </CardTitle>
                                 </Col>
@@ -357,14 +366,13 @@ function MatchGroup() {
                             ) : matches.length === 0 ? (
                                 <Alert color="info">
                                     <i className="tim-icons icon-alert-circle-exc mr-2" />
-                                    {t('noMatchesInGroup') || 'V této skupině nejsou žádné zápasy'}
+                                    {t('noMatchesOnPlayground') || 'Na tomto hřišti nejsou žádné zápasy'}
                                 </Alert>
                             ) : (
                                 <Table responsive hover className="table-management">
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>{t('playground') || 'Hřiště'}</th>
                                             <th>{t('robotA') || 'Robot A'}</th>
                                             <th>{t('robotB') || 'Robot B'}</th>
                                             <th>{t('score') || 'Skóre'}</th>
@@ -387,9 +395,6 @@ function MatchGroup() {
                                                     >
                                                         #{match.id}
                                                     </span>
-                                                </td>
-                                                <td>
-                                                    {match.playgroundName || '-'} <Badge color="info">{match.playgroundNumber}</Badge>
                                                 </td>
                                                 <td>
                                                     {match.robotAID ? (
@@ -490,17 +495,14 @@ function MatchGroup() {
                                 <FormGroup>
                                     <Label>{t('playground') || 'Hřiště'} *</Label>
                                     <Input
-                                        type="select"
-                                        value={newMatch.playgroundID}
-                                        onChange={(e) => setNewMatch({ ...newMatch, playgroundID: e.target.value })}
-                                    >
-                                        <option value="">{t('selectPlayground') || 'Vyberte hřiště'}</option>
-                                        {playgrounds.map(pg => (
-                                            <option key={pg.id} value={pg.id}>
-                                                {pg.name} ({pg.number}) - {pg.disciplineName}
-                                            </option>
-                                        ))}
-                                    </Input>
+                                        type="text"
+                                        value={playground ? `${playground.name} (${playground.number}) - ${playground.disciplineName}` : (loadingPlayground ? 'Načítání...' : '')}
+                                        disabled={true}
+                                    />
+                                    <small className="text-muted">
+                                        <i className="tim-icons icon-lock-circle mr-1" />
+                                        {t('fieldLockedFromPlayground') || 'Hřiště je předvyplněno'}
+                                    </small>
                                 </FormGroup>
                             </Col>
                             <Col md="6">
@@ -521,11 +523,16 @@ function MatchGroup() {
                             </Col>
                         </Row>
 
-                        {newMatch.playgroundID && (
+                        {playground ? (
                             <Alert color="info" className="mb-3">
                                 <i className="tim-icons icon-bulb-63 mr-2" />
-                                {t('selectedDiscipline') || 'Vybraná disciplína'}: <strong>{playgrounds.find(p => p.id.toString() === newMatch.playgroundID)?.disciplineName}</strong>
-                                {' '}({filteredRobotsForCreate.filter(r => r.confirmed).length} {t('confirmedRobotsAvailable') || 'potvrzených robotů k dispozici'})
+                                {t('selectedDiscipline') || 'Vybraná disciplína'}: <strong>{playground.disciplineName}</strong>
+                                {' '}({filteredRobots.length} {t('confirmedRobotsAvailable') || 'potvrzených robotů k dispozici'})
+                            </Alert>
+                        ) : (
+                            <Alert color="warning" className="mb-3">
+                                <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                {loadingPlayground ? 'Načítání informací o hřišti...' : 'Hřiště nebylo načteno'}
                             </Alert>
                         )}
 
@@ -534,7 +541,7 @@ function MatchGroup() {
                                 <FormGroup>
                                     <Label>{t('robotA') || 'Robot A'}</Label>
                                     <RobotSearchSelect
-                                        robots={filteredRobotsForCreate}
+                                        robots={filteredRobots}
                                         selectedRobot={selectedRobotA}
                                         onSelect={setSelectedRobotA}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
@@ -548,7 +555,7 @@ function MatchGroup() {
                                 <FormGroup>
                                     <Label>{t('robotB') || 'Robot B'} ({t('optional') || 'volitelné'})</Label>
                                     <RobotSearchSelect
-                                        robots={filteredRobotsForCreate}
+                                        robots={filteredRobots}
                                         selectedRobot={selectedRobotB}
                                         onSelect={setSelectedRobotB}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
@@ -565,13 +572,10 @@ function MatchGroup() {
                                     <Label>{t('groupName') || 'Název skupiny'}</Label>
                                     <Input
                                         type="text"
-                                        value={decodedGroupName}
-                                        disabled={true}
+                                        value={newMatch.groupName}
+                                        onChange={(e) => setNewMatch({ ...newMatch, groupName: e.target.value })}
+                                        placeholder={t('groupName') || 'Název skupiny'}
                                     />
-                                    <small className="text-muted">
-                                        <i className="tim-icons icon-lock-circle mr-1" />
-                                        {t('fieldLockedFromGroup') || 'Skupina je předvyplněna'}
-                                    </small>
                                 </FormGroup>
                             </Col>
                         </Row>
@@ -601,4 +605,4 @@ function MatchGroup() {
     );
 }
 
-export default MatchGroup;
+export default PlaygroundMatches;

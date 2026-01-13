@@ -299,11 +299,19 @@
     "matchesList": "Matches List",
     "matchGroups": "Groups",
     "matchGroup": "Group",
+    "matchPlaygrounds": "Playgrounds",
+    "playgroundMatches": "Playground Matches",
     "group": "Group",
     "noGroupsFound": "No groups found",
     "noGroupsHint": "Groups are created by assigning a \"group\" attribute to matches.",
     "totalGroups": "Total Groups",
+    "totalPlaygrounds": "Total Playgrounds",
+    "noPlaygroundsFound": "No playgrounds found",
     "noMatchesInGroup": "No matches in this group",
+    "noMatchesOnPlayground": "No matches on this playground",
+    "fieldLockedFromPlayground": "Field is locked from playground view",
+    "fieldLockedFromGroup": "Group is pre-filled",
+    "availableRobots": "Available robots",
     "position": "Position",
     "createMatch": "Create Match",
     "allMatches": "All Matches",
@@ -882,5 +890,7 @@
     "filtered": "Filtered",
     "searchPlayground": "Search playground...",
     "allDisciplines": "All disciplines",
-    "noPlaygroundsFound": "No playgrounds found"
+    "noPlaygroundsFound": "No playgrounds found",
+
+    "createAndWriteScore": "Create and write score"
 }

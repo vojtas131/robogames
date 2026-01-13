@@ -223,7 +223,7 @@ function MatchSchedule() {
                                 padding: '4px 10px'
                             }}
                         >
-                            #{match.playgroundNumber || 0}
+                            {match.playgroundNumber || 0}
                         </Badge>
                     </div>
                 </div>
@@ -376,7 +376,7 @@ function MatchSchedule() {
                                 padding: '4px 10px'
                             }}
                         >
-                            #{match.playgroundNumber || 0}
+                            {match.playgroundNumber || 0}
                         </Badge>
                     </div>
                 </div>

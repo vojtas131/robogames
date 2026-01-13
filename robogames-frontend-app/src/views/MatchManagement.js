@@ -3,7 +3,7 @@
  * Allows creating, editing, searching and managing matches
  */
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Card, CardHeader, CardBody, CardTitle, CardFooter,
     Row, Col, Button, Input, InputGroup, InputGroupText,
@@ -25,6 +25,7 @@ function MatchManagement() {
     const toast = useToast();
     const { theme } = useContext(ThemeContext);
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     
     const isDark = theme === themes.dark;
 
@@ -36,9 +37,17 @@ function MatchManagement() {
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(false);
     const [loadingGroups, setLoadingGroups] = useState(false);
+    const [loadingPlaygrounds, setLoadingPlaygrounds] = useState(false);
     
-    // Active tab
-    const [activeTab, setActiveTab] = useState('1');
+    // Active tab - read from URL params
+    const tabFromUrl = searchParams.get('tab');
+    const [activeTab, setActiveTab] = useState(tabFromUrl || '1');
+
+    // Update tab in URL when it changes
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setSearchParams({ tab });
+    };
 
     // Search/Filter
     const [searchQuery, setSearchQuery] = useState('');
@@ -227,7 +236,8 @@ function MatchManagement() {
                 playgroundID: parseInt(newMatch.playgroundID),
                 phase: newMatch.phase,
                 highScoreWin: newMatch.highScoreWin,
-                group: newMatch.groupName || null
+                group: newMatch.groupName || null,
+                competitionYear: selectedYear  // Include year for matches without robots
             };
             
             if (selectedRobotA) {
@@ -255,6 +265,59 @@ function MatchManagement() {
                 setShowCreateModal(false);
                 resetCreateModal();
                 fetchMatches();
+            } else {
+                toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+            }
+        } catch (error) {
+            toast.error(t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+        }
+    };
+
+    // Create match and navigate to score entry
+    const handleCreateMatchAndScore = async () => {
+        if (!newMatch.playgroundID) {
+            toast.error(t('playgroundRequired') || 'Hřiště je povinné');
+            return;
+        }
+
+        try {
+            const requestBody = {
+                playgroundID: parseInt(newMatch.playgroundID),
+                phase: newMatch.phase,
+                highScoreWin: newMatch.highScoreWin,
+                group: newMatch.groupName || null,
+                competitionYear: selectedYear  // Include year for matches without robots
+            };
+            
+            if (selectedRobotA) {
+                requestBody.robotAID = selectedRobotA.id;
+            }
+            if (selectedRobotB) {
+                requestBody.robotBID = selectedRobotB.id;
+            }
+
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/match/create`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                }
+            );
+            const data = await response.json();
+
+            if (response.ok && data.type === 'RESPONSE') {
+                toast.success(t('matchCreated') || 'Zápas byl vytvořen');
+                setShowCreateModal(false);
+                resetCreateModal();
+                // Navigate to score entry for the newly created match
+                const newMatchId = data.data?.id || data.data;
+                if (newMatchId) {
+                    navigate(`/admin/match-score/${newMatchId}`);
+                }
             } else {
                 toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
             }
@@ -299,8 +362,8 @@ function MatchManagement() {
                 playgroundID: parseInt(editingMatch.playgroundID),
                 phase: editingMatch.phase,
                 highScoreWin: editingMatch.highScoreWin,
-                robotAID: editRobotA?.id || null,
-                robotBID: editRobotB?.id || null,
+                robotAID: editRobotA?.id || 0,  // 0 means remove robot
+                robotBID: editRobotB?.id || 0,  // 0 means remove robot
                 group: editingMatch.groupName || null
             };
 
@@ -449,12 +512,14 @@ function MatchManagement() {
                                         {selectedYear && ` (${selectedYear})`}
                                     </CardTitle>
                                 </Col>
-                                <Col xs="auto">
-                                    <Button color="success" onClick={() => setShowCreateModal(true)}>
-                                        <i className="tim-icons icon-simple-add mr-2" />
-                                        {t('createMatch') || 'Vytvořit zápas'}
-                                    </Button>
-                                </Col>
+                                {activeTab === '1' && (
+                                    <Col xs="auto">
+                                        <Button color="success" onClick={() => setShowCreateModal(true)}>
+                                            <i className="tim-icons icon-simple-add mr-2" />
+                                            {t('createMatch') || 'Vytvořit zápas'}
+                                        </Button>
+                                    </Col>
+                                )}
                             </Row>
                         </CardHeader>
                         <CardBody>
@@ -463,7 +528,7 @@ function MatchManagement() {
                                 <NavItem>
                                     <NavLink
                                         className={classnames({ active: activeTab === '1' })}
-                                        onClick={() => setActiveTab('1')}
+                                        onClick={() => handleTabChange('1')}
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <i className="tim-icons icon-bullet-list-67 mr-2" />
@@ -473,13 +538,26 @@ function MatchManagement() {
                                 <NavItem>
                                     <NavLink
                                         className={classnames({ active: activeTab === '2' })}
-                                        onClick={() => setActiveTab('2')}
+                                        onClick={() => handleTabChange('2')}
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <i className="tim-icons icon-components mr-2" />
                                         {t('matchGroups') || 'Skupiny'}
                                         {groups.length > 0 && (
                                             <Badge color="primary" className="ml-2">{groups.length}</Badge>
+                                        )}
+                                    </NavLink>
+                                </NavItem>
+                                <NavItem>
+                                    <NavLink
+                                        className={classnames({ active: activeTab === '3' })}
+                                        onClick={() => handleTabChange('3')}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <i className="tim-icons icon-square-pin mr-2" />
+                                        {t('matchPlaygrounds') || 'Hřiště'}
+                                        {playgrounds.length > 0 && (
+                                            <Badge color="info" className="ml-2">{playgrounds.length}</Badge>
                                         )}
                                     </NavLink>
                                 </NavItem>
@@ -765,6 +843,56 @@ function MatchManagement() {
                                         {t('totalGroups') || 'Celkem skupin'}: {groups.length}
                                     </div>
                                 </TabPane>
+
+                                {/* Tab 3: Playgrounds List */}
+                                <TabPane tabId="3">
+                                    {loadingPlaygrounds ? (
+                                        <div className="text-center py-5">
+                                            <Spinner color="primary" />
+                                        </div>
+                                    ) : playgrounds.length === 0 ? (
+                                        <Alert color="info">
+                                            <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                            {t('noPlaygroundsFound') || 'Žádná hřiště nenalezena'}
+                                        </Alert>
+                                    ) : (
+                                        <Row>
+                                            {playgrounds.map((pg) => {
+                                                // Count matches on this playground
+                                                const pgMatches = matches.filter(m => m.playgroundID === pg.id);
+                                                const doneMatches = pgMatches.filter(m => m.state?.name === 'DONE').length;
+                                                
+                                                return (
+                                                    <Col md="4" lg="3" key={pg.id}>
+                                                        <Card 
+                                                            className="playground-card mb-3"
+                                                            style={{ cursor: 'pointer' }}
+                                                            onClick={() => navigate(`/admin/playground-matches/${pg.id}`)}
+                                                        >
+                                                            <CardBody className="text-center py-4">
+                                                                <i className="tim-icons icon-square-pin mb-3" style={{ fontSize: '2rem', color: '#e14eca' }} />
+                                                                <h4 className="mb-1">{pg.name}</h4>
+                                                                <p className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
+                                                                    #{pg.number} - {pg.disciplineName}
+                                                                </p>
+                                                                <Badge color="info" className="mr-1">
+                                                                    {pgMatches.length} {t('matches') || 'zápasů'}
+                                                                </Badge>
+                                                                <Badge color="success">
+                                                                    {doneMatches} {t('done') || 'hotových'}
+                                                                </Badge>
+                                                            </CardBody>
+                                                        </Card>
+                                                    </Col>
+                                                );
+                                            })}
+                                        </Row>
+                                    )}
+
+                                    <div className="text-muted mt-3">
+                                        {t('totalPlaygrounds') || 'Celkem hřišť'}: {playgrounds.length}
+                                    </div>
+                                </TabPane>
                             </TabContent>
                         </CardBody>
                     </Card>
@@ -855,18 +983,6 @@ function MatchManagement() {
                         </Row>
                         <Row>
                             <Col md="6">
-                                <FormGroup check>
-                                    <Label check>
-                                        <Input
-                                            type="checkbox"
-                                            checked={newMatch.highScoreWin}
-                                            onChange={(e) => setNewMatch({ ...newMatch, highScoreWin: e.target.checked })}
-                                        />
-                                        {t('highScoreWins') || 'Vyšší skóre vyhrává'}
-                                    </Label>
-                                </FormGroup>
-                            </Col>
-                            <Col md="6">
                                 <FormGroup>
                                     <Label>{t('groupName') || 'Název skupiny'}</Label>
                                     <Input
@@ -883,6 +999,10 @@ function MatchManagement() {
                 <ModalFooter>
                     <Button color="secondary" onClick={() => { setShowCreateModal(false); resetCreateModal(); }}>
                         {t('cancel') || 'Zrušit'}
+                    </Button>
+                    <Button color="info" onClick={handleCreateMatchAndScore}>
+                        <i className="tim-icons icon-pencil mr-2" />
+                        {t('createAndWriteScore') || 'Vytvořit a zapsat skóre'}
                     </Button>
                     <Button color="success" onClick={handleCreateMatch}>
                         <i className="tim-icons icon-check-2 mr-2" />
@@ -966,18 +1086,6 @@ function MatchManagement() {
                                 </Col>
                             </Row>
                             <Row>
-                                <Col md="6">
-                                    <FormGroup check>
-                                        <Label check>
-                                            <Input
-                                                type="checkbox"
-                                                checked={editingMatch.highScoreWin}
-                                                onChange={(e) => setEditingMatch({ ...editingMatch, highScoreWin: e.target.checked })}
-                                            />
-                                            {t('highScoreWins') || 'Vyšší skóre vyhrává'}
-                                        </Label>
-                                    </FormGroup>
-                                </Col>
                                 <Col md="6">
                                     <FormGroup>
                                         <Label>{t('groupName') || 'Název skupiny'}</Label>

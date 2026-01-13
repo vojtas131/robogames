@@ -43,6 +43,7 @@ import TeamManagement from "views/TeamManagement";
 import RegistrationManagement from "views/RegistrationManagement";
 import MatchSchedule from "views/MatchSchedule";
 import MatchGroup from "views/MatchGroup";
+import PlaygroundMatches from "views/PlaygroundMatches";
 import Generate from "views/Generate.js";
 import { t } from "translations/translate";
 
@@ -259,6 +260,15 @@ var routes = [
     icon: "tim-icons icon-components",
     component: <MatchGroup />,
     layout: "/admin",
+  },
+  {
+    path: "/playground-matches/:playgroundId",
+    name: t("playgroundMatches"),
+    rtlName: "",
+    icon: "tim-icons icon-square-pin",
+    component: <PlaygroundMatches />,
+    layout: "/admin",
+    hidden: true,
   },
   {
     path: "/auth/callback",

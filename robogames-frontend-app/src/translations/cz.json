@@ -297,11 +297,19 @@
     "matchesList":"Seznam zápasů",
     "matchGroups":"Skupiny",
     "matchGroup":"Skupina",
+    "matchPlaygrounds":"Hřiště",
+    "playgroundMatches":"Zápasy na hřišti",
     "group":"Skupina",
     "noGroupsFound":"Žádné skupiny nenalezeny",
     "noGroupsHint":"Skupiny se vytvoří přiřazením atributu \"group\" k zápasům.",
     "totalGroups":"Celkem skupin",
+    "totalPlaygrounds":"Celkem hřišť",
+    "noPlaygroundsFound":"Žádná hřiště nenalezena",
     "noMatchesInGroup":"V této skupině nejsou žádné zápasy",
+    "noMatchesOnPlayground":"Na tomto hřišti nejsou žádné zápasy",
+    "fieldLockedFromPlayground":"Pole je zamčeno z pohledu hřiště",
+    "fieldLockedFromGroup":"Skupina je předvyplněna",
+    "availableRobots":"Dostupní roboti",
     "position":"Pozice",
     "createMatch":"Vytvořit zápas",
     "allMatches":"Všechny zápasy",
@@ -905,5 +913,7 @@
     "filtered": "Filtrováno",
     "searchPlayground": "Hledat hřiště...",
     "allDisciplines": "Všechny disciplíny",
-    "noPlaygroundsFound": "Žádná hřiště nenalezena"
+    "noPlaygroundsFound": "Žádná hřiště nenalezena",
+
+    "createAndWriteScore": "Vytvořit a zapsat skóre"
 }

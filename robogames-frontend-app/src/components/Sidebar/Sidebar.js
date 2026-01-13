@@ -105,6 +105,7 @@ function Sidebar(props) {
             {logoImg !== null || logoText !== null ? <div className="logo">{logoImg}{logoText}</div> : null} {/* Render the logo if it exists */}
             <Nav>
               {routes.map((prop, key) => {
+                if (prop.hidden) return null; // Hide routes marked as hidden
                 if (prop.path === "/login") return null; // Hide login
                 if (prop.path === "/auth/callback") return null; // Always hide callback
                 if (prop.path === "/register") return null; // Always hide register
