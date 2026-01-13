@@ -372,9 +372,10 @@ function TeamManagement() {
                             {member.id !== team.leaderID && (
                               <>
                                 <Button
-                                  color="warning"
+                                  color="info"
                                   size="sm"
-                                  className="btn-icon btn-simple ml-1"
+                                  className="btn-icon ml-1"
+                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
                                   onClick={() => handleSetLeader(team.id, member.id)}
                                   title={t("setAsLeader")}
                                 >
@@ -383,7 +384,8 @@ function TeamManagement() {
                                 <Button
                                   color="danger"
                                   size="sm"
-                                  className="btn-icon btn-simple ml-1"
+                                  className="btn-icon ml-1"
+                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
                                   onClick={() => handleRemoveUserFromTeam(team.id, member.id)}
                                   title={t("removeFromTeam")}
                                 >

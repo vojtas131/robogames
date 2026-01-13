@@ -69,7 +69,7 @@ function AllTeams() {
               <Table responsive>
                 <thead className="text-primary">
                   <tr>
-                    {/* <th>{t("id")}</th> */}
+                    <th>{t("id")}</th>
                     <th>{t("title")}</th>
                     <th>{t("leader")}</th>
                     <th>{t("members")}</th>
@@ -80,7 +80,7 @@ function AllTeams() {
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                     .map((team) => (
                     <tr key={team.id}>
-                      {/* <td>{team.id}</td> */}
+                      <td>#{team.id}</td>
                       <td>{team.name}</td>
                       <td>{team.leaderName}</td>
                       <td>

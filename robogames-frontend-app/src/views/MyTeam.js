@@ -17,7 +17,6 @@ import {
   Label,
   Input,
   Alert,
-  CardFooter,
   Badge,
   InputGroup,
   InputGroupText,
@@ -489,6 +488,55 @@ function MyTeam() {
 
   const isLeader = team?.leaderID === parseInt(userID, 10);
 
+  // Styly pro responsivní design
+  const styles = {
+    statCard: {
+      background: 'var(--card-bg, rgba(30,30,50,0.5))',
+      border: '1px solid var(--border-color, rgba(255,255,255,0.08))',
+      borderRadius: '12px',
+      padding: '20px',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center'
+    },
+    statValue: {
+      fontSize: '2rem',
+      fontWeight: 'bold',
+      background: 'linear-gradient(135deg, #ef6000 0%, #ff8533 100%)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      marginBottom: '5px'
+    },
+    statLabel: {
+      fontSize: '0.85rem',
+      textTransform: 'uppercase',
+      letterSpacing: '1px',
+      opacity: 0.7
+    },
+    memberCard: {
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '10px',
+      padding: '15px',
+      marginBottom: '10px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: '10px'
+    },
+    yearCard: {
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: '12px',
+      overflow: 'hidden'
+    }
+  };
+
   return (
     <div className="content">
       {error || !team ? (
@@ -644,294 +692,368 @@ function MyTeam() {
           </Row>
         </>
       ) : (
-        // Zobrazení týmu
+        // Zobrazení týmu - nový přehledný design
         <>
-          <Row>
-            <Col lg="8">
-              {/* Hlavní karta týmu */}
-              <Card>
-                <CardHeader>
-                  <Row className="align-items-center">
-                    <Col>
-                      <CardTitle tag="h2" className="mb-0" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <i className="tim-icons icon-molecule-40" style={{ opacity: 0.7 }} />
+          {/* Header s názvem týmu a akcemi */}
+          <Card style={{ marginBottom: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <CardBody style={{ padding: '25px' }}>
+              <Row className="align-items-center">
+                <Col xs="12" md="8" className="mb-3 mb-md-0">
+                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                    <div style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #ef6000 0%, #ff8533 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <i className="tim-icons icon-molecule-40" style={{ fontSize: '1.8rem', color: 'white' }} />
+                    </div>
+                    <div>
+                      <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         {team.name}
                         {isLeader && (
-                          <Button color="link" className="p-0 ml-2" onClick={() => { setNewTeamName(team.name); setCreationError(''); setCreateModal(true); }} title={t("rename")}>
-                            <i className="fa-solid fa-pencil" style={{ fontSize: '0.8rem' }} />
+                          <Button 
+                            color="link" 
+                            className="p-0" 
+                            onClick={() => { setNewTeamName(team.name); setCreationError(''); setCreateModal(true); }} 
+                            title={t("rename")}
+                            style={{ color: 'rgba(255,255,255,0.5)' }}
+                          >
+                            <i className="tim-icons icon-pencil" style={{ fontSize: '0.9rem' }} />
                           </Button>
                         )}
-                      </CardTitle>
-                    </Col>
-                  </Row>
-                </CardHeader>
-                <CardBody>
-                  {/* Sekce členů */}
-                  <h5 className="mb-3">
-                    <i className="tim-icons icon-single-02 mr-2" />
-                    {t("members")} ({team.memberNames.length})
-                  </h5>
-                  <Table responsive className="table-hover">
-                    <thead className="text-primary">
-                      <tr>
-                        <th>{t("name")}</th>
-                        <th>{t("surname")}</th>
-                        <th>E-mail</th>
-                        <th>{t("role")}</th>
-                        {isLeader && <th style={{ width: '60px' }}></th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[...team.memberNames]
-                        .sort((a, b) => {
-                          // Leader always first
-                          if (a.id === team.leaderID) return -1;
-                          if (b.id === team.leaderID) return 1;
-                          return 0;
-                        })
-                        .map(member => (
-                        <tr key={member.id}>
-                          <td>{member.name}</td>
-                          <td>{member.surname}</td>
-                          <td><a href={`mailto:${member.email}`} style={{ color: '#ef6000' }}>{member.email}</a></td>
-                          <td>
-                            {member.id === team.leaderID ? (
-                              <span className="badge badge-primary">
-                                <i className="tim-icons icon-badge mr-1" />
-                                {t("leader")}
-                              </span>
-                            ) : (
-                              <span className="badge badge-secondary">{t("member") || "Člen"}</span>
-                            )}
-                          </td>
-                          {isLeader && (
-                            <td>
-                              {member.id !== team.leaderID && (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                  <Button 
-                                    color="link" 
-                                    size="sm" 
-                                    className="text-info p-0" 
-                                    onClick={() => changeLeader(member.id)} 
-                                    title={t("makeLeader") || "Předat vedení"}
-                                  >
-                                    <i className="tim-icons icon-badge" />
-                                  </Button>
-                                  <Button 
-                                    color="link" 
-                                    size="sm" 
-                                    className="text-danger p-0" 
-                                    onClick={() => removeMember(member.id)} 
-                                    title={t("remove")}
-                                  >
-                                    <i className="tim-icons icon-trash-simple" />
-                                  </Button>
-                                </div>
-                              )}
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                      </h2>
+                      <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
+                        {t("teamLeader")}: <strong style={{ color: '#ef6000' }}>{leaderName}</strong>
+                      </p>
+                    </div>
+                  </div>
+                </Col>
+                <Col xs="12" md="4" className="text-md-right">
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    <Button color="warning" size="sm" onClick={leaveTeam}>
+                      <i className="tim-icons icon-button-power mr-1" />
+                      <span className="d-none d-sm-inline">{t("teamLeave")}</span>
+                      <span className="d-sm-none">{t("leave") || "Opustit"}</span>
+                    </Button>
+                    {isLeader && (
+                      <Button color="danger" size="sm" onClick={handleRemoveTeam}>
+                        <i className="tim-icons icon-trash-simple mr-1" />
+                        <span className="d-none d-sm-inline">{t("teamRemove")}</span>
+                        <span className="d-sm-none">{t("delete") || "Smazat"}</span>
+                      </Button>
+                    )}
+                  </div>
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
 
-                  {/* Tlačítko pro přidání člena */}
-                  {isLeader && (
-                    <Button color="success" size="sm" className="mt-2" onClick={() => setSearchModal(true)}>
-                      <i className="tim-icons icon-simple-add mr-2" />
-                      {t("teamAddUser")}
-                    </Button>
-                  )}
+          {/* Statistiky a rychlé akce */}
+          <Row className="mb-4">
+            <Col xs="6" md="3" className="mb-3 mb-md-0">
+              <Card className="h-100 mb-0">
+                <CardBody className="d-flex flex-column align-items-center justify-content-center text-center" style={{ padding: '20px' }}>
+                  <div style={styles.statValue}>{team.memberNames.length}</div>
+                  <div style={styles.statLabel}>{t("members")}</div>
                 </CardBody>
-                <CardFooter className="d-flex justify-content-between align-items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  <Button size="sm" color="warning" onClick={leaveTeam}>
-                    <i className="tim-icons icon-button-power mr-2" />
-                    {t("teamLeave")}
-                  </Button>
-                  {isLeader && (
-                    <Button color="danger" size="sm" onClick={handleRemoveTeam}>
-                      <i className="tim-icons icon-trash-simple mr-2" />
-                      {t("teamRemove")}
-                    </Button>
-                  )}
-                </CardFooter>
               </Card>
             </Col>
-
-            <Col lg="4">
-              {/* Info karta */}
-              <Card>
-                <CardHeader>
-                  <CardTitle tag="h5" className="mb-0">
-                    <i className="tim-icons icon-badge mr-2" />
-                    {t("teamInfo") || "Informace o týmu"}
-                  </CardTitle>
-                </CardHeader>
-                <CardBody>
-                  <div className="mb-3">
-                    <small className="text-muted d-block">{t("teamLeader")}</small>
-                    <strong>{leaderName}</strong>
+            <Col xs="6" md="3" className="mb-3 mb-md-0">
+              <Card className="h-100 mb-0">
+                <CardBody className="d-flex flex-column align-items-center justify-content-center text-center" style={{ padding: '20px' }}>
+                  <div style={styles.statValue}>
+                    {team.registrationYears ? [...new Set(team.registrationYears.map(r => r.year))].length : 0}
                   </div>
-                  <div className="mb-3">
-                    <small className="text-muted d-block">{t("regYears")}</small>
-                    <strong>
-                      {team.registrationYears && team.registrationYears.length > 0 
-                        ? [...new Set(team.registrationYears.map(r => r.year))].sort((a, b) => b - a).join(', ')
-                        : <span className="text-muted">{t("noRegistrations")}</span>
-                      }
-                    </strong>
-                  </div>
-                  <div>
-                    <small className="text-muted d-block">{t("membersCount")}</small>
-                    <strong>{team.memberNames.length}</strong>
-                  </div>
+                  <div style={styles.statLabel}>{t("registrations")}</div>
                 </CardBody>
               </Card>
-
-              {/* Registrace do soutěže - pouze pro vedoucího */}
-              {isLeader && (
-                <Card className="bg-gradient-primary">
-                  <CardBody className="text-center">
-                    <h5 className="text-white mb-3">
-                      <i className="tim-icons icon-trophy mr-2" />
-                      {t("registerHere")}
-                    </h5>
-                    <Button
-                      color="default"
-                      onClick={() => navigate('/admin/competition-registration')}
-                    >
-                      <i className="tim-icons icon-tap-02 mr-2" />
-                      {t("compRegister")}
-                    </Button>
+            </Col>
+            <Col xs="6" md="3" className="mb-3 mb-md-0">
+              <Card className="h-100 mb-0">
+                <CardBody className="d-flex flex-column align-items-center justify-content-center text-center" style={{ padding: '20px' }}>
+                  <div style={styles.statValue}>
+                    {team.registrationYears ? team.registrationYears.reduce((sum, r) => sum + (r.robotCount || 0), 0) : 0}
+                  </div>
+                  <div style={styles.statLabel}>{t("robots")}</div>
+                </CardBody>
+              </Card>
+            </Col>
+            <Col xs="6" md="3">
+              {isLeader ? (
+                <Card 
+                  className="h-100 mb-0" 
+                  style={{ cursor: 'pointer', border: '1px solid rgba(239,96,0,0.3)', transition: 'all 0.3s ease' }}
+                  onClick={() => navigate('/admin/competition-registration')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(239,96,0,0.3)';
+                    e.currentTarget.style.borderColor = 'rgba(239,96,0,0.6)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.borderColor = 'rgba(239,96,0,0.3)';
+                  }}
+                >
+                  <CardBody className="d-flex flex-column align-items-center justify-content-center text-center" style={{ padding: '20px' }}>
+                    <i className="tim-icons icon-trophy" style={{ fontSize: '1.8rem', color: '#ef6000', marginBottom: '10px' }} />
+                    <div style={{ ...styles.statLabel, color: '#ef6000' }}>{t("compRegister")}</div>
+                  </CardBody>
+                </Card>
+              ) : (
+                <Card className="h-100 mb-0">
+                  <CardBody className="d-flex flex-column align-items-center justify-content-center text-center" style={{ padding: '20px' }}>
+                    <i className="tim-icons icon-single-02" style={{ fontSize: '1.8rem', opacity: 0.3, marginBottom: '10px' }} />
+                    <div style={styles.statLabel}>{t("member")}</div>
                   </CardBody>
                 </Card>
               )}
             </Col>
           </Row>
 
-          {/* Sekce robotů pro registrované ročníky */}
-          {team.registrationYears && team.registrationYears.length > 0 && (
-            <Row className="mt-4">
-              <Col xs="12">
-                <Card>
-                  <CardHeader>
+          <Row>
+            {/* Levý sloupec - Členové */}
+            <Col lg="7" className="mb-4 mb-lg-0">
+              <Card className="h-100">
+                <CardHeader style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                     <CardTitle tag="h4" className="mb-0">
-                      <i className="tim-icons icon-spaceship mr-2" />
-                      {t("manageRobots")}
+                      <i className="tim-icons icon-single-02 mr-2" style={{ color: '#ef6000' }} />
+                      {t("teamMembers")}
                     </CardTitle>
-                    <p className="text-muted mt-2 mb-0">{t("manageRobotsDesc")}</p>
-                  </CardHeader>
-                  <CardBody>
-                    <Row>
-                      {[...new Map(team.registrationYears.map(r => [r.year, r])).values()]
-                        .sort((a, b) => b.year - a.year)
-                        .map(reg => (
-                          <Col md="4" sm="6" key={reg.id} className="mb-3">
-                            <Card 
-                              className="mb-0" 
-                              style={{ 
-                                cursor: 'pointer',
-                                transition: 'transform 0.2s, box-shadow 0.2s',
-                                border: '1px solid rgba(255,255,255,0.1)'
-                              }}
-                              onClick={() => navigate(`/admin/robot-registration?year=${reg.year}`)}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-3px)';
-                                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = 'none';
-                              }}
-                            >
-                              <CardBody className="text-center py-4">
-                                <div style={{ 
-                                  fontSize: '2.5rem', 
-                                  fontWeight: 'bold',
-                                  background: 'linear-gradient(135deg, #ef6000 0%, #ff8533 100%)',
-                                  WebkitBackgroundClip: 'text',
-                                  WebkitTextFillColor: 'transparent',
-                                  marginBottom: '10px'
-                                }}>
-                                  {reg.year}
-                                </div>
-                                <div className="d-flex align-items-center justify-content-center gap-2">
-                                  <i className="tim-icons icon-spaceship" style={{ opacity: 0.7 }} />
-                                  <span>
-                                    {reg.robotCount} {reg.robotCount === 1 ? t("robot") : t("robots")}
-                                  </span>
-                                </div>
-                                <Button color="info" size="sm" className="mt-3">
-                                  <i className="tim-icons icon-settings-gear-63 mr-1" />
-                                  {t("manage")}
-                                </Button>
-                              </CardBody>
-                            </Card>
-                          </Col>
-                        ))
-                      }
-                    </Row>
-                  </CardBody>
-                </Card>
-              </Col>
-            </Row>
-          )}
+                    {isLeader && (
+                      <Button color="success" size="sm" onClick={() => setSearchModal(true)}>
+                        <i className="tim-icons icon-simple-add mr-1" />
+                        {t("teamAddUser")}
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardBody style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+                  {/* Desktop tabulka */}
+                  <div className="d-none d-md-flex" style={{ flex: 1 }}>
+                    <Table responsive className="table-hover" style={{ marginBottom: 0 }}>
+                      <thead className="text-primary">
+                        <tr>
+                          <th>{t("name")}</th>
+                          <th>E-mail</th>
+                          <th>{t("role")}</th>
+                          {isLeader && <th style={{ width: '100px', textAlign: 'center' }}>{t("action")}</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...team.memberNames]
+                          .sort((a, b) => {
+                            if (a.id === team.leaderID) return -1;
+                            if (b.id === team.leaderID) return 1;
+                            return 0;
+                          })
+                          .map(member => (
+                          <tr key={member.id}>
+                            <td>
+                              <strong>{member.name} {member.surname}</strong>
+                            </td>
+                            <td>
+                              <a href={`mailto:${member.email}`} style={{ color: '#ef6000' }}>{member.email}</a>
+                            </td>
+                            <td>
+                              {member.id === team.leaderID ? (
+                                <Badge color="warning" style={{ fontSize: '0.75rem' }}>
+                                  <i className="tim-icons icon-badge mr-1" />
+                                  {t("leader")}
+                                </Badge>
+                              ) : (
+                                <Badge color="secondary" style={{ fontSize: '0.75rem' }}>{t("member") || "Člen"}</Badge>
+                              )}
+                            </td>
+                            {isLeader && (
+                              <td style={{ textAlign: 'center' }}>
+                                {member.id !== team.leaderID && (
+                                  <>
+                                    <Button 
+                                      color="info" 
+                                      size="sm" 
+                                      className="mr-1"
+                                      onClick={() => changeLeader(member.id)} 
+                                      title={t("makeLeader") || "Předat vedení"}
+                                    >
+                                      <i className="tim-icons icon-badge" />
+                                    </Button>
+                                    <Button 
+                                      color="danger" 
+                                      size="sm"
+                                      onClick={() => removeMember(member.id)} 
+                                      title={t("remove")}
+                                    >
+                                      <i className="tim-icons icon-trash-simple" />
+                                    </Button>
+                                  </>
+                                )}
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
 
-          {/* Popis oprávnění členů týmu */}
-          <Row className="mt-4">
-            <Col xs="12">
-              <Card style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
-                <CardHeader style={{ 
-                  background: 'linear-gradient(135deg, rgba(94,114,228,0.1) 0%, transparent 100%)',
-                  borderBottom: '1px solid rgba(255,255,255,0.1)'
-                }}>
-                  <CardTitle tag="h5" className="mb-3">
-                    <i className="tim-icons icon-badge mr-2" style={{ color: '#5e72e4' }} />
-                    {t("teamPermissions") || "Oprávnění v týmu"}
+                  {/* Mobilní karty */}
+                  <div className="d-md-none">
+                    {[...team.memberNames]
+                      .sort((a, b) => {
+                        if (a.id === team.leaderID) return -1;
+                        if (b.id === team.leaderID) return 1;
+                        return 0;
+                      })
+                      .map(member => (
+                      <div key={member.id} style={styles.memberCard}>
+                        <div style={{ flex: 1, minWidth: '150px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                            <strong>{member.name} {member.surname}</strong>
+                            {member.id === team.leaderID && (
+                              <Badge color="warning" style={{ fontSize: '0.65rem' }}>
+                                <i className="tim-icons icon-badge" />
+                              </Badge>
+                            )}
+                          </div>
+                          <a href={`mailto:${member.email}`} style={{ color: '#ef6000', fontSize: '0.85rem' }}>
+                            {member.email}
+                          </a>
+                        </div>
+                        {isLeader && member.id !== team.leaderID && (
+                          <div style={{ display: 'flex', gap: '5px' }}>
+                            <Button 
+                              color="info" 
+                              size="sm"
+                              onClick={() => changeLeader(member.id)} 
+                              title={t("makeLeader")}
+                            >
+                              <i className="tim-icons icon-badge" />
+                            </Button>
+                            <Button 
+                              color="danger" 
+                              size="sm"
+                              onClick={() => removeMember(member.id)} 
+                              title={t("remove")}
+                            >
+                              <i className="tim-icons icon-trash-simple" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
+            </Col>
+
+            {/* Pravý sloupec - Oprávnění */}
+            <Col lg="5">
+              <Card className="h-100">
+                <CardHeader style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '20px' }}>
+                  <CardTitle tag="h4" className="mb-0">
+                    <i className="tim-icons icon-lock-circle mr-2" style={{ color: '#5e72e4' }} />
+                    {t("teamPermissions") || "Oprávnění"}
                   </CardTitle>
                 </CardHeader>
-                <CardBody>
-                  <Row>
-                    <Col md="6" className="mb-3 mb-md-0">
-                      <div style={{ 
-                        padding: '15px', 
-                        background: 'rgba(239,96,0,0.1)', 
-                        borderRadius: '10px',
-                        border: '1px solid rgba(239,96,0,0.3)'
-                      }}>
-                        <h6 style={{ color: '#ef6000', marginBottom: '12px' }}>
-                          <i className="tim-icons icon-badge mr-2" />
-                          {t("leaderPermissions") || "Vedoucí týmu může:"}
-                        </h6>
-                        <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                          <li>{t("leaderPerm1") || "Registrovat / odregistrovat tým ze soutěže"}</li>
-                          <li>{t("leaderPerm2") || "Spravovat roboty (přidávat, upravovat, odstraňovat)"}</li>
-                          <li>{t("leaderPerm3") || "Správa týmu (přidávat/odebírat členy, přejmenovat, odstranit tým)"}</li>
-                          <li>{t("leaderPerm4") || "Upravovat údaje o vedoucím učiteli"}</li>
-                        </ul>
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div style={{ 
-                        padding: '15px', 
-                        background: 'rgba(94,114,228,0.1)', 
-                        borderRadius: '10px',
-                        border: '1px solid rgba(94,114,228,0.3)'
-                      }}>
-                        <h6 style={{ color: '#5e72e4', marginBottom: '12px' }}>
-                          <i className="tim-icons icon-single-02 mr-2" />
-                          {t("memberPermissions") || "Člen týmu může:"}
-                        </h6>
-                        <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                          <li>{t("memberPerm1") || "Spravovat roboty (přidávat, upravovat, odstraňovat)"}</li>
-                        </ul>
-                      </div>
-                    </Col>
-                  </Row>
+                <CardBody style={{ padding: '20px' }}>
+                  <div style={{ 
+                    padding: '15px', 
+                    background: 'rgba(239,96,0,0.08)', 
+                    borderRadius: '10px',
+                    border: '1px solid rgba(239,96,0,0.2)',
+                    marginBottom: '15px'
+                  }}>
+                    <h6 style={{ color: '#ef6000', marginBottom: '10px', fontSize: '0.9rem' }}>
+                      <i className="tim-icons icon-badge mr-2" />
+                      {t("leaderPermissions") || "Vedoucí týmu"}
+                    </h6>
+                    <ul style={{ paddingLeft: '20px', marginBottom: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                      <li>{t("leaderPerm1") || "Registrovat/odregistrovat ze soutěže"}</li>
+                      <li>{t("leaderPerm2") || "Spravovat roboty"}</li>
+                      <li>{t("leaderPerm3") || "Správa týmu a členů"}</li>
+                      <li>{t("leaderPerm4") || "Upravovat vedoucího učitele"}</li>
+                    </ul>
+                  </div>
+                  <div style={{ 
+                    padding: '15px', 
+                    background: 'rgba(94,114,228,0.08)', 
+                    borderRadius: '10px',
+                    border: '1px solid rgba(94,114,228,0.2)'
+                  }}>
+                    <h6 style={{ color: '#5e72e4', marginBottom: '10px', fontSize: '0.9rem' }}>
+                      <i className="tim-icons icon-single-02 mr-2" />
+                      {t("memberPermissions") || "Člen týmu"}
+                    </h6>
+                    <ul style={{ paddingLeft: '20px', marginBottom: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                      <li>{t("memberPerm1") || "Spravovat roboty"}</li>
+                    </ul>
+                  </div>
                 </CardBody>
               </Card>
             </Col>
           </Row>
+
+          {/* Sekce robotů */}
+          {team.registrationYears && team.registrationYears.length > 0 && (
+            <Card className="mt-4" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+              <CardHeader style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '20px' }}>
+                <CardTitle tag="h4" className="mb-0">
+                  <i className="tim-icons icon-spaceship mr-2" style={{ color: '#ef6000' }} />
+                  {t("manageRobots")}
+                </CardTitle>
+                <p className="text-muted mt-2 mb-0" style={{ fontSize: '0.85rem' }}>{t("manageRobotsDesc")}</p>
+              </CardHeader>
+              <CardBody style={{ padding: '20px' }}>
+                <Row>
+                  {[...new Map(team.registrationYears.map(r => [r.year, r])).values()]
+                    .sort((a, b) => b.year - a.year)
+                    .map(reg => (
+                      <Col lg="3" md="4" sm="6" key={reg.id} className="mb-3">
+                        <Card 
+                          className="mb-0" 
+                          style={styles.yearCard}
+                          onClick={() => navigate(`/admin/robot-registration?year=${reg.year}`)}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-5px)';
+                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(239,96,0,0.2)';
+                            e.currentTarget.style.borderColor = 'rgba(239,96,0,0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                          }}
+                        >
+                          <CardBody className="text-center" style={{ padding: '25px 15px' }}>
+                            <div style={{ 
+                              fontSize: '2rem', 
+                              fontWeight: 'bold',
+                              background: 'linear-gradient(135deg, #ef6000 0%, #ff8533 100%)',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                              marginBottom: '8px'
+                            }}>
+                              {reg.year}
+                            </div>
+                            <div style={{ opacity: 0.7, fontSize: '0.9rem' }}>
+                              <i className="tim-icons icon-spaceship mr-1" style={{ fontSize: '0.8rem' }} />
+                              {reg.robotCount} {reg.robotCount === 1 ? t("robot") : t("robots")}
+                            </div>
+                          </CardBody>
+                        </Card>
+                      </Col>
+                    ))
+                  }
+                </Row>
+              </CardBody>
+            </Card>
+          )}
         </>
       )}
 

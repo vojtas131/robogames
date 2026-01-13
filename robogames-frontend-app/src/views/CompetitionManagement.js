@@ -33,6 +33,7 @@ import { useConfirm } from "components/ConfirmModal";
 import { ThemeContext, themes } from "contexts/ThemeContext";
 import { t } from "translations/translate";
 import TablePagination from "components/TablePagination";
+import HoldToConfirmModal from "components/HoldToConfirmModal";
 
 function CompetitionManagement() {
     const [competitions, setCompetitions] = useState([]);
@@ -41,6 +42,8 @@ function CompetitionManagement() {
     // Modals
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showStartModal, setShowStartModal] = useState(false);
+    const [competitionToStart, setCompetitionToStart] = useState(null);
     
     // Form data
     const [newCompetition, setNewCompetition] = useState({
@@ -222,14 +225,18 @@ function CompetitionManagement() {
         }
     };
 
-    // Start competition
-    const handleStartCompetition = async (id) => {
-        if (!await confirm({ message: t("compStartConfirm") || "Opravdu chcete zahájit tento ročník?" })) {
-            return;
-        }
+    // Start competition - open confirmation modal
+    const handleStartCompetition = (comp) => {
+        setCompetitionToStart(comp);
+        setShowStartModal(true);
+    };
+
+    // Actually start the competition after hold confirmation
+    const executeStartCompetition = async () => {
+        if (!competitionToStart) return;
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/start?id=${id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/start?id=${competitionToStart.id}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -243,6 +250,35 @@ function CompetitionManagement() {
             }
         } catch (error) {
             toast.error(error.message || t("compStartError"));
+        }
+        setCompetitionToStart(null);
+    };
+
+    // Cancel competition start
+    const handleCancelStart = async (comp) => {
+        const confirmed = await confirm({ 
+            message: t("compCancelStartConfirm", { year: comp.year }) || `Opravdu chcete zrušit zahájení ročníku ${comp.year}?`,
+            confirmText: t("confirm") || "Potvrdit",
+            confirmColor: "warning"
+        });
+        
+        if (confirmed) {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/cancelStart?id=${comp.id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (tokenExpired(response.status)) return;
+
+                if (response.ok) {
+                    toast.success(t("compStartCancelled") || "Zahájení ročníku bylo zrušeno");
+                    fetchCompetitions();
+                } else {
+                    toast.error(t("compCancelStartFail") || "Nepodařilo se zrušit zahájení");
+                }
+            } catch (error) {
+                toast.error(error.message || t("compCancelStartError") || "Chyba při rušení zahájení");
+            }
         }
     };
 
@@ -362,9 +398,7 @@ function CompetitionManagement() {
                                                 .map(comp => (
                                                     <tr key={comp.id}>
                                                         <td>
-                                                            <Badge color="secondary" style={{ fontSize: '12px' }}>
-                                                                #{comp.id}
-                                                            </Badge>
+                                                            #{comp.id}
                                                         </td>
                                                         <td>
                                                             <strong style={{ fontSize: '1.1rem' }}>{comp.year}</strong>
@@ -399,7 +433,7 @@ function CompetitionManagement() {
                                                                         color="success"
                                                                         size="sm"
                                                                         className="mr-1"
-                                                                        onClick={() => handleStartCompetition(comp.id)}
+                                                                        onClick={() => handleStartCompetition(comp)}
                                                                         title={t('begin') || 'Zahájit'}
                                                                     >
                                                                         <i className="tim-icons icon-triangle-right-17" />
@@ -422,6 +456,16 @@ function CompetitionManagement() {
                                                                         <i className="tim-icons icon-trash-simple" />
                                                                     </Button>
                                                                 </>
+                                                            )}
+                                                            {isAdminOrLeader && comp.started && (
+                                                                <Button
+                                                                    color="warning"
+                                                                    size="sm"
+                                                                    onClick={() => handleCancelStart(comp)}
+                                                                    title={t('cancelStart') || 'Zrušit zahájení'}
+                                                                >
+                                                                    <i className="tim-icons icon-simple-remove" />
+                                                                </Button>
                                                             )}
                                                         </td>
                                                     </tr>
@@ -553,6 +597,26 @@ function CompetitionManagement() {
                     </Button>
                 </ModalFooter>
             </Modal>
+
+            {/* Hold to Confirm Modal for Starting Competition */}
+            <HoldToConfirmModal
+                isOpen={showStartModal}
+                toggle={() => {
+                    setShowStartModal(false);
+                    setCompetitionToStart(null);
+                }}
+                onConfirm={executeStartCompetition}
+                title={t("compStartTitle") || "Zahájit ročník soutěže"}
+                message={
+                    competitionToStart 
+                        ? (t("compStartMessageSimple", { year: competitionToStart.year }) || `Opravdu chcete zahájit ročník ${competitionToStart.year}?`)
+                        : ""
+                }
+                holdDuration={3000}
+                confirmText={t("holdToStart") || "Držte pro zahájení"}
+                icon="icon-triangle-right-17"
+                color="warning"
+            />
 
             <style>{`
                 .table-management tbody tr:hover {

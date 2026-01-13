@@ -49,7 +49,7 @@ function RobotRegistration() {
   const { token, tokenExpired } = useUser();
   const toast = useToast();
   const { confirm } = useConfirm();
-  const { selectedYear, setSelectedYear } = useAdmin();
+  const { selectedYear, setSelectedYear, currentCompetition } = useAdmin();
 
   // Check if year is provided in URL and update the selector if so
   useEffect(() => {
@@ -329,17 +329,19 @@ function RobotRegistration() {
                   </p>
                 </Col>
                 <Col xs="auto">
-                  <Button 
-                    color="primary" 
-                    onClick={() => {
-                      setEditMode(false);
-                      setCreationError('');
-                      toggleModal();
-                    }}
-                  >
-                    <i className="tim-icons icon-simple-add mr-2" />
-                    {t("robotAdd")}
-                  </Button>
+                  {(!currentCompetition || !currentCompetition.started) && (
+                    <Button 
+                      color="primary" 
+                      onClick={() => {
+                        setEditMode(false);
+                        setCreationError('');
+                        toggleModal();
+                      }}
+                    >
+                      <i className="tim-icons icon-simple-add mr-2" />
+                      {t("robotAdd")}
+                    </Button>
+                  )}
                 </Col>
               </Row>
             </CardHeader>
@@ -358,17 +360,19 @@ function RobotRegistration() {
                 <div className="text-center py-5">
                   <i className="tim-icons icon-spaceship" style={{ fontSize: '3rem', opacity: 0.5 }} />
                   <p className="mt-3 text-muted">{t("noRobots") || "Zatím nemáte žádné roboty"}</p>
-                  <Button 
-                    color="primary" 
-                    onClick={() => {
-                      setEditMode(false);
-                      setCreationError('');
-                      toggleModal();
-                    }}
-                  >
-                    <i className="tim-icons icon-simple-add mr-2" />
-                    {t("robotAdd")}
-                  </Button>
+                  {(!currentCompetition || !currentCompetition.started) && (
+                    <Button 
+                      color="primary" 
+                      onClick={() => {
+                        setEditMode(false);
+                        setCreationError('');
+                        toggleModal();
+                      }}
+                    >
+                      <i className="tim-icons icon-simple-add mr-2" />
+                      {t("robotAdd")}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <Row>

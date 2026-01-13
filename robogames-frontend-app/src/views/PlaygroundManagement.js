@@ -367,17 +367,13 @@ function PlaygroundManagement() {
                                                 .map(pg => (
                                                     <tr key={pg.id}>
                                                         <td>
-                                                            <Badge color="secondary" style={{ fontSize: '12px' }}>
-                                                                #{pg.id}
-                                                            </Badge>
+                                                            #{pg.id}
                                                         </td>
                                                         <td>
                                                             <strong>{pg.name}</strong>
                                                         </td>
                                                         <td>
-                                                            <Badge color="info" style={{ fontSize: '13px' }}>
-                                                                {pg.number}
-                                                            </Badge>
+                                                            {pg.number}
                                                         </td>
                                                         <td>
                                                             <Badge color={getDisciplineColor(pg.disciplineName)}>

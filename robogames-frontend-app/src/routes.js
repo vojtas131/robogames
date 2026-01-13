@@ -50,6 +50,14 @@ import { t } from "translations/translate";
 
 var routes = [
   {
+    path: "/admin-dashboard",
+    name: t("adminMenu"),
+    rtlName: "",
+    icon: "tim-icons icon-settings-gear-63",
+    component: <AdminDashboard />,
+    layout: "/admin",
+  },
+  {
     path: "/dashboard",
     name: t("home"),
     rtlName: "",
@@ -71,14 +79,6 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <MyTeam />,
-    layout: "/admin",
-  },
-  {
-    path: "/admin-dashboard",
-    name: t("adminMenu"),
-    rtlName: "",
-    icon: "tim-icons icon-settings-gear-63",
-    component: <AdminDashboard />,
     layout: "/admin",
   },
   {
@@ -129,33 +129,6 @@ var routes = [
     component: <Contact />,
     layout: "/admin",
   },
-
-  // {
-  //   path: "/login",
-  //   name: t("login"),
-  //   rtlName: "",
-  //   icon: "tim-icons icon-single-02",
-  //   component: <Login />,
-  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
-  // },
-
-  // {
-  //   path: "/register",
-  //   name: t("registration"),
-  //   rtlName: "",
-  //   icon: "tim-icons icon-single-02",
-  //   component: <Register />,
-  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
-  // },
-  // {
-  //   path: "/register",
-  //   name: t("registration"),
-  //   rtlName: "",
-  //   icon: "tim-icons icon-single-02",
-  //   component: <Register />,
-  //   layout: "/robogames", // Set layout to an empty string or simply omit this line
-  // },
-
   {
     path: "/user-management",
     name: t("manageUser"),
@@ -283,6 +256,7 @@ var routes = [
     icon: "tim-icons icon-puzzle-10",
     component: <Generate />,
     layout: "/admin",
+    hidden: true,
   }
 
 ];

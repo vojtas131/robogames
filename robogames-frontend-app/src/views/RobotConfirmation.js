@@ -449,7 +449,7 @@ function RobotConfirmation() {
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>
                       <th>{t("confirm")}</th>
-                      <th style={{ textAlign: 'center' }}>{t("adminActions")}</th>
+                      <th style={{ textAlign: 'center' }}>{t("action")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -492,7 +492,8 @@ function RobotConfirmation() {
                         <td style={{ textAlign: 'center' }}>
                           <Button
                             color="primary"
-                            className="btn-icon btn-simple"
+                            size="sm"
+                            className="mr-1"
                             onClick={() => openEditModal(robot)}
                             title={t("edit")}
                           >
@@ -500,7 +501,7 @@ function RobotConfirmation() {
                           </Button>
                           <Button
                             color="danger"
-                            className="btn-icon btn-simple ml-1"
+                            size="sm"
                             onClick={() => handleForceRemove(robot.id)}
                             title={t("remove")}
                           >
