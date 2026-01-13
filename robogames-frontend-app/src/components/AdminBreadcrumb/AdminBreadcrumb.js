@@ -34,6 +34,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
   const [invitations, setInvitations] = useState([]);
   const [userInfo, setUserInfo] = useState({ name: '', surname: '' });
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [playgroundInfo, setPlaygroundInfo] = useState(null);
   const breadcrumbId = useId();
   
   const isDark = theme === themes.dark;
@@ -92,6 +93,34 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       console.error('Error fetching invitations:', error);
     }
   };
+
+  // Fetch playground info for dynamic breadcrumb label
+  useEffect(() => {
+    const fetchPlaygroundInfo = async () => {
+      // Check if we're on playground-matches page
+      const playgroundMatch = location.pathname.match(/\/admin\/playground-matches\/(\d+)/);
+      if (playgroundMatch && token) {
+        const playgroundId = playgroundMatch[1];
+        try {
+          const response = await fetch(
+            `${process.env.REACT_APP_API_URL}api/playground/getByID?id=${playgroundId}`,
+            { headers: { 'Authorization': `Bearer ${token}` } }
+          );
+          if (response.ok) {
+            const result = await response.json();
+            if (result.type === 'RESPONSE') {
+              setPlaygroundInfo(result.data);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching playground info:', error);
+        }
+      } else {
+        setPlaygroundInfo(null);
+      }
+    };
+    fetchPlaygroundInfo();
+  }, [location.pathname, token]);
 
   const acceptInvitation = async (invitationId) => {
     try {
@@ -311,7 +340,13 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       label: t('matchGroup') || 'Skupina', 
       parent: '/admin/match-management',
       icon: 'icon-components',
-      needsYear: true
+      dynamic: true  // Label will be set dynamically from URL
+    },
+    '/admin/playground-matches': { 
+      label: t('playground') || 'Hřiště', 
+      parent: '/admin/match-management',
+      icon: 'icon-square-pin',
+      dynamic: true  // Label will be set dynamically from URL
     },
     '/admin/match-schedule': { 
       label: t('matchSchedule') || 'Rozvrh zápasů', 
@@ -377,6 +412,25 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
   const { config: currentRouteConfig, matchedPath: currentMatchedPath } = findRouteConfig(currentPath);
   const currentRoute = getDynamicRoute(currentRouteConfig, currentPath);
 
+  // Get dynamic label for breadcrumb based on current route
+  const getDynamicLabel = (matchedPath, defaultLabel) => {
+    // For playground-matches, show playground name and number (plain text)
+    if (matchedPath === '/admin/playground-matches' && playgroundInfo) {
+      return `${playgroundInfo.name} (${playgroundInfo.number})`;
+    }
+    
+    // For match-group, extract group name from URL
+    if (matchedPath === '/admin/match-group') {
+      const groupMatch = currentPath.match(/\/admin\/match-group\/(.+)/);
+      if (groupMatch) {
+        const groupName = decodeURIComponent(groupMatch[1]);
+        return groupName;
+      }
+    }
+    
+    return defaultLabel;
+  };
+
   // Build breadcrumb trail
   const buildBreadcrumbs = () => {
     const breadcrumbs = [];
@@ -386,9 +440,11 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
     const { config: startConfig, matchedPath: startMatchedPath } = findRouteConfig(path);
     if (startConfig) {
       const route = getDynamicRoute(startConfig, path);
+      const dynamicLabel = route.dynamic ? getDynamicLabel(startMatchedPath, route.label) : route.label;
       breadcrumbs.unshift({
         path: startMatchedPath,
-        ...route
+        ...route,
+        label: dynamicLabel
       });
       path = route.parent;
     }

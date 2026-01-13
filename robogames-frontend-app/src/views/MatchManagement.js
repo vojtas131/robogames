@@ -509,7 +509,6 @@ function MatchManagement() {
                                     <CardTitle tag="h4">
                                         <i className="tim-icons icon-controller mr-2" />
                                         {t('matchManagement') || 'Správa zápasů'}
-                                        {selectedYear && ` (${selectedYear})`}
                                     </CardTitle>
                                 </Col>
                                 {activeTab === '1' && (

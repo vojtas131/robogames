@@ -309,7 +309,6 @@ function MatchGroup() {
                                     <CardTitle tag="h4" className="d-inline-block mb-0">
                                         <i className="tim-icons icon-components mr-2" />
                                         {t('group') || 'Skupina'}: <strong>{decodedGroupName}</strong>
-                                        {selectedYear && ` (${selectedYear})`}
                                     </CardTitle>
                                 </Col>
                                 <Col xs="auto">

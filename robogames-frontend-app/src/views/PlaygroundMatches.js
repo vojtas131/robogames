@@ -34,8 +34,11 @@ function PlaygroundMatches() {
     const [playground, setPlayground] = useState(null);
     const [matches, setMatches] = useState([]);
     const [robots, setRobots] = useState([]);
+    const [currentMatch, setCurrentMatch] = useState(null);
     const [loading, setLoading] = useState(false);
     const [loadingPlayground, setLoadingPlayground] = useState(false);
+    const [loadingCurrentMatch, setLoadingCurrentMatch] = useState(false);
+    const [skippingMatch, setSkippingMatch] = useState(false);
     
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -138,6 +141,65 @@ function PlaygroundMatches() {
         }
     }, [selectedYear, playground?.disciplineID, token, tokenExpired]);
 
+    // Fetch current match for this playground
+    const fetchCurrentMatch = useCallback(async () => {
+        if (!playgroundId) return;
+        setLoadingCurrentMatch(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}module/orderManagement/currentMatch?playgroundId=${playgroundId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+            
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setCurrentMatch(data.data);
+            } else {
+                setCurrentMatch(null);
+            }
+        } catch (error) {
+            console.error('Failed to fetch current match:', error);
+            setCurrentMatch(null);
+        } finally {
+            setLoadingCurrentMatch(false);
+        }
+    }, [playgroundId, token, tokenExpired]);
+
+    // Skip current match (move to end of queue)
+    const handleSkipCurrentMatch = async () => {
+        if (!playgroundId) return;
+        setSkippingMatch(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}module/orderManagement/skipCurrentMatch?playgroundId=${playgroundId}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+            
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                toast.success(t('matchSkipped') || 'Zápas byl přeskočen');
+                fetchCurrentMatch();
+            } else {
+                toast.error(data.message || t('matchSkipFailed') || 'Nepodařilo se přeskočit zápas');
+            }
+        } catch (error) {
+            toast.error(t('matchSkipFailed') || 'Nepodařilo se přeskočit zápas');
+        } finally {
+            setSkippingMatch(false);
+        }
+    };
+
     useEffect(() => {
         fetchPlayground();
     }, [fetchPlayground]);
@@ -153,6 +215,10 @@ function PlaygroundMatches() {
             fetchRobots();
         }
     }, [playground, selectedYear, fetchRobots]);
+
+    useEffect(() => {
+        fetchCurrentMatch();
+    }, [fetchCurrentMatch]);
 
     // Reset create modal
     const resetCreateModal = () => {
@@ -306,20 +372,22 @@ function PlaygroundMatches() {
                                     >
                                         <i className="tim-icons icon-minimal-left" style={{ fontSize: '1.5rem' }} />
                                     </Button>
-                                    <CardTitle tag="h4" className="d-inline-block mb-0">
-                                        <i className="tim-icons icon-square-pin mr-2" />
-                                        {loadingPlayground ? (
-                                            <Spinner size="sm" />
-                                        ) : playground ? (
-                                            <>
-                                                {playground.name} <Badge color="info">#{playground.number}</Badge>
-                                                <small className="text-muted ml-2">({playground.disciplineName})</small>
-                                            </>
-                                        ) : (
-                                            t('playground') || 'Hřiště'
-                                        )}
-                                        {selectedYear && ` (${selectedYear})`}
-                                    </CardTitle>
+                                    {loadingPlayground ? (
+                                        <Spinner size="sm" className="mr-3" />
+                                    ) : playground ? (
+                                        <span className="mr-3" style={{ fontSize: '1.1rem' }}>
+                                            <strong>{playground.name}</strong>
+                                            <Badge color="warning" className="ml-2">{playground.number}</Badge>
+                                        </span>
+                                    ) : (
+                                        <span className="mr-3">{t('playground') || 'Hřiště'}</span>
+                                    )}
+                                    {playground && (
+                                        <CardTitle tag="h4" className="d-inline-block mb-0">
+                                            <i className="tim-icons icon-square-pin mr-2" />
+                                            <small className="text-muted">({playground.disciplineName})</small>
+                                        </CardTitle>
+                                    )}
                                 </Col>
                                 <Col xs="auto">
                                     <Button color="success" onClick={() => setShowCreateModal(true)}>
@@ -330,6 +398,114 @@ function PlaygroundMatches() {
                             </Row>
                         </CardHeader>
                         <CardBody>
+                            {/* Current Match Display */}
+                            <Card className="mb-4" style={{ 
+                                background: currentMatch ? 'linear-gradient(135deg, rgba(29, 140, 248, 0.1) 0%, rgba(29, 140, 248, 0.05) 100%)' : 'rgba(255,255,255,0.02)',
+                                border: currentMatch ? '1px solid rgba(29, 140, 248, 0.3)' : '1px solid rgba(255,255,255,0.1)'
+                            }}>
+                                <CardBody className="py-3">
+                                    <Row className="align-items-center">
+                                        <Col>
+                                            <h5 className="mb-0">
+                                                <i className="tim-icons icon-bell-55 mr-2 text-info" />
+                                                {t('currentMatchInQueue') || 'Aktuální zápas ve frontě'}
+                                            </h5>
+                                        </Col>
+                                        <Col xs="auto">
+                                            {currentMatch && (
+                                                <Button 
+                                                    color="warning" 
+                                                    size="sm"
+                                                    onClick={handleSkipCurrentMatch}
+                                                    disabled={skippingMatch}
+                                                >
+                                                    {skippingMatch ? (
+                                                        <Spinner size="sm" className="mr-2" />
+                                                    ) : (
+                                                        <i className="tim-icons icon-double-right mr-2" />
+                                                    )}
+                                                    {t('skipMatch') || 'Přeskočit zápas'}
+                                                </Button>
+                                            )}
+                                        </Col>
+                                    </Row>
+                                    <hr className="my-2" style={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                                    {loadingCurrentMatch ? (
+                                        <div className="text-center py-2">
+                                            <Spinner size="sm" color="info" />
+                                        </div>
+                                    ) : currentMatch ? (
+                                        <Row className="align-items-center">
+                                            <Col md="auto">
+                                                <Badge color="info" className="px-3 py-2" style={{ fontSize: '1rem' }}>
+                                                    #{currentMatch.id}
+                                                </Badge>
+                                            </Col>
+                                            <Col>
+                                                <div className="d-flex align-items-center justify-content-center">
+                                                    <div className="text-center px-4">
+                                                        {currentMatch.robotAID ? (
+                                                            <>
+                                                                <strong style={{ fontSize: '1.1rem' }}>
+                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.2)', padding: '2px 8px', borderRadius: '4px', marginRight: '8px' }}>
+                                                                        {currentMatch.robotANumber}
+                                                                    </span>
+                                                                    {currentMatch.robotAName}
+                                                                </strong>
+                                                                <br />
+                                                                <small className="text-muted">{currentMatch.teamAName}</small>
+                                                            </>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </div>
+                                                    {currentMatch.robotBID && (
+                                                        <>
+                                                            <span className="mx-3 text-muted" style={{ fontSize: '1.2rem' }}>vs</span>
+                                                            <div className="text-center px-4">
+                                                                <strong style={{ fontSize: '1.1rem' }}>
+                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.2)', padding: '2px 8px', borderRadius: '4px', marginRight: '8px' }}>
+                                                                        {currentMatch.robotBNumber}
+                                                                    </span>
+                                                                    {currentMatch.robotBName}
+                                                                </strong>
+                                                                <br />
+                                                                <small className="text-muted">{currentMatch.teamBName}</small>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </Col>
+                                            <Col md="auto">
+                                                <Badge color={getStateColor(currentMatch.state?.name)}>
+                                                    {currentMatch.state?.name || '-'}
+                                                </Badge>
+                                                {currentMatch.group && (
+                                                    <Badge color="secondary" className="ml-2">
+                                                        {currentMatch.group}
+                                                    </Badge>
+                                                )}
+                                            </Col>
+                                            <Col md="auto">
+                                                <Button 
+                                                    color="success" 
+                                                    size="sm"
+                                                    onClick={() => goToScoreEntry(currentMatch.id)}
+                                                >
+                                                    <i className="tim-icons icon-pencil mr-1" />
+                                                    {t('writeScore') || 'Zapsat skóre'}
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                    ) : (
+                                        <div className="text-center py-2 text-muted">
+                                            <i className="tim-icons icon-check-2 mr-2" />
+                                            {t('noMatchInQueue') || 'Žádný zápas ve frontě'}
+                                        </div>
+                                    )}
+                                </CardBody>
+                            </Card>
+
                             {/* Statistics */}
                             <Row className="mb-4">
                                 <Col md="3">
