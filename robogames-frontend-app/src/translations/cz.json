@@ -871,6 +871,8 @@
     "competitionYear": "Ročník soutěže",
     "competitionStarted": "Soutěž zahájena",
     "competitionNotStarted": "Soutěž nezahájena",
+    "competitionAlreadyStarted": "Soutěž již byla zahájena",
+    "registrationTimeEnded": "Čas na registraci již vypršel",
     "started": "Zahájena",
     "notStarted": "Nezahájena",
     "pgDetail": "Detail hřiště",

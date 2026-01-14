@@ -871,6 +871,8 @@
     "competitionYear": "Competition Year",
     "competitionStarted": "Competition Started",
     "competitionNotStarted": "Competition Not Started",
+    "competitionAlreadyStarted": "Competition has already started",
+    "registrationTimeEnded": "Registration time has ended",
     "started": "Started",
     "notStarted": "Not Started",
     "pgDetail": "Playground Detail",
