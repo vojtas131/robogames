@@ -267,7 +267,7 @@ function BrowseTeams() {
                   <thead className="text-primary">
                     <tr>
                       <th>{t("teamName")}</th>
-                      <th>{t("members") || "Členů"}</th>
+                      <th>{t("membersShort") || "Členů"}</th>
                       <th className="text-right">{t("actions")}</th>
                     </tr>
                   </thead>

@@ -604,19 +604,19 @@ function MatchManagement() {
                                         <Col md="3">
                                             <div className="text-center p-3" style={{ background: 'rgba(29, 140, 248, 0.1)', borderRadius: '8px' }}>
                                                 <h3 className="mb-0 text-success">{matches.filter(m => m.state?.name === 'DONE').length}</h3>
-                                                <small className="text-muted">{t('done') || 'Hotové'}</small>
+                                                <small className="text-muted">{t('doneStatus') || 'Hotové'}</small>
                                             </div>
                                         </Col>
                                         <Col md="3">
                                             <div className="text-center p-3" style={{ background: 'rgba(255, 178, 43, 0.1)', borderRadius: '8px' }}>
                                                 <h3 className="mb-0 text-warning">{matches.filter(m => m.state?.name === 'WAITING').length}</h3>
-                                                <small className="text-muted">{t('waiting') || 'Čekající'}</small>
+                                                <small className="text-muted">{t('waitingStatus') || 'Čekající'}</small>
                                             </div>
                                         </Col>
                                         <Col md="3">
                                             <div className="text-center p-3" style={{ background: 'rgba(253, 93, 147, 0.1)', borderRadius: '8px' }}>
                                                 <h3 className="mb-0 text-danger">{matches.filter(m => m.state?.name === 'REMATCH').length}</h3>
-                                                <small className="text-muted">{t('rematch') || 'Opakování'}</small>
+                                                <small className="text-muted">{t('rematchStatus') || 'Opakování'}</small>
                                             </div>
                                         </Col>
                                     </Row>
@@ -698,9 +698,9 @@ function MatchManagement() {
                                                 onChange={(e) => setFilterState(e.target.value)}
                                             >
                                                 <option value="">{t('allStates') || 'Všechny stavy'}</option>
-                                                <option value="WAITING">{t('waiting') || 'Čekající'}</option>
-                                                <option value="DONE">{t('done') || 'Hotové'}</option>
-                                                <option value="REMATCH">{t('rematch') || 'Opakování'}</option>
+                                                <option value="WAITING">{t('waitingStatus') || 'Čekající'}</option>
+                                                <option value="DONE">{t('doneStatus') || 'Hotové'}</option>
+                                                <option value="REMATCH">{t('rematchStatus') || 'Opakování'}</option>
                                             </Input>
                                         </Col>
                                     </Row>
@@ -884,7 +884,7 @@ function MatchManagement() {
                                                                     {groupMatches.length} {t('matches') || 'zápasů'}
                                                                 </Badge>
                                                                 <Badge color="success">
-                                                                    {doneMatches} {t('done') || 'hotových'}
+                                                                    {doneMatches} {t('doneStatus') || 'hotových'}
                                                                 </Badge>
                                                             </CardBody>
                                                         </Card>
@@ -934,7 +934,7 @@ function MatchManagement() {
                                                                     {pgMatches.length} {t('matches') || 'zápasů'}
                                                                 </Badge>
                                                                 <Badge color="success">
-                                                                    {doneMatches} {t('done') || 'hotových'}
+                                                                    {doneMatches} {t('doneStatus') || 'hotových'}
                                                                 </Badge>
                                                             </CardBody>
                                                         </Card>

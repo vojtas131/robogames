@@ -227,7 +227,7 @@ function TeamSearchSelect({
                     <>
                       <br />
                       <Badge color="info" pill style={{ fontSize: '10px' }}>
-                        {team.membersCount} {t("members")}
+                        {team.membersCount} {t("membersShort")}
                       </Badge>
                     </>
                   )}

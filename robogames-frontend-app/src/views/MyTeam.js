@@ -779,7 +779,7 @@ function MyTeam() {
                   <div style={styles.statValue}>
                     {team.registrationYears ? team.registrationYears.reduce((sum, r) => sum + (r.robotCount || 0), 0) : 0}
                   </div>
-                  <div style={styles.statLabel}>{t("robots")}</div>
+                  <div style={styles.statLabel}>{t("robotsCount")}</div>
                 </CardBody>
               </Card>
             </Col>
@@ -1101,7 +1101,7 @@ function MyTeam() {
               id="inviteEmail"
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder={t("enterEmail") || "Zadejte e-mail uživatele"}
+              placeholder={t("enterUserEmail") || "Zadejte e-mail uživatele"}
               style={{ color: 'black' }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && inviteEmail.trim()) {

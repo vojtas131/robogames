@@ -228,7 +228,7 @@ var routes = [
   },
   {
     path: "/match-group/:groupName",
-    name: t("matchGroup"),
+    name: t("matchGroupTitle"),
     rtlName: "",
     icon: "tim-icons icon-components",
     component: <MatchGroup />,

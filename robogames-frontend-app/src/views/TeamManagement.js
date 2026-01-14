@@ -388,7 +388,7 @@ function TeamManagement() {
                         searchType === 'name' ? (t('enterTeamName') || 'Zadejte název týmu...') :
                         searchType === 'leader' ? (t('enterLeaderName') || 'Zadejte jméno vedoucího...') :
                         searchType === 'member' ? (t('enterMemberName') || 'Zadejte jméno člena...') :
-                        (t('searchTeam') || 'Hledat tým...')
+                        (t('searchTeamOrMember') || 'Hledat tým...')
                       }
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
@@ -561,7 +561,7 @@ function TeamManagement() {
               {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
             </FormGroup>
             <FormGroup style={{ marginBottom: '20px' }}>
-              <Label>{t("newLeader")} ({t("optional")})</Label>
+              <Label>{t("newLeader")} ({t("optionalLabel")})</Label>
               <UserSearchSelect
                 onSelect={(user) => setEditTeam({ ...editTeam, leader: user })}
                 selectedUser={editTeam.leader}

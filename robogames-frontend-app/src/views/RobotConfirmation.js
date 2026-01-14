@@ -415,7 +415,7 @@ function RobotConfirmation() {
                   <i className="tim-icons icon-check-2" style={{ fontSize: '20px', color: '#fff' }} />
                 </div>
                 <div>
-                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("confirmedRobots")}</p>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("confirmedRobotsCount")}</p>
                   <CardTitle tag="h3" className="mb-0">{confirmedRobots} / {totalRobots}</CardTitle>
                 </div>
               </div>
@@ -519,7 +519,7 @@ function RobotConfirmation() {
                       <th>{t("id")}</th>
                       <th>{t("robotNum")}</th>
                       <th>{t("title")}</th>
-                      <th>{t("confirmed")}</th>
+                      <th>{t("confirmedStatus")}</th>
                       <th>{t("category")}</th>
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>

@@ -446,7 +446,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       needsYear: true
     },
     '/admin/match-group': { 
-      label: t('matchGroup') || 'Skupina', 
+      label: t('matchGroupTitle') || 'Skupina', 
       parent: '/admin/match-management',
       icon: 'icon-components',
       dynamic: true  // Label will be set dynamically from URL
