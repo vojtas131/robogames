@@ -17,7 +17,7 @@
 */
 import Dashboard from "views/Dashboard.js";
 
-import TableList from "views/TableList.js";
+import DisciplineList from "views/DisciplineList.js";
 
 import UserProfile from "views/UserProfile.js";
 // import Login from "views/Login.js";
@@ -94,7 +94,7 @@ var routes = [
     name: t("disc"),
     rtlName: "",
     icon: "tim-icons icon-components",
-    component: <TableList />,
+    component: <DisciplineList />,
     layout: "/admin",
   },
   {
@@ -251,7 +251,7 @@ var routes = [
   },
   {
     path: "/generate",
-    name: t("generate"),  // prepozíčny text z translations
+    name: t("generate"), 
     rtlName: "",
     icon: "tim-icons icon-puzzle-10",
     component: <Generate />,

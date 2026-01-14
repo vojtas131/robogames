@@ -97,7 +97,7 @@ function RobotRegistration() {
 
   async function fetchDisciplines() {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/discipline/all`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/discipline/all/visible`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
