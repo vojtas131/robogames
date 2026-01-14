@@ -251,6 +251,20 @@ function MatchScoreEntry() {
         }
     };
 
+    // Get category display text
+    const getCategoryDisplay = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return t('pupils') || 'Žáci';
+        if (category === 'HIGH_AGE_CATEGORY') return t('students') || 'Studenti a dospělí';
+        return category || '-';
+    };
+
+    // Get category badge color
+    const getCategoryColor = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return 'warning';
+        if (category === 'HIGH_AGE_CATEGORY') return 'primary';
+        return 'secondary';
+    };
+
     const getScoreTypeLabel = (scoreType) => {
         switch (scoreType) {
             case 'TIME': return t('scoreTypeTime') || 'Čas';
@@ -366,7 +380,7 @@ function MatchScoreEntry() {
 
                             {/* Match Details - Compact Layout */}
                             <Row className="mb-2">
-                                <Col md="3">
+                                <Col xs="6" md="3" lg="2" className="mb-2 mb-md-0">
                                     <small className="text-muted d-block">
                                         <i className="tim-icons icon-compass-05 mr-1" />
                                         {t('playground') || 'Hřiště'}
@@ -386,7 +400,20 @@ function MatchScoreEntry() {
                                         </Badge>
                                     </span>
                                 </Col>
-                                <Col md="3">
+                                <Col xs="6" md="3" lg="2" className="mb-2 mb-md-0">
+                                    <small className="text-muted d-block">
+                                        <i className="tim-icons icon-badge mr-1" />
+                                        {t('category') || 'Kategorie'}
+                                    </small>
+                                    {match.categoryA ? (
+                                        <Badge color={getCategoryColor(match.categoryA)} style={{ fontSize: '11px' }}>
+                                            {getCategoryDisplay(match.categoryA)}
+                                        </Badge>
+                                    ) : (
+                                        <span className="text-muted">-</span>
+                                    )}
+                                </Col>
+                                <Col xs="6" md="2" lg="2" className="mb-2 mb-md-0">
                                     <small className="text-muted d-block">
                                         <i className="tim-icons icon-chart-bar-32 mr-1" />
                                         {t('phase') || 'Fáze'}
@@ -395,7 +422,7 @@ function MatchScoreEntry() {
                                         {getPhaseLabel(match.phaseName)}
                                     </Badge>
                                 </Col>
-                                <Col md="3">
+                                <Col xs="6" md="2" lg="2" className="mb-2 mb-md-0">
                                     <small className="text-muted d-block">
                                         <i className="tim-icons icon-components mr-1" />
                                         {t('groupName') || 'Skupina'}
@@ -408,7 +435,7 @@ function MatchScoreEntry() {
                                         <span className="text-muted">{t('noGroup') || 'Bez skupiny'}</span>
                                     )}
                                 </Col>
-                                <Col md="3">
+                                <Col xs="12" md="2" lg="4">
                                     <small className="text-muted d-block">
                                         <i className="tim-icons icon-time-alarm mr-1" />
                                         {t('lastUpdate') || 'Poslední změna'}

@@ -4,6 +4,7 @@
     "teamList":"Seznam všech týmů",
     "managePg":"Správa hřišť",
     "robotConf":"Potvrzení robotů",
+    "robotManagement":"Správa robotů",
 
     "tokenNone":"Token není poskytnut.",
     "teamLoadFail":"Nepodařilo se načíst týmy nebo data nejsou ve správném formátu.",
@@ -413,6 +414,8 @@
     "enterTeamName":"Název týmu...",
     "clearSearch":"Vymazat",
     "selectedDiscipline":"Vybraná disciplína",
+    "selectedCategory":"Vybraná kategorie",
+    "robotBMustBeSameCategory":"Robot B musí být ze stejné kategorie",
     "editMatch":"Upravit zápas",
     "matchUpdated":"Zápas byl aktualizován",
     "matchUpdateFailed":"Nepodařilo se aktualizovat zápas",
@@ -982,5 +985,6 @@
     "enterCategory": "Zadejte kategorii...",
     "enterTeacher": "Zadejte jméno učitele...",
     "totalRegistrations": "Celkem registrací",
-    "allDisciplines":"Všechny disciplíny"
+    "allDisciplines":"Všechny disciplíny",
+    "create": "Vytvořit"
 }

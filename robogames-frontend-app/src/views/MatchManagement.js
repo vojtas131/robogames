@@ -55,6 +55,7 @@ function MatchManagement() {
     const [filterPlayground, setFilterPlayground] = useState('');
     const [filterPhase, setFilterPhase] = useState('');
     const [filterState, setFilterState] = useState('');
+    const [filterCategory, setFilterCategory] = useState('');
     
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -181,7 +182,7 @@ function MatchManagement() {
     // Reset page when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, searchType, filterPlayground, filterPhase, filterState]);
+    }, [searchQuery, searchType, filterPlayground, filterPhase, filterState, filterCategory]);
 
     // Filter matches
     const filteredMatches = matches.filter(match => {
@@ -235,7 +236,12 @@ function MatchManagement() {
         const matchesState = !filterState || 
             match.state?.name === filterState;
 
-        return matchesSearch && matchesPlayground && matchesPhase && matchesState;
+        // Filter by category
+        const matchesCategory = !filterCategory || 
+            match.categoryA === filterCategory ||
+            match.categoryB === filterCategory;
+
+        return matchesSearch && matchesPlayground && matchesPhase && matchesState && matchesCategory;
     });
 
     // Reset create modal
@@ -367,13 +373,15 @@ function MatchManagement() {
             id: match.robotAID,
             number: match.robotANumber,
             name: match.robotAName,
-            teamName: match.teamAName
+            teamName: match.teamAName,
+            category: match.categoryA
         } : null);
         setEditRobotB(match.robotBID ? {
             id: match.robotBID,
             number: match.robotBNumber,
             name: match.robotBName,
-            teamName: match.teamBName
+            teamName: match.teamBName,
+            category: match.categoryB
         } : null);
         setShowEditModal(true);
     };
@@ -500,6 +508,20 @@ function MatchManagement() {
         }
     };
 
+    // Get category display text
+    const getCategoryDisplay = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return t('pupils') || 'Žáci';
+        if (category === 'HIGH_AGE_CATEGORY') return t('students') || 'Studenti a dospělí';
+        return category || '-';
+    };
+
+    // Get category badge color
+    const getCategoryColor = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return 'warning';
+        if (category === 'HIGH_AGE_CATEGORY') return 'primary';
+        return 'secondary';
+    };
+
     // Get playground discipline
     const getSelectedPlaygroundDiscipline = (playgroundId) => {
         const pg = playgrounds.find(p => p.id.toString() === playgroundId);
@@ -513,18 +535,40 @@ function MatchManagement() {
     };
 
     // Filter robots by discipline (based on selected playground)
-    const getFilteredRobotsForPlayground = (playgroundId) => {
+    const getFilteredRobotsForPlayground = (playgroundId, selectedCategory = null) => {
         if (!playgroundId) return [];
         const disciplineId = getSelectedPlaygroundDisciplineId(playgroundId);
-        if (!disciplineId) return robots;
-        return robots.filter(robot => robot.disciplineID === disciplineId);
+        let filtered = disciplineId ? robots.filter(robot => robot.disciplineID === disciplineId) : robots;
+        // If category is specified, filter by it too
+        if (selectedCategory) {
+            filtered = filtered.filter(robot => robot.category === selectedCategory);
+        }
+        return filtered;
     };
 
-    // Get filtered robots for create modal
-    const filteredRobotsForCreate = getFilteredRobotsForPlayground(newMatch.playgroundID);
-    
-    // Get filtered robots for edit modal
-    const filteredRobotsForEdit = editingMatch ? getFilteredRobotsForPlayground(editingMatch.playgroundID) : [];
+    // Get filtered robots for create modal (considering selected robot A's category)
+    const getFilteredRobotsForCreateA = () => {
+        return getFilteredRobotsForPlayground(newMatch.playgroundID);
+    };
+
+    // Get filtered robots for create modal for robot B (filtered by robot A's category)
+    const getFilteredRobotsForCreateB = () => {
+        const categoryFilter = selectedRobotA?.category || null;
+        return getFilteredRobotsForPlayground(newMatch.playgroundID, categoryFilter);
+    };
+
+    // Get filtered robots for edit modal for robot A
+    const getFilteredRobotsForEditA = () => {
+        if (!editingMatch) return [];
+        return getFilteredRobotsForPlayground(editingMatch.playgroundID);
+    };
+
+    // Get filtered robots for edit modal for robot B (filtered by robot A's category)
+    const getFilteredRobotsForEditB = () => {
+        if (!editingMatch) return [];
+        const categoryFilter = editRobotA?.category || null;
+        return getFilteredRobotsForPlayground(editingMatch.playgroundID, categoryFilter);
+    };
 
     return (
         <div className="content">
@@ -636,7 +680,7 @@ function MatchManagement() {
                                                 <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>
                                             </Input>
                                         </Col>
-                                        <Col md="4">
+                                        <Col md="2">
                                             <InputGroup>
                                                 <InputGroupText>
                                                     <i className="tim-icons icon-zoom-split" />
@@ -703,6 +747,17 @@ function MatchManagement() {
                                                 <option value="REMATCH">{t('rematchStatus') || 'Opakování'}</option>
                                             </Input>
                                         </Col>
+                                        <Col md="2">
+                                            <Input
+                                                type="select"
+                                                value={filterCategory}
+                                                onChange={(e) => setFilterCategory(e.target.value)}
+                                            >
+                                                <option value="">{t('allCategories') || 'Všechny kategorie'}</option>
+                                                <option value="LOW_AGE_CATEGORY">{t('pupils') || 'Žáci'}</option>
+                                                <option value="HIGH_AGE_CATEGORY">{t('students') || 'Studenti a dospělí'}</option>
+                                            </Input>
+                                        </Col>
                                     </Row>
 
                                     {/* Matches Table */}
@@ -721,6 +776,7 @@ function MatchManagement() {
                                                 <tr>
                                                     <th>ID</th>
                                                     <th>{t('playground') || 'Hřiště'}</th>
+                                                    <th>{t('category') || 'Kategorie'}</th>
                                                     <th>{t('robotA') || 'Robot A'}</th>
                                                     <th>{t('robotB') || 'Robot B'}</th>
                                                     <th>{t('score') || 'Skóre'}</th>
@@ -747,6 +803,15 @@ function MatchManagement() {
                                                         </td>
                                                         <td>
                                                             {match.playgroundName || '-'} <Badge color="info">{match.playgroundNumber}</Badge>
+                                                        </td>
+                                                        <td>
+                                                            {match.categoryA ? (
+                                                                <Badge color={getCategoryColor(match.categoryA)}>
+                                                                    {getCategoryDisplay(match.categoryA)}
+                                                                </Badge>
+                                                            ) : (
+                                                                <span className="text-muted">-</span>
+                                                            )}
                                                         </td>
                                                         <td>
                                                             {match.robotAID ? (
@@ -1002,7 +1067,15 @@ function MatchManagement() {
                             <Alert color="info" className="mb-3">
                                 <i className="tim-icons icon-bulb-63 mr-2" />
                                 {t('selectedDiscipline') || 'Vybraná disciplína'}: <strong>{getSelectedPlaygroundDiscipline(newMatch.playgroundID)}</strong>
-                                {' '}({filteredRobotsForCreate.filter(r => r.confirmed).length} {t('confirmedRobotsAvailable') || 'potvrzených robotů k dispozici'})
+                                {' '}({getFilteredRobotsForCreateA().filter(r => r.confirmed).length} {t('confirmedRobotsAvailable') || 'potvrzených robotů k dispozici'})
+                            </Alert>
+                        )}
+
+                        {selectedRobotA && (
+                            <Alert color={getCategoryColor(selectedRobotA.category)} className="mb-3">
+                                <i className="tim-icons icon-badge mr-2" />
+                                {t('selectedCategory') || 'Vybraná kategorie'}: <strong>{getCategoryDisplay(selectedRobotA.category)}</strong>
+                                {' '}({t('robotBMustBeSameCategory') || 'Robot B musí být ze stejné kategorie'})
                             </Alert>
                         )}
 
@@ -1011,9 +1084,15 @@ function MatchManagement() {
                                 <FormGroup>
                                     <Label>{t('robotA') || 'Robot A'}</Label>
                                     <RobotSearchSelect
-                                        robots={filteredRobotsForCreate}
+                                        robots={getFilteredRobotsForCreateA()}
                                         selectedRobot={selectedRobotA}
-                                        onSelect={setSelectedRobotA}
+                                        onSelect={(robot) => {
+                                            setSelectedRobotA(robot);
+                                            // Clear robot B if category doesn't match
+                                            if (robot && selectedRobotB && robot.category !== selectedRobotB.category) {
+                                                setSelectedRobotB(null);
+                                            }
+                                        }}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                         excludeRobotIds={selectedRobotB ? [selectedRobotB.id] : []}
                                         showDisciplineInfo={true}
@@ -1025,7 +1104,7 @@ function MatchManagement() {
                                 <FormGroup>
                                     <Label>{t('robotB') || 'Robot B'} ({t('optional') || 'volitelné'})</Label>
                                     <RobotSearchSelect
-                                        robots={filteredRobotsForCreate}
+                                        robots={getFilteredRobotsForCreateB()}
                                         selectedRobot={selectedRobotB}
                                         onSelect={setSelectedRobotB}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
@@ -1110,14 +1189,29 @@ function MatchManagement() {
                                     </FormGroup>
                                 </Col>
                             </Row>
+
+                            {editRobotA && (
+                                <Alert color={getCategoryColor(editRobotA.category)} className="mb-3">
+                                    <i className="tim-icons icon-badge mr-2" />
+                                    {t('selectedCategory') || 'Vybraná kategorie'}: <strong>{getCategoryDisplay(editRobotA.category)}</strong>
+                                    {' '}({t('robotBMustBeSameCategory') || 'Robot B musí být ze stejné kategorie'})
+                                </Alert>
+                            )}
+
                             <Row>
                                 <Col md="6">
                                     <FormGroup>
                                         <Label>{t('robotA') || 'Robot A'}</Label>
                                         <RobotSearchSelect
-                                            robots={filteredRobotsForEdit}
+                                            robots={getFilteredRobotsForEditA()}
                                             selectedRobot={editRobotA}
-                                            onSelect={setEditRobotA}
+                                            onSelect={(robot) => {
+                                                setEditRobotA(robot);
+                                                // Clear robot B if category doesn't match
+                                                if (robot && editRobotB && robot.category !== editRobotB.category) {
+                                                    setEditRobotB(null);
+                                                }
+                                            }}
                                             placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                             excludeRobotIds={editRobotB ? [editRobotB.id] : []}
                                             showDisciplineInfo={true}
@@ -1129,7 +1223,7 @@ function MatchManagement() {
                                     <FormGroup>
                                         <Label>{t('robotB') || 'Robot B'} ({t('optional') || 'volitelné'})</Label>
                                         <RobotSearchSelect
-                                            robots={filteredRobotsForEdit}
+                                            robots={getFilteredRobotsForEditB()}
                                             selectedRobot={editRobotB}
                                             onSelect={setEditRobotB}
                                             placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}

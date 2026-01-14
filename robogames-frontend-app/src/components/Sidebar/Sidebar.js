@@ -135,7 +135,7 @@ function Sidebar(props) {
                 if (prop.path === "/robot-registration") return null; // Always hide robot registration
                 if (prop.path === "/all-teams") return null; // Always hide all teams
                 if (prop.path === "/playground-management") return null; // Always hide playground management
-                if (prop.path === "/robot-confirmation") return null; // Always hide robot confirmation
+                if (prop.path === "/robot-management") return null; // Always hide robot management
                 if (prop.path === "/playground-detail") return null; // Always hide playground detail
                 if (prop.path === "/match-generation") return null; // Always hide match generation
                 if (prop.path === "/robot-profile") return null; // Always hide robot profile

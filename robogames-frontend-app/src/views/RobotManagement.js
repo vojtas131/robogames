@@ -1,5 +1,5 @@
 /**
-* The `RobotConfirmation` component is responsible for displaying a list of robots and allowing the user to confirm or reject their registration.
+* The `RobotManagement` component is responsible for displaying a list of robots and allowing the user to manage, confirm or reject their registration.
 * 
 * The component fetches the list of competition years and the robots for the selected year. It allows the user to filter the robots by team name and provides buttons to confirm or reject the registration of each robot.
 * 
@@ -22,7 +22,7 @@ import { t } from "translations/translate";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
 import TablePagination from "components/TablePagination";
 
-function RobotConfirmation() {
+function RobotManagement() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedYear } = useAdmin();
@@ -170,7 +170,7 @@ function RobotConfirmation() {
 
   // Navigate to robot profile while preserving search term
   const navigateToProfile = (robotId) => {
-    navigate(`/admin/robot-profile?id=${robotId}&from=confirmation${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`);
+    navigate(`/admin/robot-profile?id=${robotId}&from=management${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`);
   };
 
   const fetchDisciplines = async () => {
@@ -478,7 +478,7 @@ function RobotConfirmation() {
                     <option value="category">{t('searchByCategory') || 'Kategorie'}</option>
                   </Input>
                 </Col>
-                <Col md="6">
+                <Col md="9">
                   <InputGroup>
                     <InputGroupText>
                       <i className="tim-icons icon-zoom-split" />
@@ -519,7 +519,6 @@ function RobotConfirmation() {
                       <th>{t("id")}</th>
                       <th>{t("robotNum")}</th>
                       <th>{t("title")}</th>
-                      <th>{t("confirmedStatus")}</th>
                       <th>{t("category")}</th>
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>
@@ -543,7 +542,6 @@ function RobotConfirmation() {
                         </td>
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
-                        <td>{robot.confirmed ? t("yes") : t("no")}</td>
                         <td>{getCategoryDisplay(robot.category)}</td>
                         <td>
                           {robot.teamName}
@@ -708,4 +706,4 @@ function RobotConfirmation() {
   );
 }
 
-export default RobotConfirmation;
+export default RobotManagement;

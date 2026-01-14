@@ -348,6 +348,20 @@ function PlaygroundMatches() {
         }
     };
 
+    // Get category display text
+    const getCategoryDisplay = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return t('pupils') || 'Žáci';
+        if (category === 'HIGH_AGE_CATEGORY') return t('students') || 'Studenti a dospělí';
+        return category || '-';
+    };
+
+    // Get category badge color
+    const getCategoryColor = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return 'warning';
+        if (category === 'HIGH_AGE_CATEGORY') return 'primary';
+        return 'secondary';
+    };
+
     // Calculate statistics
     const totalMatches = matches.length;
     const doneMatches = matches.filter(m => m.state?.name === 'DONE').length;
@@ -400,107 +414,142 @@ function PlaygroundMatches() {
                         <CardBody>
                             {/* Current Match Display */}
                             <Card className="mb-4" style={{ 
-                                background: currentMatch ? 'linear-gradient(135deg, rgba(29, 140, 248, 0.1) 0%, rgba(29, 140, 248, 0.05) 100%)' : 'rgba(255,255,255,0.02)',
-                                border: currentMatch ? '1px solid rgba(29, 140, 248, 0.3)' : '1px solid rgba(255,255,255,0.1)'
+                                background: currentMatch ? 'linear-gradient(135deg, rgba(29, 140, 248, 0.15) 0%, rgba(29, 140, 248, 0.05) 100%)' : 'rgba(255,255,255,0.02)',
+                                border: currentMatch ? '2px solid rgba(29, 140, 248, 0.4)' : '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '12px'
                             }}>
-                                <CardBody className="py-3">
-                                    <Row className="align-items-center">
-                                        <Col>
-                                            <h5 className="mb-0">
-                                                <i className="tim-icons icon-bell-55 mr-2 text-info" />
-                                                {t('currentMatchInQueue') || 'Aktuální zápas ve frontě'}
-                                            </h5>
-                                        </Col>
-                                        <Col xs="auto">
-                                            {currentMatch && (
-                                                <Button 
-                                                    color="warning" 
-                                                    size="sm"
-                                                    onClick={handleSkipCurrentMatch}
-                                                    disabled={skippingMatch}
-                                                >
-                                                    {skippingMatch ? (
-                                                        <Spinner size="sm" className="mr-2" />
-                                                    ) : (
-                                                        <i className="tim-icons icon-double-right mr-2" />
-                                                    )}
-                                                    {t('skipMatch') || 'Přeskočit zápas'}
-                                                </Button>
-                                            )}
-                                        </Col>
-                                    </Row>
-                                    <hr className="my-2" style={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                                <CardBody className="py-2 px-3">
                                     {loadingCurrentMatch ? (
-                                        <div className="text-center py-2">
+                                        <div className="text-center py-3">
                                             <Spinner size="sm" color="info" />
                                         </div>
                                     ) : currentMatch ? (
-                                        <Row className="align-items-center">
-                                            <Col md="auto">
-                                                <Badge color="info" className="px-3 py-2" style={{ fontSize: '1rem' }}>
-                                                    #{currentMatch.id}
-                                                </Badge>
-                                            </Col>
-                                            <Col>
-                                                <div className="d-flex align-items-center justify-content-center">
-                                                    <div className="text-center px-4">
-                                                        {currentMatch.robotAID ? (
-                                                            <>
-                                                                <strong style={{ fontSize: '1.1rem' }}>
-                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.2)', padding: '2px 8px', borderRadius: '4px', marginRight: '8px' }}>
-                                                                        {currentMatch.robotANumber}
-                                                                    </span>
-                                                                    {currentMatch.robotAName}
-                                                                </strong>
-                                                                <br />
-                                                                <small className="text-muted">{currentMatch.teamAName}</small>
-                                                            </>
-                                                        ) : (
-                                                            <span className="text-muted">-</span>
-                                                        )}
-                                                    </div>
-                                                    {currentMatch.robotBID && (
+                                        <>
+                                            {/* Header row: Title + Skip button */}
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <div className="d-flex align-items-center">
+                                                    <i className="tim-icons icon-bell-55 text-info mr-2" style={{ fontSize: '1.1rem' }} />
+                                                    <span className="text-muted d-none d-sm-inline" style={{ fontSize: '0.85rem' }}>
+                                                        {t('currentMatchInQueue') || 'Aktuální zápas'}
+                                                    </span>
+                                                    <Badge color="info" className="ml-2 px-2" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                                                        #{currentMatch.id}
+                                                    </Badge>
+                                                </div>
+                                                <Button 
+                                                    color="warning" 
+                                                    size="sm"
+                                                    className="py-1 px-2"
+                                                    onClick={handleSkipCurrentMatch}
+                                                    disabled={skippingMatch}
+                                                    title={t('skipMatch') || 'Přeskočit'}
+                                                >
+                                                    {skippingMatch ? (
+                                                        <Spinner size="sm" />
+                                                    ) : (
                                                         <>
-                                                            <span className="mx-3 text-muted" style={{ fontSize: '1.2rem' }}>vs</span>
-                                                            <div className="text-center px-4">
-                                                                <strong style={{ fontSize: '1.1rem' }}>
-                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.2)', padding: '2px 8px', borderRadius: '4px', marginRight: '8px' }}>
-                                                                        {currentMatch.robotBNumber}
-                                                                    </span>
-                                                                    {currentMatch.robotBName}
-                                                                </strong>
-                                                                <br />
-                                                                <small className="text-muted">{currentMatch.teamBName}</small>
-                                                            </div>
+                                                            <i className="tim-icons icon-double-right" />
+                                                            <span className="d-none d-md-inline ml-1">{t('skipMatch') || 'Přeskočit'}</span>
                                                         </>
                                                     )}
+                                                </Button>
+                                            </div>
+
+                                            {/* Main content: Robots vs layout */}
+                                            <div 
+                                                className="d-flex flex-column flex-sm-row align-items-center justify-content-center py-2"
+                                                style={{ 
+                                                    background: 'rgba(0,0,0,0.15)', 
+                                                    borderRadius: '8px',
+                                                    margin: '0 -0.5rem'
+                                                }}
+                                            >
+                                                {/* Robot A */}
+                                                <div className="text-center px-3 py-1">
+                                                    {currentMatch.robotAID ? (
+                                                        <>
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Badge 
+                                                                    color="primary" 
+                                                                    className="mr-2"
+                                                                    style={{ fontSize: '1rem', padding: '4px 10px', fontWeight: 'bold' }}
+                                                                >
+                                                                    {currentMatch.robotANumber}
+                                                                </Badge>
+                                                                <strong style={{ fontSize: '1.1rem' }}>{currentMatch.robotAName}</strong>
+                                                            </div>
+                                                            <small className="text-muted">{currentMatch.teamAName}</small>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-muted">—</span>
+                                                    )}
                                                 </div>
-                                            </Col>
-                                            <Col md="auto">
-                                                <Badge color={getStateColor(currentMatch.state?.name)}>
-                                                    {currentMatch.state?.name || '-'}
-                                                </Badge>
-                                                {currentMatch.group && (
-                                                    <Badge color="secondary" className="ml-2">
-                                                        {currentMatch.group}
-                                                    </Badge>
+
+                                                {/* VS separator */}
+                                                {currentMatch.robotBID && (
+                                                    <div className="mx-2 my-2 my-sm-0">
+                                                        <span 
+                                                            className="text-warning font-weight-bold"
+                                                            style={{ 
+                                                                fontSize: '1.1rem',
+                                                                textShadow: '0 0 10px rgba(251, 99, 64, 0.5)'
+                                                            }}
+                                                        >
+                                                            VS
+                                                        </span>
+                                                    </div>
                                                 )}
-                                            </Col>
-                                            <Col md="auto">
+
+                                                {/* Robot B */}
+                                                {currentMatch.robotBID && (
+                                                    <div className="text-center px-3 py-1">
+                                                        <div className="d-flex align-items-center justify-content-center">
+                                                            <Badge 
+                                                                color="primary" 
+                                                                className="mr-2"
+                                                                style={{ fontSize: '1rem', padding: '4px 10px', fontWeight: 'bold' }}
+                                                            >
+                                                                {currentMatch.robotBNumber}
+                                                            </Badge>
+                                                            <strong style={{ fontSize: '1.1rem' }}>{currentMatch.robotBName}</strong>
+                                                        </div>
+                                                        <small className="text-muted">{currentMatch.teamBName}</small>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Footer row: Badges + Action button */}
+                                            <div className="d-flex flex-wrap justify-content-between align-items-center mt-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                                <div className="d-flex flex-wrap align-items-center" style={{ gap: '6px' }}>
+                                                    <Badge color={getStateColor(currentMatch.state?.name)} style={{ fontSize: '0.75rem' }}>
+                                                        {currentMatch.state?.name || '-'}
+                                                    </Badge>
+                                                    {currentMatch.categoryA && (
+                                                        <Badge color={getCategoryColor(currentMatch.categoryA)} style={{ fontSize: '0.75rem' }}>
+                                                            {getCategoryDisplay(currentMatch.categoryA)}
+                                                        </Badge>
+                                                    )}
+                                                    {currentMatch.group && (
+                                                        <Badge color="secondary" style={{ fontSize: '0.75rem' }}>
+                                                            {currentMatch.group}
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <Button 
                                                     color="success" 
                                                     size="sm"
+                                                    className="mt-2 mt-sm-0"
                                                     onClick={() => goToScoreEntry(currentMatch.id)}
                                                 >
                                                     <i className="tim-icons icon-pencil mr-1" />
                                                     {t('writeScore') || 'Zapsat skóre'}
                                                 </Button>
-                                            </Col>
-                                        </Row>
+                                            </div>
+                                        </>
                                     ) : (
-                                        <div className="text-center py-2 text-muted">
-                                            <i className="tim-icons icon-check-2 mr-2" />
-                                            {t('noMatchInQueue') || 'Žádný zápas ve frontě'}
+                                        <div className="d-flex align-items-center justify-content-center py-2 text-muted">
+                                            <i className="tim-icons icon-bell-55 mr-2" style={{ opacity: 0.5 }} />
+                                            <span>{t('noMatchInQueue') || 'Žádný zápas ve frontě'}</span>
                                         </div>
                                     )}
                                 </CardBody>
@@ -549,6 +598,7 @@ function PlaygroundMatches() {
                                     <thead>
                                         <tr>
                                             <th>ID</th>
+                                            <th>{t('category') || 'Kategorie'}</th>
                                             <th>{t('robotA') || 'Robot A'}</th>
                                             <th>{t('robotB') || 'Robot B'}</th>
                                             <th>{t('score') || 'Skóre'}</th>
@@ -571,6 +621,15 @@ function PlaygroundMatches() {
                                                     >
                                                         #{match.id}
                                                     </span>
+                                                </td>
+                                                <td>
+                                                    {match.categoryA ? (
+                                                        <Badge color={getCategoryColor(match.categoryA)}>
+                                                            {getCategoryDisplay(match.categoryA)}
+                                                        </Badge>
+                                                    ) : (
+                                                        <span className="text-muted">-</span>
+                                                    )}
                                                 </td>
                                                 <td>
                                                     {match.robotAID ? (

@@ -363,10 +363,10 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       icon: 'icon-paper',
       needsYear: true
     },
-    '/admin/robot-confirmation': { 
-      label: t('robotConf'), 
+    '/admin/robot-management': { 
+      label: t('robotManagement'), 
       parent: '/admin/admin-dashboard',
-      icon: 'icon-check-2',
+      icon: 'icon-spaceship',
       needsYear: true
     },
     '/admin/playground-management': { 
@@ -500,10 +500,10 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
     if (!route) return route;
     
     // robot-profile has dynamic parent based on where user came from
-    if (path === '/admin/robot-profile' && fromParam === 'confirmation') {
+    if (path === '/admin/robot-profile' && fromParam === 'management') {
       return {
         ...route,
-        parent: '/admin/robot-confirmation'
+        parent: '/admin/robot-management'
       };
     }
     

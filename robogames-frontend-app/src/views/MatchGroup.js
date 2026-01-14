@@ -268,6 +268,20 @@ function MatchGroup() {
         }
     };
 
+    // Get category display text
+    const getCategoryDisplay = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return t('pupils') || 'Žáci';
+        if (category === 'HIGH_AGE_CATEGORY') return t('students') || 'Studenti a dospělí';
+        return category || '-';
+    };
+
+    // Get category badge color
+    const getCategoryColor = (category) => {
+        if (category === 'LOW_AGE_CATEGORY') return 'warning';
+        if (category === 'HIGH_AGE_CATEGORY') return 'primary';
+        return 'secondary';
+    };
+
     // Get playground discipline ID
     const getSelectedPlaygroundDisciplineId = (playgroundId) => {
         const pg = playgrounds.find(p => p.id.toString() === playgroundId);
@@ -364,6 +378,7 @@ function MatchGroup() {
                                         <tr>
                                             <th>ID</th>
                                             <th>{t('playground') || 'Hřiště'}</th>
+                                            <th>{t('category') || 'Kategorie'}</th>
                                             <th>{t('robotA') || 'Robot A'}</th>
                                             <th>{t('robotB') || 'Robot B'}</th>
                                             <th>{t('score') || 'Skóre'}</th>
@@ -389,6 +404,15 @@ function MatchGroup() {
                                                 </td>
                                                 <td>
                                                     {match.playgroundName || '-'} <Badge color="info">{match.playgroundNumber}</Badge>
+                                                </td>
+                                                <td>
+                                                    {match.categoryA ? (
+                                                        <Badge color={getCategoryColor(match.categoryA)}>
+                                                            {getCategoryDisplay(match.categoryA)}
+                                                        </Badge>
+                                                    ) : (
+                                                        <span className="text-muted">-</span>
+                                                    )}
                                                 </td>
                                                 <td>
                                                     {match.robotAID ? (

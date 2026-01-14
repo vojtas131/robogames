@@ -30,7 +30,7 @@ import MyTeam from "views/MyTeam";
 import CompetitionRegistration from "views/CompetitionRegistration";
 import RobotRegistration from "views/RobotRegistration";
 import PlaygroundManagement from "views/PlaygroundManagement";
-import RobotConfirmation from "views/RobotConfirmation";
+import RobotManagement from "views/RobotManagement";
 import RobotProfile from "views/RobotProfile";
 import MatchManagement from "views/MatchManagement";
 import MatchScoreEntry from "views/MatchScoreEntry";
@@ -179,11 +179,11 @@ var routes = [
     layout: "/admin",
   },
   {
-    path: "/robot-confirmation",
-    name: t("robotConf"),
+    path: "/robot-management",
+    name: t("robotManagement"),
     rtlName: "",
-    icon: "tim-icons icon-molecule-40",
-    component: <RobotConfirmation />,
+    icon: "tim-icons icon-spaceship",
+    component: <RobotManagement />,
     layout: "/admin",
   },
   {

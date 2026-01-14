@@ -31,8 +31,8 @@ function RobotProfile() {
 
   // Handle navigation back with preserved search params
   const handleGoBack = () => {
-    if (fromPage === 'confirmation' && savedSearch) {
-      navigate(`/admin/robot-confirmation?search=${encodeURIComponent(savedSearch)}`);
+    if (fromPage === 'management' && savedSearch) {
+      navigate(`/admin/robot-management?search=${encodeURIComponent(savedSearch)}`);
     } else {
       navigate(-1);
     }

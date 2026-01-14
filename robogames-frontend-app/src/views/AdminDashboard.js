@@ -133,10 +133,10 @@ function AdminDashboard() {
             </CardTitle>
           </Card>
         </Col>
-        {/* Card for Robot Confirmation */}
+        {/* Card for Robot Management */}
         <Col md="4" style={{ display: 'flex', justifyContent: 'center' }} className="text-center">
           <Card
-            onClick={() => handleNavigate('/admin/robot-confirmation')}
+            onClick={() => handleNavigate('/admin/robot-management')}
             style={{
               cursor: 'pointer',
               width: '300px',
@@ -150,8 +150,8 @@ function AdminDashboard() {
             className="text-white"
           >
             <CardTitle tag="h4" style={{ fontSize: '1.5em' }}>
-              <i className="tim-icons icon-vector mr-2" /> 
-              {t("robotConf")}
+              <i className="tim-icons icon-spaceship mr-2" /> 
+              {t("robotManagement")}
             </CardTitle>
           </Card>
         </Col>

@@ -4,6 +4,7 @@
     "teamList": "List of All Teams",
     "managePg": "Playground Management",
     "robotConf": "Robot Confirmation",
+    "robotManagement": "Robot Management",
 
     "tokenNone": "Token not provided.",
     "teamLoadFail": "Failed to load teams or data is not in the correct format.",
@@ -413,6 +414,8 @@
     "enterTeamName": "Team name...",
     "clearSearch": "Clear",
     "selectedDiscipline": "Selected Discipline",
+    "selectedCategory": "Selected Category",
+    "robotBMustBeSameCategory": "Robot B must be from the same category",
     "editMatch": "Edit Match",
     "matchUpdated": "Match updated",
     "matchUpdateFailed": "Failed to update match",
@@ -982,5 +985,6 @@
     "enterCategory": "Enter category...",
     "enterTeacher": "Enter teacher name...",
     "totalRegistrations": "Total Registrations",
-    "allDisciplines": "All Disciplines"
+    "allDisciplines": "All Disciplines",
+    "create": "Create"
 }

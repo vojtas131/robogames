@@ -376,7 +376,7 @@ function TeamManagement() {
                     <option value="member">{t('searchByMember') || 'Člen'}</option>
                   </Input>
                 </Col>
-                <Col md="6">
+                <Col md="9">
                   <InputGroup>
                     <InputGroupText>
                       <i className="tim-icons icon-zoom-split" />

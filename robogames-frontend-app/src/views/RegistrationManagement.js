@@ -390,7 +390,7 @@ function RegistrationManagement() {
                     <option value="teacher">{t('searchByTeacher') || 'Učitel'}</option>
                   </Input>
                 </Col>
-                <Col md="6">
+                <Col md="9">
                   <InputGroup>
                     <InputGroupText>
                       <i className="tim-icons icon-zoom-split" />
