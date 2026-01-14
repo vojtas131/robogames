@@ -999,5 +999,6 @@
     "enterTeacher": "Enter teacher name...",
     "totalRegistrations": "Total Registrations",
     "allDisciplines": "All Disciplines",
-    "create": "Create"
+    "create": "Create",
+    "compCreated": "Year was created" 
 }

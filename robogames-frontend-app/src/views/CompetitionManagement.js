@@ -140,13 +140,13 @@ function CompetitionManagement() {
             if (tokenExpired(response.status)) return;
 
             const data = await response.json();
-            if (response.ok) {
-                toast.success(t("compCreated") || "Ročník byl vytvořen");
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(t("compCreated"));
                 setShowCreateModal(false);
                 setNewCompetition({ year: '', date: '', startTime: '', endTime: '' });
                 fetchCompetitions();
             } else {
-                toast.error(data.message || t("compCreateFail"));
+                toast.error(data.data || data.message || t("compCreateFail"));
             }
         } catch (error) {
             toast.error(error.message || t("compCreateError"));
@@ -189,12 +189,12 @@ function CompetitionManagement() {
             if (tokenExpired(response.status)) return;
 
             const data = await response.json();
-            if (response.ok) {
+            if (response.ok && data.type !== 'ERROR') {
                 toast.success(t("compUpdated") || "Ročník byl aktualizován");
                 setShowEditModal(false);
                 fetchCompetitions();
             } else {
-                toast.error(data.message || t("compUpdateFail"));
+                toast.error(data.data || data.message || t("compUpdateFail"));
             }
         } catch (error) {
             toast.error(error.message || t("compUpdateError"));
@@ -214,11 +214,12 @@ function CompetitionManagement() {
             });
             if (tokenExpired(response.status)) return;
 
-            if (response.ok) {
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
                 toast.success(t("compRemoved") || "Ročník byl odstraněn");
                 fetchCompetitions();
             } else {
-                toast.error(t("compRemoveFail"));
+                toast.error(data.data || t("compRemoveFail"));
             }
         } catch (error) {
             toast.error(error.message || t("compRemoveError"));
@@ -242,11 +243,12 @@ function CompetitionManagement() {
             });
             if (tokenExpired(response.status)) return;
 
-            if (response.ok) {
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
                 toast.success(t("compStarted") || "Ročník byl zahájen");
                 fetchCompetitions();
             } else {
-                toast.error(t("compStartFail"));
+                toast.error(data.data || t("compStartFail"));
             }
         } catch (error) {
             toast.error(error.message || t("compStartError"));
@@ -270,11 +272,12 @@ function CompetitionManagement() {
                 });
                 if (tokenExpired(response.status)) return;
 
-                if (response.ok) {
+                const data = await response.json();
+                if (response.ok && data.type !== 'ERROR') {
                     toast.success(t("compStartCancelled") || "Zahájení ročníku bylo zrušeno");
                     fetchCompetitions();
                 } else {
-                    toast.error(t("compCancelStartFail") || "Nepodařilo se zrušit zahájení");
+                    toast.error(data.data || t("compCancelStartFail") || "Nepodařilo se zrušit zahájení");
                 }
             } catch (error) {
                 toast.error(error.message || t("compCancelStartError") || "Chyba při rušení zahájení");

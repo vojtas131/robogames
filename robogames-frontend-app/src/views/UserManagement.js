@@ -218,12 +218,13 @@ function UserManagement() {
         });
         if (tokenExpired(response.status)) { return; }
 
-        if (response.ok) {
+        const result = await response.json();
+        if (response.ok && result.type !== 'ERROR') {
           toast.success(t("roleAddedRemoved", { action: action === 'add' ? t("added_lower") : t("removed_lower") }));
           setEditModal(false);
           window.location.reload();
         } else {
-          throw new Error(t("roleUpdateFail"));
+          throw new Error(result.data || t("roleUpdateFail"));
         }
       } catch (error) {
         toast.error(error.message);
@@ -242,11 +243,12 @@ function UserManagement() {
         });
         if (tokenExpired(response.status)) { return; }
 
-        if (response.ok) {
+        const result = await response.json();
+        if (response.ok && result.type !== 'ERROR') {
           toast.success(t("userRemoved"));
           window.location.reload();
         } else {
-          throw new Error(t("userRemoveFail"));
+          throw new Error(result.data || t("userRemoveFail"));
         }
       } catch (error) {
         toast.error(error.message);
@@ -409,15 +411,13 @@ function UserManagement() {
 
       if (tokenExpired(response.status)) return;
 
-      if (!response.ok) throw new Error(t("userUpdateFail"));
-
       const result = await response.json();
-      if (result.data === "success") {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("dataSaved"));
         setEditModal(false);
         window.location.reload();
       } else {
-        toast.error(t("userUpdateFail"));
+        toast.error(result.data || t("userUpdateFail"));
       }
     } catch (error) {
       console.error('Update selhal:', error);

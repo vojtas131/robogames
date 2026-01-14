@@ -999,5 +999,6 @@
     "enterTeacher": "Zadejte jméno učitele...",
     "totalRegistrations": "Celkem registrací",
     "allDisciplines":"Všechny disciplíny",
-    "create": "Vytvořit"
+    "create": "Vytvořit",
+    "compCreated": "Ročník byl vytvořen" 
 }

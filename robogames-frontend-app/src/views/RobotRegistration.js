@@ -192,18 +192,23 @@ function RobotRegistration() {
   }
 
   async function handleUnregisterDiscipline(robotId) {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/unregister?id=${robotId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      }
-    });
-    if (tokenExpired(response.status)) { return; }
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/unregister?id=${robotId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      if (tokenExpired(response.status)) { return; }
 
-    if (response.ok) {
-      setRobots(robots.map(robot => robot.id === robotId ? { ...robot, disciplineName: '', disciplineID: -1 } : robot));
-    } else {
+      const data = await response.json();
+      if (response.ok && data.type !== 'ERROR') {
+        setRobots(robots.map(robot => robot.id === robotId ? { ...robot, disciplineName: '', disciplineID: -1 } : robot));
+      } else {
+        toast.error(data.data || t("robotUnregisterFail"));
+      }
+    } catch (error) {
       toast.error(t("robotUnregisterFail"));
     }
   }

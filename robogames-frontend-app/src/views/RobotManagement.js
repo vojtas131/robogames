@@ -63,29 +63,32 @@ function RobotManagement() {
   }, [selectedYear]);
 
   const handleConfirmRegistration = async (robotId, confirmed) => {
-    if (await confirm({ message: t("robotAction", { conf: confirmed ? t("confirm_lower") : t("remove_lower") }) })) {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          }
-        });
-        if (tokenExpired(response.status)) { return; }
-
-        const data = await response.json();
-        if (response.ok) {
-          fetchRobotsForYear(selectedYear); // Refresh the list of robots to show updated statuses
-        } else if (data.type === 'ERROR') {
-          toast.error(t("dataError", { data: data.data }));
-        } else {
-          toast.error(t("robotUpdateFail", { message: data.message || t("unknownError") }));
+    // Pouze při odmítnutí (confirmed=false) zobrazit potvrzovací dialog
+    if (!confirmed && !await confirm({ message: t("robotAction", { conf: t("remove_lower") }) })) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         }
-      } catch (error) {
-        console.error('Error confirming the robot registration:', error);
-        toast.error(t("robotConfirmError", { message: error.message || t("serverCommFail") }));
+      });
+      if (tokenExpired(response.status)) { return; }
+
+      const data = await response.json();
+      if (response.ok) {
+        fetchRobotsForYear(selectedYear); // Refresh the list of robots to show updated statuses
+      } else if (data.type === 'ERROR') {
+        toast.error(t("dataError", { data: data.data }));
+      } else {
+        toast.error(t("robotUpdateFail", { message: data.message || t("unknownError") }));
       }
+    } catch (error) {
+      console.error('Error confirming the robot registration:', error);
+      toast.error(t("robotConfirmError", { message: error.message || t("serverCommFail") }));
     }
   };
 
@@ -243,7 +246,7 @@ function RobotManagement() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotCreated"));
         setCreateModal(false);
         setNewRobot({ teamRegistrationId: '', name: '', disciplineId: '' });
@@ -277,7 +280,7 @@ function RobotManagement() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotEdited"));
         setEditModal(false);
         fetchRobotsForYear(selectedYear);
@@ -303,11 +306,11 @@ function RobotManagement() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotForceConfirmed"));
         fetchRobotsForYear(selectedYear);
       } else {
-        const result = await response.json();
         toast.error(result.data || t("robotForceConfirmFail"));
       }
     } catch (error) {
@@ -326,11 +329,11 @@ function RobotManagement() {
       });
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotForceRemoved"));
         fetchRobotsForYear(selectedYear);
       } else {
-        const result = await response.json();
         toast.error(result.data || t("robotForceRemoveFail"));
       }
     } catch (error) {
@@ -349,11 +352,11 @@ function RobotManagement() {
       });
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotRemoved"));
         fetchRobotsForYear(selectedYear);
       } else {
-        const result = await response.json();
         toast.error(result.data || t("robotRemoveFail"));
       }
     } catch (error) {

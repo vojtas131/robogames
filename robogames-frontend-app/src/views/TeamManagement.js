@@ -129,7 +129,7 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamCreated"));
         setCreateModal(false);
         setNewTeam({ name: '', leader: null });
@@ -166,7 +166,7 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamEdited"));
         setEditModal(false);
         setErrors({});
@@ -190,11 +190,12 @@ function TeamManagement() {
       });
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamRemoved"));
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("teamRemoveFail"));
       }
     } catch (error) {
@@ -219,13 +220,13 @@ function TeamManagement() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("userAddedToTeam"));
         setAddUserModal(false);
         setSelectedUser(null);
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("userAddToTeamFail"));
       }
     } catch (error) {
@@ -247,11 +248,11 @@ function TeamManagement() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamUserRemoved"));
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("teamUserRemoveFail"));
       }
     } catch (error) {
@@ -273,11 +274,11 @@ function TeamManagement() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("leaderChanged"));
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("leaderChangeFail"));
       }
     } catch (error) {

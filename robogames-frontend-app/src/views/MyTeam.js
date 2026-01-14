@@ -130,11 +130,11 @@ function MyTeam() {
       if (tokenExpired(response.status)) return;
       
       const data = await response.json();
-      if (data.type !== 'ERROR') {
+      if (response.ok && data.type !== 'ERROR') {
         toast.success(t("joinRequestSent"));
         fetchMyJoinRequests();
       } else {
-        toast.error(data.message || t("joinRequestFailed"));
+        toast.error(data.data || data.message || t("joinRequestFailed"));
       }
     } catch (err) {
       toast.error(t("joinRequestFailed"));
@@ -152,11 +152,11 @@ function MyTeam() {
       if (tokenExpired(response.status)) return;
       
       const data = await response.json();
-      if (data.type !== 'ERROR') {
+      if (response.ok && data.type !== 'ERROR') {
         toast.success(t("joinRequestCancelled"));
         fetchMyJoinRequests();
       } else {
-        toast.error(data.message || t("operationFailed"));
+        toast.error(data.data || data.message || t("operationFailed"));
       }
     } catch (err) {
       toast.error(t("operationFailed"));
