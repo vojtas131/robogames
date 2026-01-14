@@ -112,7 +112,7 @@ function Sidebar(props) {
 
   const isAdminOrLeaderOrAssistantOrReferee = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT', 'REFEREE'].includes(role)); // Check if the user has any of the specified roles
 
-  console.log("is referee:" + isAdminOrLeaderOrAssistantOrReferee) // Log the value of isAdminOrLeaderOrAssistantOrReferee to the console
+  // console.log("is referee:" + isAdminOrLeaderOrAssistantOrReferee) // Log the value of isAdminOrLeaderOrAssistantOrReferee to the console
 
 
   // Render the sidebar

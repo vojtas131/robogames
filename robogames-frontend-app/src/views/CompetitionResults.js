@@ -6,16 +6,17 @@ import {
 } from 'reactstrap';
 
 import { jsPDF } from 'jspdf';
-import logo from '../assets/img/robogames-logo.png'
 import logo2 from '../assets/img/robogames-logo2.png'
 import failogo from '../assets/img/fai-logo.png'
 
 import { useUser } from "contexts/UserContext";
+import { useAdmin } from "contexts/AdminContext";
 import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
 import TablePagination from "components/TablePagination";
 
 function CompetitionResults() {
+    const { selectedYear: navbarSelectedYear } = useAdmin();
     const [years, setYears] = useState([]);
     const [disciplines, setDisciplines] = useState([]);
     const [selectedYear, setSelectedYear] = useState('');
@@ -38,15 +39,18 @@ function CompetitionResults() {
     }, []);
 
     useEffect(() => {
-        if (selectedYear && selectedDiscipline && selectedCategory) {
+        if(isAdminOrLeader && navbarSelectedYear) {
+            console.log("Fetching results for admin year:", navbarSelectedYear);
+            fetchResults(navbarSelectedYear, selectedDiscipline, selectedCategory);
+        } else {
             fetchResults(selectedYear, selectedDiscipline, selectedCategory);
         }
-    }, [selectedYear, selectedDiscipline, selectedCategory]);
+    }, [selectedYear, selectedDiscipline, selectedCategory, navbarSelectedYear]);
 
     // Reset page when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [selectedYear, selectedDiscipline, selectedCategory]);
+    }, [selectedYear, selectedDiscipline, selectedCategory, navbarSelectedYear]);
 
     const fetchCompetitionYears = async () => {
         try {
@@ -64,8 +68,9 @@ function CompetitionResults() {
 
     const rolesString = localStorage.getItem('roles');
     const rolesArray = rolesString ? rolesString.split(', ') : [];
+
+    const isAdminOrLeader = rolesArray.some(role => ['ADMIN', 'LEADER'].includes(role));
     const isAdminOrLeaderOrAssistant = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT'].includes(role));
-  
     const isAdminOrLeaderOrAssistantOrReferee = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT', 'REFEREE'].includes(role));
 
     const fetchDisciplines = async () => {
@@ -112,7 +117,7 @@ function CompetitionResults() {
                 doc.text(robot.teamName, doc.internal.pageSize.getWidth() / 2, 180, { align: "center" });
 
                 doc.setFontSize(30);
-                doc.text(t("dipPlace",{place: place}), doc.internal.pageSize.getWidth() / 2, 195, { align: "center" });
+                doc.text(t("dipPlace", { place: place }), doc.internal.pageSize.getWidth() / 2, 195, { align: "center" });
                 doc.setFontSize(15);
                 doc.text(t("dipComp"), doc.internal.pageSize.getWidth() / 2, 210, { align: "center" });
 
@@ -133,51 +138,87 @@ function CompetitionResults() {
         };
     }
 
-
-
     const fetchResults = async (year, disciplineName, category) => {
         try {
-            let categoryAPI;
-
-            if (category === t("students")) {
-                categoryAPI = 'HIGH_AGE_CATEGORY';
-            } else if (category === t("pupils")) {
-                categoryAPI = 'LOW_AGE_CATEGORY';
-            }
-
-            if (!categoryAPI) {
-                toast.warning(t("catInvalid"));
+            // Determine year to use: passed year (e.g., selectedYear), otherwise navbar year (for admins), otherwise first available year
+            const effectiveYear = year || navbarSelectedYear || (years && years.length ? years[0] : null);
+            if (!effectiveYear) {
+                toast.warning(t("selectYear"));
                 return;
             }
 
-            const url = `${process.env.REACT_APP_API_URL}module/competitionEvaluation/scoreOfAll?year=${year}&category=${encodeURIComponent(categoryAPI)}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            if (response.ok && data.type === 'RESPONSE') {
-                // get the discipline ID from the selected discipline name
-                const discipline = disciplines.find(d => d.name === disciplineName);
-                if (!discipline) {
-                    toast.error(t("catNotFound"));
-                    return;
-                }
-                // filter results to include only those that match the discipline ID
-                const filteredResults = data.data.filter(result => result.disciplindeID === discipline.id);
-                setResults(filteredResults);
-            } else {
-                console.error('Failed to fetch results:', data);
-                toast.error(t("resFetchFail",{data: data.data || t("unknownError")}));
+            // Always fetch both categories from backend and filter on front-end
+            const categories = ['HIGH_AGE_CATEGORY', 'LOW_AGE_CATEGORY'];
+
+            const requests = categories.map(cat =>
+                fetch(`${process.env.REACT_APP_API_URL}module/competitionEvaluation/scoreOfAll?year=${effectiveYear}&category=${encodeURIComponent(cat)}`)
+                    .then(r => r.json().then(data => ({ ok: r.ok, data, status: r.status })))
+            );
+
+            const responses = await Promise.all(requests);
+            const okResponse = responses.find(r => r.ok && r.data.type === 'RESPONSE');
+            if (!okResponse) {
+                toast.error(t("resFetchFail", { data: t("unknownError") }));
+                return;
             }
+
+            // Merge all results
+            const allResults = responses.reduce((acc, r) => acc.concat((r.data && r.data.data) || []), []);
+
+            // Apply front-end filters (category and discipline)
+            let filtered = allResults;
+
+            if (disciplineName) {
+                const discipline = disciplines.find(d => d.name === disciplineName);
+                if (discipline) {
+                    filtered = filtered.filter(res => res.disciplindeID === discipline.id);
+                } else {
+                    // If discipline name not found, no results
+                    filtered = [];
+                }
+            }
+
+            if (category) {
+                const categoryAPI = category === t("students") ? 'HIGH_AGE_CATEGORY' : 'LOW_AGE_CATEGORY';
+                filtered = filtered.filter(res => res.category === categoryAPI);
+            }
+
+            setResults(filtered);
         } catch (error) {
             console.error('Error fetching results:', error);
-            toast.error(t("resFetchError",{message: error.message || t("communicationFail")}));
+            toast.error(t("resFetchError", { message: error.message || t("communicationFail") }));
         }
     };
-
-
 
     const toggleDropdownYear = () => setDropdownOpenYear(!dropdownOpenYear);
     const toggleDropdownDiscipline = () => setDropdownOpenDiscipline(!dropdownOpenDiscipline);
     const toggleDropdownCategory = () => setDropdownOpenCategory(!dropdownOpenCategory);
+
+    // Auto-select year from admin navbar for admins/leaders
+    useEffect(() => {
+        if (isAdminOrLeader && navbarSelectedYear) {
+            setSelectedYear(navbarSelectedYear);
+        }
+    }, [navbarSelectedYear, isAdminOrLeader]);
+
+    // Prepare grouped structures for rendering
+    const getCategoryLabel = (cat) => {
+        if (cat === 'HIGH_AGE_CATEGORY') return t("students");
+        if (cat === 'LOW_AGE_CATEGORY') return t("pupils");
+        return cat;
+    };
+
+    const groupedByCategoryAndDiscipline = (() => {
+        const map = {};
+        (results || []).forEach(r => {
+            const cat = r.category || 'UNKNOWN';
+            const disc = r.disciplindeName || t("unknown");
+            map[cat] = map[cat] || {};
+            map[cat][disc] = map[cat][disc] || [];
+            map[cat][disc].push(r);
+        });
+        return map;
+    })();
 
     return (
         <div className="content">
@@ -188,23 +229,33 @@ function CompetitionResults() {
                             <CardTitle tag="h4">{t("compResults")}</CardTitle>
                             <div style={{ display: 'flex', alignItems: 'center' }}
                                 className="d-flex flex-column flex-md-row align-items-start">
-                                <Dropdown isOpen={dropdownOpenYear} toggle={toggleDropdownYear} style={{ marginRight: '10px' }}>
-                                    <DropdownToggle caret>
-                                        {selectedYear || t("selectYear")}
-                                    </DropdownToggle>
-                                    <DropdownMenu>
-                                        {years.map(year => (
-                                            <DropdownItem key={year} onClick={() => setSelectedYear(year)}>
-                                                {year}
-                                            </DropdownItem>
-                                        ))}
-                                    </DropdownMenu>
-                                </Dropdown>
+                                {!isAdminOrLeader ? (
+                                    <Dropdown isOpen={dropdownOpenYear} toggle={toggleDropdownYear} style={{ marginRight: '10px' }}>
+                                        <DropdownToggle caret>
+                                            {selectedYear || t("selectYear")}
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem onClick={() => setSelectedYear('')}>{t('clearSearch') || 'Vymazat'}</DropdownItem>
+                                            <DropdownItem divider />
+                                            {years.map(year => (
+                                                <DropdownItem key={year} onClick={() => setSelectedYear(year)}>
+                                                    {year}
+                                                </DropdownItem>
+                                            ))}
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                ) : (
+                                    <div style={{ marginRight: '10px', display: 'flex', alignItems: 'center' }}>
+                                        <p className="text-muted">{t('year') || 'Rok'}: {navbarSelectedYear || t('selectYear')}</p>
+                                    </div>
+                                )}
                                 <Dropdown isOpen={dropdownOpenDiscipline} toggle={toggleDropdownDiscipline} style={{ marginRight: '10px' }}>
                                     <DropdownToggle caret>
                                         {selectedDiscipline || t("selectDisc")}
                                     </DropdownToggle>
                                     <DropdownMenu>
+                                        <DropdownItem onClick={() => setSelectedDiscipline('')}>{t('clearSearch') || 'Vymazat'}</DropdownItem>
+                                        <DropdownItem divider />
                                         {disciplines.map(discipline => (
                                             <DropdownItem key={discipline.id} onClick={() => setSelectedDiscipline(discipline.name)}>
                                                 {discipline.name}
@@ -217,6 +268,8 @@ function CompetitionResults() {
                                         {selectedCategory || t("selectCat")}
                                     </DropdownToggle>
                                     <DropdownMenu>
+                                        <DropdownItem onClick={() => setSelectedCategory('')}>{t('clearSearch') || 'Vymazat'}</DropdownItem>
+                                        <DropdownItem divider />
                                         <DropdownItem onClick={() => setSelectedCategory(t("students"))}>{t("students")}</DropdownItem>
                                         <DropdownItem onClick={() => setSelectedCategory(t("pupils"))}>{t("pupils")}</DropdownItem>
                                     </DropdownMenu>
@@ -228,49 +281,91 @@ function CompetitionResults() {
                         <CardBody>
                             {results.length > 0 ? (
                                 <>
-                                <Table responsive>
-                                    <thead>
-                                        <tr>
-                                            <th>{t("place")}</th>
-                                            <th>{t("robot")}</th>
-                                            <th>{t("team")}</th>
-                                            <th>{t("score")}</th>
-                                            <th>{t("discipline")}</th>
+                                    {/* Grouped rendering when no specific category or discipline is selected */}
+                                    {(!selectedCategory && !selectedDiscipline) ? (
+                                        Object.keys(groupedByCategoryAndDiscipline).map(cat => (
+                                            <div key={cat} style={{ marginBottom: '1.5rem' }}>
+                                                <h5>{getCategoryLabel(cat)}</h5>
+                                                {Object.keys(groupedByCategoryAndDiscipline[cat]).map(disc => (
+                                                    <div key={disc} style={{ marginBottom: '1rem' }}>
+                                                        <h6 style={{ marginLeft: '0.5rem' }}>{disc}</h6>
+                                                        <Table responsive>
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>{t("place")}</th>
+                                                                    <th>{t("robot")}</th>
+                                                                    <th>{t("team")}</th>
+                                                                    <th>{t("score")}</th>
+                                                                    {isAdminOrLeaderOrAssistantOrReferee && <th>{t("diploma")}</th>}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {groupedByCategoryAndDiscipline[cat][disc].map((result, index) => (
+                                                                    <tr key={result.robotID}>
+                                                                        <td>{index + 1}</td>
+                                                                        <td>{result.robotName}</td>
+                                                                        <td>{result.teamName}</td>
+                                                                        <td>{result.score}</td>
+                                                                        {isAdminOrLeaderOrAssistantOrReferee && (
+                                                                            <td>
+                                                                                <Button onClick={() => generatePDF(result, index + 1)}>{t("diploma_caps")}</Button>
+                                                                            </td>)}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </Table>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        // If any filter selected, show flat table (with pagination)
+                                        <>
+                                            <Table responsive>
+                                                <thead>
+                                                    <tr>
+                                                        <th>{t("place")}</th>
+                                                        <th>{t("robot")}</th>
+                                                        <th>{t("team")}</th>
+                                                        <th>{t("score")}</th>
+                                                        <th>{t("discipline")}</th>
 
-                                            {isAdminOrLeaderOrAssistantOrReferee && (
-                                            <th>{t("diploma")}</th>)}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {results
-                                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                                            .map((result, index) => (
+                                                        {isAdminOrLeaderOrAssistantOrReferee && (
+                                                            <th>{t("diploma")}</th>)}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {results
+                                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                                        .map((result, index) => (
 
-                                            <tr key={result.robotID}>
-                                                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                                                <td>{result.robotName}</td>
-                                                <td>{result.teamName}</td>
-                                                <td>{result.score}</td>
-                                                <td>{result.disciplindeName}</td>
+                                                            <tr key={result.robotID}>
+                                                                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                                                                <td>{result.robotName}</td>
+                                                                <td>{result.teamName}</td>
+                                                                <td>{result.score}</td>
+                                                                <td>{result.disciplindeName}</td>
 
-                                                {isAdminOrLeaderOrAssistantOrReferee && (
-                                                <td>
-                                                    <Button onClick={() => generatePDF(result, (currentPage - 1) * itemsPerPage + index + 1)}>{t("diploma_caps")}</Button>
-                                                </td>)}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                                <TablePagination
-                                    currentPage={currentPage}
-                                    totalItems={results.length}
-                                    itemsPerPage={itemsPerPage}
-                                    onPageChange={(page) => setCurrentPage(page)}
-                                    onItemsPerPageChange={(items) => {
-                                        setItemsPerPage(items);
-                                        setCurrentPage(1);
-                                    }}
-                                />
+                                                                {isAdminOrLeaderOrAssistantOrReferee && (
+                                                                    <td>
+                                                                        <Button onClick={() => generatePDF(result, (currentPage - 1) * itemsPerPage + index + 1)}>{t("diploma_caps")}</Button>
+                                                                    </td>)}
+                                                            </tr>
+                                                        ))}
+                                                </tbody>
+                                            </Table>
+                                            <TablePagination
+                                                currentPage={currentPage}
+                                                totalItems={results.length}
+                                                itemsPerPage={itemsPerPage}
+                                                onPageChange={(page) => setCurrentPage(page)}
+                                                onItemsPerPageChange={(items) => {
+                                                    setItemsPerPage(items);
+                                                    setCurrentPage(1);
+                                                }}
+                                            />
+                                        </>
+                                    )}
                                 </>
                             ) : (
                                 <div>{t("noRobotsFound")}</div>
