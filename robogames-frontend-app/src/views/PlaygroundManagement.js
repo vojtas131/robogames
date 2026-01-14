@@ -409,7 +409,7 @@ function PlaygroundManagement() {
                                                 <th>{t('title') || 'Název'}</th>
                                                 <th>{t('number') || 'Číslo'}</th>
                                                 <th>{t('discipline') || 'Disciplína'}</th>
-                                                {canManage && <th>{t('actions') || 'Akce'}</th>}
+                                                {canManage && <th style={{ textAlign: 'center' }}>{t('actions') || 'Akce'}</th>}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -432,19 +432,20 @@ function PlaygroundManagement() {
                                                             </Badge>
                                                         </td>
                                                         {canManage && (
-                                                            <td>
+                                                            <td style={{ textAlign: 'center' }}>
                                                                 <Button
                                                                     color="primary"
                                                                     size="sm"
-                                                                    className="mr-1"
+                                                                    className="btn-icon"
                                                                     onClick={() => handleOpenEditModal(pg)}
                                                                     title={t('edit') || 'Upravit'}
                                                                 >
-                                                                    <i className="tim-icons icon-settings" />
+                                                                    <i className="tim-icons icon-pencil" />
                                                                 </Button>
                                                                 <Button
                                                                     color="danger"
                                                                     size="sm"
+                                                                    className="btn-icon ml-1"
                                                                     onClick={() => handleDeletePlayground(pg.id)}
                                                                     title={t('delete') || 'Smazat'}
                                                                 >

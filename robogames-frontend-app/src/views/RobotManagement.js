@@ -552,12 +552,14 @@ function RobotManagement() {
                           )}
                         </td>
                         <td>{robot.diciplineName}</td>
-                        <td>
+                        <td style={{ textAlign: 'center' }}>
                           {robot.diciplineName && (
                             <Button
                               color={robot.confirmed ? "success" : "warning"}
-                              className="btn-icon btn-simple"
+                              size="sm"
+                              className="btn-icon"
                               onClick={() => handleConfirmRegistration(robot.id, !robot.confirmed)}
+                              title={robot.confirmed ? t("unconfirm") : t("confirm")}
                             >
                               <i className={robot.confirmed ? "tim-icons icon-check-2" : "tim-icons icon-simple-remove"} />
                             </Button>)}
@@ -566,7 +568,7 @@ function RobotManagement() {
                           <Button
                             color="primary"
                             size="sm"
-                            className="mr-1"
+                            className="btn-icon"
                             onClick={() => openEditModal(robot)}
                             title={t("edit")}
                           >
@@ -575,6 +577,7 @@ function RobotManagement() {
                           <Button
                             color="danger"
                             size="sm"
+                            className="btn-icon ml-1"
                             onClick={() => handleForceRemove(robot.id)}
                             title={t("remove")}
                           >

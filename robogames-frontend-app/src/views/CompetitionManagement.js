@@ -389,7 +389,7 @@ function CompetitionManagement() {
                                                 <th>{t('start') || 'Začátek'}</th>
                                                 <th>{t('end') || 'Konec'}</th>
                                                 <th>{t('status') || 'Stav'}</th>
-                                                <th>{t('actions') || 'Akce'}</th>
+                                                <th style={{ textAlign: 'center' }}>{t('actions') || 'Akce'}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -417,11 +417,11 @@ function CompetitionManagement() {
                                                                 {comp.started ? (t('started') || 'Zahájeno') : (t('notStarted') || 'Nezahájeno')}
                                                             </Badge>
                                                         </td>
-                                                        <td>
+                                                        <td style={{ textAlign: 'center' }}>
                                                             <Button
                                                                 color="secondary"
                                                                 size="sm"
-                                                                className="mr-1"
+                                                                className="btn-icon"
                                                                 onClick={() => viewParticipants(comp.year)}
                                                                 title={t('showParticipants') || 'Zobrazit účastníky'}
                                                             >
@@ -432,7 +432,7 @@ function CompetitionManagement() {
                                                                     <Button
                                                                         color="success"
                                                                         size="sm"
-                                                                        className="mr-1"
+                                                                        className="btn-icon ml-1"
                                                                         onClick={() => handleStartCompetition(comp)}
                                                                         title={t('begin') || 'Zahájit'}
                                                                     >
@@ -441,15 +441,16 @@ function CompetitionManagement() {
                                                                     <Button
                                                                         color="primary"
                                                                         size="sm"
-                                                                        className="mr-1"
+                                                                        className="btn-icon ml-1"
                                                                         onClick={() => handleOpenEditModal(comp)}
                                                                         title={t('edit') || 'Upravit'}
                                                                     >
-                                                                        <i className="tim-icons icon-settings" />
+                                                                        <i className="tim-icons icon-pencil" />
                                                                     </Button>
                                                                     <Button
                                                                         color="danger"
                                                                         size="sm"
+                                                                        className="btn-icon ml-1"
                                                                         onClick={() => handleDeleteCompetition(comp.id)}
                                                                         title={t('delete') || 'Smazat'}
                                                                     >
@@ -461,6 +462,7 @@ function CompetitionManagement() {
                                                                 <Button
                                                                     color="warning"
                                                                     size="sm"
+                                                                    className="btn-icon ml-1"
                                                                     onClick={() => handleCancelStart(comp)}
                                                                     title={t('cancelStart') || 'Zrušit zahájení'}
                                                                 >

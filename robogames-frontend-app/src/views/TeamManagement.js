@@ -422,7 +422,7 @@ function TeamManagement() {
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                     .map((team) => (
                     <tr key={team.id}>
-                      <td>{team.id}</td>
+                      <td>#{team.id}</td>
                       <td>{team.name}</td>
                       <td>{team.leaderName}</td>
                       <td>

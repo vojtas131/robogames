@@ -881,19 +881,20 @@ function MatchManagement() {
                                                                 {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
                                                             </small>
                                                         </td>
-                                                        <td>
+                                                        <td style={{ textAlign: 'center' }}>
                                                             <Button
                                                                 color="primary"
                                                                 size="sm"
-                                                                className="mr-1"
+                                                                className="btn-icon"
                                                                 onClick={() => handleOpenEditModal(match)}
                                                                 title={t('edit') || 'Upravit'}
                                                             >
-                                                                <i className="tim-icons icon-settings" />
+                                                                <i className="tim-icons icon-pencil" />
                                                             </Button>
                                                             <Button
                                                                 color="danger"
                                                                 size="sm"
+                                                                className="btn-icon ml-1"
                                                                 onClick={() => handleDeleteMatch(match.id)}
                                                                 title={t('delete') || 'Smazat'}
                                                             >

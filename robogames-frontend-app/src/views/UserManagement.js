@@ -546,11 +546,6 @@ function UserManagement() {
                       <td>{user.birthDate}</td>
                       <td>
                         {user.roles.map(role => role.name).join(', ')}
-                        {isAdminOrLeader && (
-                          <Button color="primary" size="sm" onClick={() => handleEdit(user)} style={{ marginLeft: '10px' }}>
-                            {t("roleEdit")}
-                          </Button>
-                        )}
                       </td>
                       <td>{user.teamID}</td>
                       <td>
@@ -566,25 +561,60 @@ function UserManagement() {
                           </span>
                         )}
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'center' }}>
                         {isAdminOrLeader && (
-                          <Button color="secondary" size="sm" onClick={() => handleUserEdit(user)} style={{ marginLeft: '10px' }}>
-                            <i className="fa-solid fa-pencil"></i>
+                          <Button
+                            color="info"
+                            size="sm"
+                            className="btn-icon"
+                            onClick={() => handleEdit(user)}
+                            title={t("roleEdit")}
+                          >
+                            <i className="tim-icons icon-badge" />
+                          </Button>
+                        )}
+                        {isAdminOrLeader && (
+                          <Button
+                            color="primary"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleUserEdit(user)}
+                            title={t("edit")}
+                          >
+                            <i className="tim-icons icon-pencil" />
                           </Button>
                         )}
                         {isAdminOrLeader && !user.banned && (
-                          <Button color="warning" size="sm" onClick={() => handleBanUser(user.id)} style={{ marginLeft: '10px' }} title={t("banUser")}>
-                            <i className="fa-solid fa-ban"></i>
+                          <Button
+                            color="warning"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleBanUser(user.id)}
+                            title={t("banUser")}
+                          >
+                            <i className="tim-icons icon-lock-circle" />
                           </Button>
                         )}
                         {isAdminOrLeader && user.banned && (
-                          <Button color="success" size="sm" onClick={() => handleUnbanUser(user.id)} style={{ marginLeft: '10px' }} title={t("unbanUser")}>
-                            <i className="fa-solid fa-unlock"></i>
+                          <Button
+                            color="success"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleUnbanUser(user.id)}
+                            title={t("unbanUser")}
+                          >
+                            <i className="tim-icons icon-key-25" />
                           </Button>
                         )}
                         {isAdminOrLeader && (
-                          <Button color="danger" size="sm" onClick={() => handleRemoveUser(user.id)} style={{ marginLeft: '10px' }}>
-                            <i className="tim-icons icon-trash-simple"></i>
+                          <Button
+                            color="danger"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleRemoveUser(user.id)}
+                            title={t("remove")}
+                          >
+                            <i className="tim-icons icon-trash-simple" />
                           </Button>
                         )}
                       </td>
