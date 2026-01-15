@@ -38,15 +38,6 @@ function CompetitionResults() {
         fetchDisciplines();
     }, []);
 
-    useEffect(() => {
-        if(isAdminOrLeader && navbarSelectedYear) {
-            console.log("Fetching results for admin year:", navbarSelectedYear);
-            fetchResults(navbarSelectedYear, selectedDiscipline, selectedCategory);
-        } else {
-            fetchResults(selectedYear, selectedDiscipline, selectedCategory);
-        }
-    }, [selectedYear, selectedDiscipline, selectedCategory, navbarSelectedYear]);
-
     // Reset page when filters change
     useEffect(() => {
         setCurrentPage(1);
@@ -70,8 +61,27 @@ function CompetitionResults() {
     const rolesArray = rolesString ? rolesString.split(', ') : [];
 
     const isAdminOrLeader = rolesArray.some(role => ['ADMIN', 'LEADER'].includes(role));
-    const isAdminOrLeaderOrAssistant = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT'].includes(role));
+    // const isAdminOrLeaderOrAssistant = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT'].includes(role));
     const isAdminOrLeaderOrAssistantOrReferee = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT', 'REFEREE'].includes(role));
+
+    // Auto-select last available year for non-admin users if no year selected
+    useEffect(() => {
+        if (!isAdminOrLeader && years.length > 0 && !selectedYear) {
+            const maxYear = Math.max(...years);
+            setSelectedYear(maxYear);
+        }
+    }, [years, selectedYear, isAdminOrLeader]);
+
+    useEffect(() => {
+        // Auto-select year from admin navbar for admins/leaders
+        if (isAdminOrLeader && navbarSelectedYear) {
+            setSelectedYear(navbarSelectedYear);
+            fetchResults(navbarSelectedYear, selectedDiscipline, selectedCategory);
+        } else {
+            setSelectedYear(selectedYear);
+            fetchResults(selectedYear, selectedDiscipline, selectedCategory);
+        }
+    }, [selectedYear, selectedDiscipline, selectedCategory, navbarSelectedYear, isAdminOrLeader]);
 
     const fetchDisciplines = async () => {
         try {
@@ -194,13 +204,6 @@ function CompetitionResults() {
     const toggleDropdownDiscipline = () => setDropdownOpenDiscipline(!dropdownOpenDiscipline);
     const toggleDropdownCategory = () => setDropdownOpenCategory(!dropdownOpenCategory);
 
-    // Auto-select year from admin navbar for admins/leaders
-    useEffect(() => {
-        if (isAdminOrLeader && navbarSelectedYear) {
-            setSelectedYear(navbarSelectedYear);
-        }
-    }, [navbarSelectedYear, isAdminOrLeader]);
-
     // Prepare grouped structures for rendering
     const getCategoryLabel = (cat) => {
         if (cat === 'HIGH_AGE_CATEGORY') return t("students");
@@ -235,9 +238,7 @@ function CompetitionResults() {
                                             {selectedYear || t("selectYear")}
                                         </DropdownToggle>
                                         <DropdownMenu>
-                                            <DropdownItem onClick={() => setSelectedYear('')}>{t('clearSearch') || 'Vymazat'}</DropdownItem>
-                                            <DropdownItem divider />
-                                            {years.map(year => (
+                                            {[...years].reverse().map(year => (
                                                 <DropdownItem key={year} onClick={() => setSelectedYear(year)}>
                                                     {year}
                                                 </DropdownItem>
@@ -281,8 +282,8 @@ function CompetitionResults() {
                         <CardBody>
                             {results.length > 0 ? (
                                 <>
-                                    {/* Grouped rendering when no specific category or discipline is selected */}
-                                    {(!selectedCategory && !selectedDiscipline) ? (
+                                    {/* Grouped rendering when NOT both filters selected - group by unselected dimension */}
+                                    {(!selectedCategory || !selectedDiscipline) ? (
                                         Object.keys(groupedByCategoryAndDiscipline).map(cat => (
                                             <div key={cat} style={{ marginBottom: '1.5rem' }}>
                                                 <h5>{getCategoryLabel(cat)}</h5>
