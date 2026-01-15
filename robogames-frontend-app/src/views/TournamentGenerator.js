@@ -8,8 +8,10 @@ import {
     Row, Col, Button,
     FormGroup, Label, Input,
     Table, Badge, Spinner, Alert,
-    Modal, ModalHeader, ModalBody, ModalFooter
+    Modal, ModalHeader, ModalBody, ModalFooter,
+    Nav, NavItem, NavLink, TabContent, TabPane
 } from 'reactstrap';
+import classnames from 'classnames';
 import { Bracket, Seed, SeedItem, SeedTeam } from "react-brackets";
 import { useUser } from "contexts/UserContext";
 import { useAdmin } from "contexts/AdminContext";
@@ -136,36 +138,43 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
 };
 
 // Custom Seed component for react-brackets
-const TournamentSeed = ({ seed, breakpoint, isDark }) => (
-    <Seed mobileBreakpoint={breakpoint} style={{ fontSize: 12 }}>
-        <SeedItem style={{
-            background: isDark 
-                ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
-                : 'linear-gradient(135deg, #fff 0%, #f8f9fa 100%)',
-            border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
-            borderRadius: '8px',
-            boxShadow: isDark 
-                ? '0 4px 15px rgba(0,0,0,0.3)' 
-                : '0 4px 15px rgba(0,0,0,0.1)'
-        }}>
-            <div>
-                <SeedTeam style={{
-                    background: isDark ? '#252536' : '#fff',
-                    color: isDark ? '#fff' : '#32325d',
-                    borderBottom: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
-                }}>
-                    {seed.teams[0]?.name || (t('waitingForWinner') || 'Čeká na vítěze')}
-                </SeedTeam>
-                <SeedTeam style={{
-                    background: isDark ? '#252536' : '#fff',
-                    color: isDark ? '#fff' : '#32325d'
-                }}>
-                    {seed.teams[1]?.name || (t('waitingForWinner') || 'Čeká na vítěze')}
-                </SeedTeam>
-            </div>
-        </SeedItem>
-    </Seed>
-);
+const TournamentSeed = ({ seed, breakpoint, isDark }) => {
+    const isBye = seed.isBye;
+    
+    return (
+        <Seed mobileBreakpoint={breakpoint} style={{ fontSize: 12 }}>
+            <SeedItem style={{
+                background: isBye 
+                    ? (isDark ? 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)' : 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)')
+                    : (isDark 
+                        ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
+                        : 'linear-gradient(135deg, #fff 0%, #f8f9fa 100%)'),
+                border: `1px solid ${isBye ? (isDark ? '#4a5568' : '#a0aec0') : (isDark ? '#3d3d5c' : '#e0e0e0')}`,
+                borderRadius: '8px',
+                boxShadow: isDark 
+                    ? '0 4px 15px rgba(0,0,0,0.3)' 
+                    : '0 4px 15px rgba(0,0,0,0.1)',
+                opacity: isBye ? 0.7 : 1
+            }}>
+                <div>
+                    <SeedTeam style={{
+                        background: isDark ? '#252536' : '#fff',
+                        color: isDark ? '#fff' : '#32325d',
+                        borderBottom: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
+                    }}>
+                        {isBye ? (t('bye') || 'BYE - automatický postup') : (seed.teams[0]?.name || (t('waitingForWinner') || 'Čeká na vítěze'))}
+                    </SeedTeam>
+                    <SeedTeam style={{
+                        background: isDark ? '#252536' : '#fff',
+                        color: isDark ? (isBye ? '#666' : '#fff') : (isBye ? '#aaa' : '#32325d')
+                    }}>
+                        {isBye ? '—' : (seed.teams[1]?.name || (t('waitingForWinner') || 'Čeká na vítěze'))}
+                    </SeedTeam>
+                </div>
+            </SeedItem>
+        </Seed>
+    );
+};
 
 // Bracket visualization component using react-brackets
 const BracketVisualization = ({ bracket, isDark }) => {
@@ -182,6 +191,7 @@ const BracketVisualization = ({ bracket, isDark }) => {
         title: round.name,
         seeds: round.matches.map((match, matchIndex) => ({
             id: match.tempId || `${roundIndex}-${matchIndex}`,
+            isBye: match.isBye || false,
             teams: [
                 { 
                     name: match.robotA 
@@ -232,9 +242,8 @@ function TournamentGenerator() {
     const [selectedDiscipline, setSelectedDiscipline] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('HIGH_AGE_CATEGORY');
     const [params, setParams] = useState({
-        matchTimeMinutes: 5,
+        matchTimeMinutes: 3,
         groupCount: 4,
-        maxGroupSize: 5,
         advancingPerGroup: 2
     });
     const [playgrounds, setPlaygrounds] = useState([]);
@@ -511,6 +520,14 @@ function TournamentGenerator() {
 
         setSaving(true);
         setShowSaveConfirmModal(false);
+
+        console.log(JSON.stringify({
+                        disciplineId: preview.disciplineId,
+                        category: preview.category,
+                        year: preview.year,
+                        groups: preview.groups,
+                        bracket: preview.bracket
+                    }));
         
         try {
             const response = await fetch(
@@ -638,20 +655,25 @@ function TournamentGenerator() {
         return counts.length > 0 ? Math.max(...counts) : 0;
     };
 
-    // Tab styles based on theme
-    const getTabStyle = (isActive) => ({
-        cursor: 'pointer',
-        background: isActive 
-            ? '#5e72e4'
-            : (isDark ? '#2d2d44' : '#f8f9fa'),
-        color: isActive ? 'white' : (isDark ? '#a0aec0' : '#525f7f'),
-        border: isActive ? 'none' : `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
-        borderRadius: '8px 8px 0 0',
-        padding: '10px 20px',
-        fontWeight: isActive ? '600' : '400',
-        marginRight: '4px',
-        transition: 'all 0.2s ease'
-    });
+    // Calculate bracket phase time more accurately
+    // Each round must wait for the previous round to complete
+    // Within each round, matches can be parallelized across playgrounds
+    const getBracketPhaseTime = () => {
+        if (!preview || !preview.bracket || !preview.bracket.rounds) return 0;
+        
+        const pgCount = playgrounds.length || 1;
+        let totalTime = 0;
+        
+        preview.bracket.rounds.forEach(round => {
+            // Count actual matches (excluding BYEs)
+            const actualMatches = round.matches.filter(m => !m.isBye).length;
+            // Time for this round = ceil(matches / playgrounds) * matchTime
+            const roundTime = Math.ceil(actualMatches / pgCount) * params.matchTimeMinutes;
+            totalTime += roundTime;
+        });
+        
+        return totalTime;
+    };
 
     return (
         <div className="content">
@@ -740,27 +762,32 @@ function TournamentGenerator() {
                             {tournamentExists && (
                                 <Alert color="warning" style={{ borderRadius: '8px' }}>
                                     <i className="tim-icons icon-alert-circle-exc mr-2" />
-                                    {t('tournamentAlreadyExists') || 'Pro tuto kombinaci již existuje turnaj.'}
-                                    <Button 
-                                        color="danger" 
-                                        size="sm" 
-                                        className="ml-3 ms-3"
-                                        onClick={handleDeleteTournament}
-                                        style={{ borderRadius: '6px' }}
-                                    >
-                                        <i className="tim-icons icon-trash-simple mr-1" />
-                                        {t('deleteTournament') || 'Smazat turnaj'}
-                                    </Button>
-                                    <Button 
-                                        color="success" 
-                                        size="sm" 
-                                        className="ml-2 ms-2"
-                                        onClick={() => setShowStartFinalModal(true)}
-                                        style={{ borderRadius: '6px' }}
-                                    >
-                                        <i className="tim-icons icon-triangle-right-17 mr-1" />
-                                        {t('startFinal') || 'Spustit finále'}
-                                    </Button>
+                                    <strong>{t('warning') || 'Upozornění'}:</strong> {t('tournamentAlreadyExists') || 'V systému již existují vygenerované zápasy pro tuto disciplínu a kategorii.'}
+                                    <div className="mt-2">
+                                        <Button 
+                                            color="danger" 
+                                            size="sm" 
+                                            onClick={handleDeleteTournament}
+                                            style={{ borderRadius: '6px' }}
+                                        >
+                                            <i className="tim-icons icon-trash-simple mr-1" />
+                                            {t('deleteAllMatches') || 'Odstranit všechny zápasy'}
+                                        </Button>
+                                        <Button 
+                                            color="success" 
+                                            size="sm" 
+                                            className="ml-2 ms-2"
+                                            onClick={() => setShowStartFinalModal(true)}
+                                            style={{ borderRadius: '6px' }}
+                                        >
+                                            <i className="tim-icons icon-triangle-right-17 mr-1" />
+                                            {t('startFinal') || 'Spustit finále'}
+                                        </Button>
+                                    </div>
+                                    <small className="d-block mt-2" style={{ opacity: 0.8 }}>
+                                        <i className="tim-icons icon-bulb-63 mr-1" />
+                                        {t('deleteMatchesHint') || 'Tlačítko "Odstranit všechny zápasy" smaže pouze zápasy odpovídající vybrané disciplíně a kategorii.'}
+                                    </small>
                                 </Alert>
                             )}
 
@@ -772,7 +799,7 @@ function TournamentGenerator() {
                                 {t('parameters') || 'Parametry generování'}
                             </h5>
                             <Row className="mt-3">
-                                <Col md="2">
+                                <Col md="4">
                                     <FormGroup>
                                         <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
                                             {t('matchTime') || 'Čas na zápas (min)'}
@@ -787,7 +814,7 @@ function TournamentGenerator() {
                                         />
                                     </FormGroup>
                                 </Col>
-                                <Col md="2">
+                                <Col md="4">
                                     <FormGroup>
                                         <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
                                             {t('groupCount') || 'Počet skupin'}
@@ -803,31 +830,15 @@ function TournamentGenerator() {
                                         />
                                     </FormGroup>
                                 </Col>
-                                <Col md="2">
+                                <Col md="4">
                                     <FormGroup>
                                         <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
-                                            {t('maxGroupSize') || 'Max. ve skupině'}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            min={params.advancingPerGroup + 1}
-                                            max="12"
-                                            value={params.maxGroupSize}
-                                            onChange={(e) => setParams({...params, maxGroupSize: parseInt(e.target.value) || params.advancingPerGroup + 1})}
-                                            className={isDark ? 'bg-dark text-white' : ''}
-                                            style={{ borderRadius: '8px' }}
-                                        />
-                                    </FormGroup>
-                                </Col>
-                                <Col md="2">
-                                    <FormGroup>
-                                        <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
-                                            {t('advancingPerGroup') || 'Postupujících'}
+                                            {t('advancingPerGroup') || 'Postupujících ze skupiny'}
                                         </Label>
                                         <Input
                                             type="number"
                                             min="1"
-                                            max={params.maxGroupSize - 1}
+                                            max="4"
                                             value={params.advancingPerGroup}
                                             onChange={(e) => setParams({...params, advancingPerGroup: parseInt(e.target.value) || 1})}
                                             className={isDark ? 'bg-dark text-white' : ''}
@@ -835,35 +846,27 @@ function TournamentGenerator() {
                                         />
                                     </FormGroup>
                                 </Col>
-                                <Col md="2">
-                                    <FormGroup>
-                                        <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
-                                            {t('playgroundsAvailable') || 'Hřišť k dispozici'}
-                                        </Label>
-                                        <div style={{ 
-                                            padding: '8px 12px', 
-                                            background: isDark ? '#1e1e2f' : '#f8f9fa',
-                                            borderRadius: '8px',
-                                            border: `1px solid ${isDark ? '#3d3d5c' : '#ced4da'}`,
-                                            color: isDark ? '#fff' : '#32325d',
-                                            fontWeight: '600'
-                                        }}>
-                                            {playgrounds.length}
-                                        </div>
-                                    </FormGroup>
-                                </Col>
-                                <Col md="2" className="d-flex align-items-end">
+                            </Row>
+                            <Row className="mt-2">
+                                <Col md="12" className="d-flex justify-content-center">
                                     <Button 
                                         color="primary" 
                                         onClick={handleGeneratePreview}
                                         disabled={generating || !selectedDiscipline || currentRobotCount === 0 || playgrounds.length === 0}
-                                        className="mb-3 w-100"
-                                        style={{ borderRadius: '8px' }}
+                                        style={{ 
+                                            borderRadius: '8px',
+                                            padding: '12px 30px',
+                                            fontSize: '1rem',
+                                            fontWeight: '600',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}
                                     >
                                         {generating ? (
                                             <><Spinner size="sm" /> {t('generating') || 'Generuji...'}</>
                                         ) : (
-                                            <><i className="tim-icons icon-spaceship mr-1" /> {t('generatePreview') || 'Generovat'}</>
+                                            <><i className="tim-icons icon-spaceship" /> {t('generatePreview') || 'Generovat náhled'}</>
                                         )}
                                     </Button>
                                 </Col>
@@ -897,11 +900,11 @@ function TournamentGenerator() {
                                 <div className="d-flex gap-2 flex-wrap mt-2">
                                     <Badge color="secondary" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
                                         <i className="tim-icons icon-single-02 mr-1" />
-                                        {t('robotsInTournament') || 'Robotů v turnaji'}: {preview.totalRobots}
+                                        {t('robotsInTournament') || 'Robotů v turnaji'}: {preview.groups?.reduce((sum, g) => sum + (g.robots?.length || 0), 0) || 0}
                                     </Badge>
                                     <Badge color="info" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
                                         <i className="tim-icons icon-bullet-list-67 mr-1" />
-                                        {t('groups') || 'Skupiny'}: {preview.groups.length} ({t('groupSizeAuto') || 'velikost'}: {preview.groupSize || preview.groups[0]?.robots?.length || '-'})
+                                        {t('groups') || 'Skupiny'}: {preview.groups.length}
                                     </Badge>
                                     <Badge color="primary" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
                                         <i className="tim-icons icon-controller mr-1" />
@@ -909,21 +912,22 @@ function TournamentGenerator() {
                                     </Badge>
                                     <Badge color="success" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
                                         <i className="tim-icons icon-trophy mr-1" />
-                                        {t('totalBracketMatches') || 'Vyřazovací'}: {preview.totalBracketMatches}
+                                        {t('bracketMatches') || 'Pavouk'}: {preview.totalBracketMatches - (preview.bracket?.byeCount || 0)} {t('matches') || 'zápasů'}
+                                        {preview.bracket?.byeCount > 0 && ` (+${preview.bracket.byeCount} BYE)`}
                                     </Badge>
                                 </div>
                                 <div className="d-flex gap-2 flex-wrap mt-2">
                                     <Badge color="warning" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
                                         <i className="tim-icons icon-time-alarm mr-1" />
-                                        {t('groupPhaseTime') || 'Čas skupiny'}: ~{getMaxMatchesOnPlayground() * params.matchTimeMinutes} min ({playgrounds.length} {t('playgrounds') || 'hřišť'})
+                                        {t('groupPhaseTime') || 'Čas skupiny'}: ~{getMaxMatchesOnPlayground() * params.matchTimeMinutes} min
                                     </Badge>
                                     <Badge color="warning" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
                                         <i className="tim-icons icon-time-alarm mr-1" />
-                                        {t('bracketPhaseTime') || 'Čas pavouk'}: ~{Math.ceil((preview.totalBracketMatches * params.matchTimeMinutes) / (playgrounds.length || 1))} min
+                                        {t('bracketPhaseTime') || 'Čas pavouk'}: ~{getBracketPhaseTime()} min ({preview.bracket?.rounds?.length || 0} {t('rounds') || 'kol'})
                                     </Badge>
                                     <Badge color="danger" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
                                         <i className="tim-icons icon-watch-time mr-1" />
-                                        {t('totalTimeEstimate') || 'Celkem'}: ~{(getMaxMatchesOnPlayground() * params.matchTimeMinutes) + Math.ceil((preview.totalBracketMatches * params.matchTimeMinutes) / (playgrounds.length || 1))} min
+                                        {t('totalTimeEstimate') || 'Celkem'}: ~{(getMaxMatchesOnPlayground() * params.matchTimeMinutes) + getBracketPhaseTime()} min
                                     </Badge>
                                 </div>
                             </CardHeader>
@@ -937,70 +941,85 @@ function TournamentGenerator() {
                                     </Alert>
                                 )}
 
-                                {/* Custom Tabs */}
-                                <div className="d-flex mb-0">
-                                    <div
-                                        onClick={() => setActiveTab('groups')}
-                                        style={getTabStyle(activeTab === 'groups')}
-                                    >
-                                        <i className="tim-icons icon-bullet-list-67 mr-2" />
-                                        {t('groups') || 'Skupiny'} ({preview.groups.length})
-                                    </div>
-                                    <div
-                                        onClick={() => setActiveTab('bracket')}
-                                        style={getTabStyle(activeTab === 'bracket')}
-                                    >
-                                        <i className="tim-icons icon-trophy mr-2" />
-                                        {t('bracket') || 'Pavouk'}
-                                    </div>
-                                </div>
+                                {/* Tabs Navigation */}
+                                <Nav tabs className="mb-4">
+                                    <NavItem>
+                                        <NavLink
+                                            className={classnames({ active: activeTab === 'groups' })}
+                                            onClick={() => setActiveTab('groups')}
+                                            style={{ 
+                                                cursor: 'pointer',
+                                                ...(activeTab === 'groups' && !isDark ? {
+                                                    backgroundColor: '#5e72e4',
+                                                    color: '#fff',
+                                                    borderColor: '#5e72e4'
+                                                } : {})
+                                            }}
+                                        >
+                                            <i className="tim-icons icon-bullet-list-67 mr-2" />
+                                            {t('groups') || 'Skupiny'}
+                                            <Badge color="info" className="ml-2 ms-2">{preview.groups.length}</Badge>
+                                        </NavLink>
+                                    </NavItem>
+                                    <NavItem>
+                                        <NavLink
+                                            className={classnames({ active: activeTab === 'bracket' })}
+                                            onClick={() => setActiveTab('bracket')}
+                                            style={{ 
+                                                cursor: 'pointer',
+                                                ...(activeTab === 'bracket' && !isDark ? {
+                                                    backgroundColor: '#5e72e4',
+                                                    color: '#fff',
+                                                    borderColor: '#5e72e4'
+                                                } : {})
+                                            }}
+                                        >
+                                            <i className="tim-icons icon-trophy mr-2" />
+                                            {t('bracket') || 'Pavouk'}
+                                            {preview.bracket?.byeCount > 0 && (
+                                                <Badge color="warning" className="ml-2 ms-2">{preview.bracket.byeCount} BYE</Badge>
+                                            )}
+                                        </NavLink>
+                                    </NavItem>
+                                </Nav>
 
-                                {/* Tab Content */}
-                                <div style={{ 
-                                    background: isDark ? '#1e1e2f' : '#f8f9fa',
-                                    borderRadius: '0 8px 8px 8px',
-                                    padding: '20px',
-                                    border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
-                                    borderTop: 'none'
-                                }}>
-                                    {activeTab === 'groups' && (
-                                        <>
-                                            <Alert color="info" style={{ borderRadius: '8px', marginBottom: '15px' }}>
-                                                <i className="tim-icons icon-tap-02 mr-2" />
-                                                {t('dragDropHint') || 'Přetáhněte roboty mezi skupinami pro změnu rozložení'}
-                                            </Alert>
-                                            <Row>
-                                                {preview.groups.map((group, idx) => (
-                                                    <Col lg="6" xl="4" key={group.groupId}>
-                                                        <RoundRobinTable 
-                                                            group={group} 
-                                                            isDark={isDark}
-                                                            playgrounds={playgrounds}
-                                                            onPlaygroundChange={handlePlaygroundChange}
-                                                            onDragStart={handleDragStart}
-                                                            onDragOver={handleDragOver}
-                                                            onDrop={handleDrop}
-                                                            draggedRobot={draggedRobot}
-                                                        />
-                                                    </Col>
-                                                ))}
-                                            </Row>
-                                        </>
-                                    )}
+                                <TabContent activeTab={activeTab}>
+                                    {/* Tab 1: Groups */}
+                                    <TabPane tabId="groups">
+                                        <Alert color="info" style={{ borderRadius: '8px', marginBottom: '15px' }}>
+                                            <i className="tim-icons icon-tap-02 mr-2" />
+                                            {t('dragDropHint') || 'Přetáhněte roboty mezi skupinami pro změnu rozložení'}
+                                        </Alert>
+                                        <Row>
+                                            {preview.groups.map((group, idx) => (
+                                                <Col lg="6" xl="4" key={group.groupId}>
+                                                    <RoundRobinTable 
+                                                        group={group} 
+                                                        isDark={isDark}
+                                                        playgrounds={playgrounds}
+                                                        onPlaygroundChange={handlePlaygroundChange}
+                                                        onDragStart={handleDragStart}
+                                                        onDragOver={handleDragOver}
+                                                        onDrop={handleDrop}
+                                                        draggedRobot={draggedRobot}
+                                                    />
+                                                </Col>
+                                            ))}
+                                        </Row>
+                                    </TabPane>
 
-                                    {activeTab === 'bracket' && (
-                                        <>
-                                            <BracketVisualization 
-                                                bracket={preview.bracket} 
-                                                isDark={isDark}
-                                            />
-                                            <Alert color="secondary" className="mt-3" style={{ borderRadius: '8px' }}>
-                                                <i className="tim-icons icon-sound-wave mr-1" />
-                                                {t('bracketInfo') || 'Zápasy v pavouku budou automaticky naplněny vítězi ze skupin po spuštění finále.'}
-                                            </Alert>
-                                        </>
-                                    )}
-                                </div>
+                                    {/* Tab 2: Bracket */}
+                                    <TabPane tabId="bracket">
+                                        <BracketVisualization 
+                                            bracket={preview.bracket} 
+                                            isDark={isDark}
+                                        />
+                                        <Alert color="secondary" className="mt-3" style={{ borderRadius: '8px' }}>
+                                            <i className="tim-icons icon-sound-wave mr-1" />
+                                            {t('bracketInfo') || 'Zápasy v pavouku budou automaticky naplněny vítězi ze skupin po spuštění finále.'}
+                                        </Alert>
+                                    </TabPane>
+                                </TabContent>
                             </CardBody>
                             <CardFooter style={{ 
                                 background: isDark ? '#1e1e2f' : '#f8f9fa',
@@ -1041,11 +1060,11 @@ function TournamentGenerator() {
                     color: isDark ? 'white' : '#32325d'
                 }}>
                     <i className="tim-icons icon-alert-circle-exc mr-2" style={{ color: '#ffd600' }} />
-                    {t('confirmSave') || 'Potvrzení uložení'}
+                    {t('confirmSaveTournament') || 'Potvrzení uložení'}
                 </ModalHeader>
                 <ModalBody style={{ background: isDark ? '#2d2d44' : '#fff' }}>
                     <p style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
-                        {t('confirmSaveDescription') || 'Opravdu chcete uložit tento turnaj? Tato akce vytvoří všechny skupinové zápasy a strukturu vyřazovacího pavouka.'}
+                        {t('confirmSaveTournamentDescription')}
                     </p>
                     {preview && (
                         <div style={{ 

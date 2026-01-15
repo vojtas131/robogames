@@ -8,7 +8,6 @@
     "managePg": "Playground Management",
     "robotConf": "Robot Confirmation",
     "robotManagement": "Robot Management",
-
     "tokenNone": "Token not provided.",
     "teamLoadFail": "Failed to\u00a0load teams or\u00a0data is\u00a0not in\u00a0the correct format.",
     "teamLoadError": "Error loading teams:",
@@ -16,14 +15,12 @@
     "teamName": "Team Name",
     "leader": "Leader",
     "members": "Members",
-
     "dataFetchFail": "Failed to\u00a0fetch data.",
     "dataFetchError": "Error fetching data:",
     "registeredTeams": "Registered teams for\u00a0{{year}}",
     "teamID": "Team ID",
     "category": "Category",
     "noRegsFound": "No registrations found for\u00a0this year.",
-
     "error": "Error: {{error}}\u00a0-\u00a0{{message}}",
     "somethingWrong": "Something went wrong",
     "serverError": "A\u00a0server error occurred",
@@ -75,7 +72,6 @@
     "close": "Close",
     "showParticipants": "Show Participants",
     "noComps": "No competitions created.",
-
     "unreg": "Are you sure you want to\u00a0cancel the\u00a0registration?",
     "dataError": "Error: {{data}}",
     "unknownError": "An unknown error occurred",
@@ -130,7 +126,6 @@
     "mobile": "mobile:\u00a0{{number}}",
     "organisation": "Organizational matters",
     "dean": "Dean of\u00a0FAI TBU in\u00a0Zlín",
-
     "homeWelcome": "Welcome to\u00a0the Robogames Information System!",
     "homeP1": "This site serves as\u00a0an information system for\u00a0the management and\u00a0organization of\u00a0the Robogames competition. It is\u00a0intended for\u00a0participant registration, team and\u00a0category management, and\u00a0competition workflow organization.",
     "homeP2": "The main website with information for\u00a0the public, competition rules, news, and\u00a0program can be\u00a0found at:",
@@ -200,7 +195,6 @@
     "pgID": "ID\u00a0-\u00a0{{id}}",
     "pgDisc": "Discipline: {{name}}",
     "pgNum": "Playground Number: {{number}}",
-
     "teamShowLogin": "Please log in\u00a0to\u00a0view the\u00a0team.",
     "inNoTeam": "You are not a\u00a0member of\u00a0any team. To participate in\u00a0the competition, create a\u00a0new team or\u00a0ask the\u00a0creator of\u00a0another team to\u00a0send you an\u00a0invitation.",
     "teamFetchFail": "Failed to\u00a0load team data.",
@@ -292,7 +286,6 @@
     "registerHere": "YOU CAN REGISTER FOR\u00a0THE COMPETITION HERE",
     "compRegister": "Register Team for\u00a0Competition",
     "robotSelectDiscipline": "Select a\u00a0discipline for\u00a0robot registration.",
-
     "scoreRecorded": "Score successfully recorded.",
     "scoreSubmitError": "Error saving score: {{message}}",
     "matchesRemoved": "All matches successfully removed.",
@@ -470,7 +463,6 @@
     "enterPgTitle": "Enter playground title",
     "number": "Number",
     "enterNum": "Enter unique number",
-
     "invalidName": "Name contains invalid characters.",
     "shortName": "Name is\u00a0too short.",
     "longName": "Name is\u00a0too long.",
@@ -495,7 +487,6 @@
     "birthDate": "Date of\u00a0Birth",
     "hasAccount": "Already have an\u00a0account?",
     "typeError": "Unexpected response format.",
-
     "robotAction": "Are you sure you want to\u00a0{{conf}} this robot?",
     "confirm_lower": "confirm",
     "remove_lower": "remove",
@@ -523,7 +514,6 @@
     "yes": "Yes",
     "no": "No",
     "noRobotsFoundYear": "No robots present for\u00a0this year.",
-
     "robotRegSuccess": "Robot successfully registered for\u00a0discipline.",
     "robotRegMax": "You have exceeded the\u00a0limit of\u00a0registered robots per\u00a0discipline.",
     "robotRegFail": "Failed to\u00a0register robot for\u00a0discipline: {{message}}",
@@ -549,7 +539,6 @@
     "robotRegistered": "Robot registered. Waiting for\u00a0organizer confirmation. Confirmation will be\u00a0granted after physical inspection of\u00a0the robot before the\u00a0start of\u00a0the competition.",
     "robotRegister": "Register Robot for\u00a0Discipline",
     "robotEnterName": "Enter robot name",
-
     "rules": "Robogames Competition Rules",
     "ageCat": "Age Categories",
     "ageCatP1": "Based on\u00a0birth date (filled in\u00a0the application), contestants will be\u00a0divided into the\u00a0following categories:",
@@ -643,7 +632,6 @@
     "cleanerV2P2": "The bin has dimensions 210×210×100\u00a0mm. The back side is\u00a0300\u00a0mm high.",
     "cleanerV2P3": "A\u00a0cube is\u00a0counted only if\u00a0after the\u00a0attempt is\u00a0finished it is\u00a0inside the\u00a0bin.",
     "reference": "Reference",
-
     "discRemoveCheck": "Are you sure you want to\u00a0remove this discipline?",
     "discRemoveFail": "Could not remove discipline.",
     "networkFail": "Connection was not okay.",
@@ -672,7 +660,6 @@
     "maxRounds_colon": "Max Rounds:",
     "unlimited": "Unlimited",
     "remove": "Remove",
-
     "fillAll": "Please fill in\u00a0all fields.",
     "userCreated": "User successfully added!",
     "userCreateFail": "Failed to\u00a0add user.",
@@ -706,7 +693,6 @@
     "roleAdd": "Add Role",
     "roleRemove": "Remove Role",
     "userEdit": "Edit User Data",
-
     "userUpdateFail": "Could not edit user data.",
     "dataSaved": "Data successfully saved.",
     "dataSaveFail": "Saving information failed. Please try again later.",
@@ -722,7 +708,6 @@
     "editProfileDesc": "Edit your personal information",
     "emailCantChange": "Email cannot be\u00a0changed",
     "saveChanges": "Save Changes",
-
     "selectCompetition": "Select a\u00a0competition year to\u00a0register your team",
     "noCompetitions": "No available competitions",
     "registered": "Registered",
@@ -734,16 +719,12 @@
     "pending": "Pending confirmation",
     "setup": "Setup",
     "verification": "Verification",
-
     "wrongMailPassword": "Incorrect email or\u00a0password",
-
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
     "cz": "CZ",
     "en": "EN",
-
     "about": "About Competition",
-
     "notification": "Notification",
     "notifHere": "Your notifications will appear here",
     "inviteFrom": "You have a\u00a0team invitation from\u00a0",
@@ -790,7 +771,6 @@
     "noUsersFound": "No users found",
     "teacherInfo": "Teacher Information",
     "noMembers": "No team members available",
-
     "teamRegister": "Team Registration",
     "teacherName": "Teacher's First Name",
     "teacherSurname": "Teacher's Surname",
@@ -810,12 +790,10 @@
     "notProvided": "Not provided",
     "back": "Back",
     "err": "Error",
-
     "loggingIn": "Logging in...",
     "loginFailed": "Login failed.",
     "generate": "Generation",
     "saveSchedule": "Save Schedule",
-
     "teamManagement": "Team Management",
     "teamCreated": "Team successfully created!",
     "teamEdited": "Team successfully edited!",
@@ -836,7 +814,6 @@
     "transfer": "Transfer",
     "selectUser": "Select User",
     "noChange": "No change",
-
     "registrationManagement": "Registration Management",
     "registrationCreate": "Create Registration",
     "registrationCreated": "Registration successfully created!",
@@ -852,7 +829,6 @@
     "registrationRemoved": "Registration successfully removed!",
     "registrationRemoveFail": "Failed to\u00a0remove registration.",
     "selectRegistration": "Select registration",
-
     "robotCreated": "Robot successfully created!",
     "robotCreateFail": "Failed to\u00a0create robot.",
     "robotEdit": "Edit Robot",
@@ -869,7 +845,6 @@
     "forceRemove": "Force Remove",
     "teamRegistration": "Team Registration",
     "removeDiscipline": "Remove from\u00a0Discipline",
-
     "searchUserPlaceholder": "Start typing to\u00a0search...",
     "searchAndSelectUser": "Search and\u00a0Select User",
     "leaveEmptyNoChange": "Leave empty to\u00a0keep current leader",
@@ -878,7 +853,6 @@
     "selectedUser": "Found User",
     "clearSelection": "Clear Selection",
     "searchTeamPlaceholder": "Start typing to\u00a0search for\u00a0a team...",
-
     "competitionYear": "Competition Year",
     "competitionStarted": "Competition Started",
     "competitionNotStarted": "Competition Not Started",
@@ -923,7 +897,6 @@
     "userBanned": "Your account has been banned. Contact the\u00a0administrator for\u00a0more information.",
     "cannotBanSelf": "You cannot ban yourself",
     "accountBannedTitle": "Account Banned",
-
     "matchSchedule": "Call System",
     "allCategories": "All Categories",
     "autoRotate": "Auto Rotate",
@@ -933,17 +906,14 @@
     "matchesInQueue": "matches in\u00a0queue",
     "scheduledMatchesInfo": "Data is\u00a0automatically updated every 5\u00a0seconds",
     "all": "All",
-
     "robotMatches": "Robot Matches",
     "noMatches": "The robot has no\u00a0scheduled or\u00a0played matches yet.",
-
     "matchCallSystem": "Call System",
     "matchCallSystemDesc": "Robots currently being called for\u00a0a match",
     "noActiveMatches": "No active matches",
     "noActiveMatchesDesc": "No robots are currently being called for\u00a0a match.",
     "fullscreen": "Maximize",
     "exitFullscreen": "Exit Maximize",
-
     "lastUpdate": "Last Update",
     "scoreHintInt": "Enter an\u00a0integer",
     "confirmedRobots": "Confirmed Robots",
@@ -951,28 +921,21 @@
     "onlyConfirmedRobots": "Only Confirmed Robots",
     "confirmedRobotsAvailable": "confirmed robots available",
     "opponent": "Opponent",
-
     "showingItems": "Showing",
     "itemsPerPage": "Per page",
     "of": "of",
-
     "groupName": "Group Name",
     "noGroup": "No Group",
-
     "competitionManagement": "Years Management",
     "totalCompetitions": "Total Years",
     "allStatuses": "All Statuses",
     "searchCompetition": "Search Year...",
-
     "totalTeams": "Total Teams",
-
     "playgroundManagement": "Playground Management",
     "disciplines": "Disciplines",
     "filtered": "Filtered",
     "searchPlayground": "Search playground...",
-
     "createAndWriteScore": "Create and\u00a0Enter Score",
-
     "searchByName": "First Name",
     "searchBySurname": "Surname",
     "searchByFullname": "Full Name",
@@ -1000,7 +963,6 @@
     "allDisciplines": "All Disciplines",
     "create": "Create",
     "compCreated": "Year was created",
-
     "tournamentGenerator": "Tournament Generator",
     "generatePreview": "Generate Preview",
     "generating": "Generating...",
@@ -1019,12 +981,15 @@
     "startFinalDescription": "This action will move winners from groups to the final bracket. Make sure all group matches are completed.",
     "finalStarted": "Final bracket started",
     "errorStartingFinal": "Error starting final",
-    "tournamentAlreadyExists": "A tournament already exists for this discipline, category, and year combination.",
+    "tournamentAlreadyExists": "Matches for this discipline and category already exist in the system.",
+    "warning": "Warning",
+    "deleteAllMatches": "Delete all matches",
+    "deleteMatchesHint": "The 'Delete all matches' button will only remove matches for the selected discipline and category.",
     "preview": "Preview",
     "parameters": "Generation Parameters",
     "matchTime": "Match Time (min)",
     "groupCount": "Number of Groups",
-    "maxGroupSize": "Max. Group Size",
+    
     "advancingPerGroup": "Advancing per Group",
     "playgroundsAvailable": "Playgrounds Available",
     "noPlaygroundsForDiscipline": "No playgrounds defined for this discipline. Create playgrounds in the playground management.",
@@ -1034,12 +999,12 @@
     "group": "Group",
     "robotsInGroup": "Robots in group",
     "matchesSchedule": "Match schedule",
-    "matches": "matches",
     "dropRobotHere": "Drop robot here",
     "advancing": "Advancing",
     "groupMatches": "Group Matches",
     "totalGroupMatches": "Group Matches",
-    "totalBracketMatches": "Bracket Matches",
+    "bracketMatches": "Bracket",
+    "bye": "BYE - automatic advance",
     "estimatedTime": "Estimated Time",
     "waitingForWinner": "Waiting for winner",
     "dragDropHint": "Drag and drop robots between groups to change distribution",
@@ -1049,7 +1014,7 @@
     "confirmedRobotsInCategory": "confirmed robots in this category",
     "selectDifferentCategory": "select a different category or discipline",
     "robotsInTournament": "Robots in tournament",
-    "groupSizeAuto": "size",
+    
     "groupPhaseTime": "Group phase time",
     "bracketPhaseTime": "Bracket time",
     "totalTimeEstimate": "Total",
@@ -1065,5 +1030,8 @@
     "competitionManagementTitle": "Competition Management",
     "tools": "Tools",
     "tournamentGeneratorDesc": "Generate groups and brackets for tournament disciplines",
-    "matchCount": "Match Count"
+    "matchCount": "Match Count",
+    "confirmSaveTournament": "Confirm Save Tournament",
+    "confirmSaveTournamentDescription": "Are you sure you want to save this tournament? This action will create all group matches and the elimination bracket structure.",
+    "confirmAndSave": "Confirm and Save"
 }

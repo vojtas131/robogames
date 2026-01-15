@@ -8,7 +8,6 @@
     "managePg":"Správa hřišť",
     "robotConf":"Potvrzení robotů",
     "robotManagement":"Správa robotů",
-
     "tokenNone":"Token není poskytnut.",
     "teamLoadFail":"Nepodařilo se načíst týmy nebo data nejsou ve\u00a0správném formátu.",
     "teamLoadError":"Chyba při\u00a0načítání týmů:",
@@ -16,14 +15,12 @@
     "teamName":"Název týmu",
     "leader":"Vedoucí",
     "members":"Členové",
-
     "dataFetchFail":"Nepodařilo se načíst data.",
     "dataFetchError":"Chyba při\u00a0načítání dat:",
     "registeredTeams":"Registrované týmy pro\u00a0rok\u00a0{{year}}",
     "teamID":"ID týmu",
     "category":"Kategorie",
     "noRegsFound":"Pro tento rok nebyly nalezeny žádné\u00a0registrace.",
-
     "error":"Chyba: {{error}}\u00a0-\u00a0{{message}}",
     "somethingWrong":"Něco se nepovedlo",
     "serverError":"Došlo k\u00a0chybě na\u00a0serveru",
@@ -75,7 +72,6 @@
     "close":"Zavřít",
     "showParticipants":"Zobrazit účastníky",
     "noComps":"Nejsou vytvořeny žádné\u00a0soutěže.",
-
     "unreg":"Opravdu chcete zrušit registraci?",
     "dataError":"Chyba: {{data}}",
     "unknownError":"Nastala neznámá chyba",
@@ -130,7 +126,6 @@
     "mobile":"mobil:\u00a0{{number}}",
     "organisation":"Organizační záležitosti",
     "dean":"Děkan FAI UTB ve\u00a0Zlíně",
-
     "homeWelcome":"Vítejte v\u00a0informačním systému Robogames!",
     "homeP1":"Tato stránka slouží jako informační systém pro\u00a0správu a\u00a0organizaci soutěže Robogames. Je určena pro\u00a0registraci účastníků, správu týmů, kategorií a\u00a0organizaci průběhu\u00a0soutěže.",
     "homeP2":"Hlavní web s\u00a0informacemi pro\u00a0veřejnost, pravidly soutěže, aktualitami a\u00a0programem naleznete na:",
@@ -200,7 +195,6 @@
     "pgID":"ID\u00a0–\u00a0{{id}}",
     "pgDisc":"Disciplína: {{name}}",
     "pgNum":"Číslo hřiště: {{number}}",
-
     "teamShowLogin":"Pro\u00a0zobrazení týmu se prosím přihlaste.",
     "inNoTeam":"Nejste členem žádného týmu. Pro\u00a0účast v\u00a0soutěži vytvořte nový tým, nebo požádejte tvůrce jiného týmu o\u00a0zaslání pozvánky.",
     "teamFetchFail":"Nepodařilo se načíst data týmu.",
@@ -292,7 +286,6 @@
     "registerHere":"ZDE SE MŮŽETE REGISTROVAT DO\u00a0SOUTĚŽE",
     "compRegister":"Registrovat tým do\u00a0soutěže",
     "robotSelectDiscipline":"Vyberte disciplínu pro\u00a0registraci robota.",
-
     "scoreRecorded":"Skóre bylo úspěšně zapsáno.",
     "scoreSubmitError":"Chyba při\u00a0ukládání skóre: {{message}}",
     "matchesRemoved":"Všechny zápasy byly úspěšně odstraněny.",
@@ -470,7 +463,6 @@
     "enterPgTitle":"Zadejte název hřiště",
     "number":"Číslo",
     "enterNum":"Zadejte unikátní číslo",
-
     "invalidName":"Jméno obsahuje neplatné znaky.",
     "shortName":"Jméno je příliš krátké.",
     "longName":"Jméno je příliš dlouhé.",
@@ -495,7 +487,6 @@
     "birthDate":"Datum narození",
     "hasAccount":"Už máte účet?",
     "typeError":"Nečekaný formát odpovědi.",
-
     "robotAction":"Jste si jisti, že chcete {{conf}} tohoto robota?",
     "confirm_lower":"potvrdit",
     "remove_lower":"vyřadit",
@@ -523,7 +514,6 @@
     "yes":"Ano",
     "no":"Ne",
     "noRobotsFoundYear":"Pro tento ročník nejsou přítomni žádní\u00a0roboti.",
-
     "robotRegSuccess":"Robot byl úspěšně zaregistrován do\u00a0disciplíny.",
     "robotRegMax":"Překročili jste limit počtu registrovaných robotů na\u00a0disciplínu.",
     "robotRegFail":"Nepodařilo se registrovat robota na\u00a0disciplínu: {{message}}",
@@ -549,7 +539,6 @@
     "robotRegistered":"Robot zaregistrován. Čeká se na\u00a0potvrzení organizátory. Potvrzení bude uděleno po\u00a0osobní kontrole robota před začátkem soutěže.",
     "robotRegister":"Registrace robota do\u00a0disciplíny",
     "robotEnterName":"Zadejte jméno robota",
-
     "rules":"Pravidla soutěže Robogames",
     "ageCat":"Věkové kategorie",
     "ageCatP1":"Dle data narození (vyplňuje se v\u00a0přihlášce) budou soutěžící rozděleni do\u00a0následujících\u00a0kategorií:",
@@ -643,7 +632,6 @@
     "cleanerV2P2":"Box má rozměry 210×210×100\u00a0mm. Zadní strana je vysoká 300\u00a0mm.",
     "cleanerV2P3":"Kostka je započítána pouze v\u00a0případě, že po\u00a0ukončení pokusu uvnitř boxu.",
     "reference":"Reference",
-
     "discRemoveCheck":"Opravdu chcete odstranit tuto disciplínu?",
     "discRemoveFail":"Nebylo možné odstranit disciplínu.",
     "networkFail":"Spojení nebylo v\u00a0pořádku.",
@@ -672,7 +660,6 @@
     "maxRounds_colon":"Maximální počet kol:",
     "unlimited":"Neomezeno",
     "remove":"Odstranit",
-
     "fillAll":"Vyplňte prosím všechna pole.",
     "userCreated":"Uživatel úspěšně přidán!",
     "userCreateFail":"Přidání uživatele se nezdařilo.",
@@ -706,7 +693,6 @@
     "roleAdd":"Přidat roli",
     "roleRemove":"Odebrat roli",
     "userEdit":"Upravit údaje uživatele",
-
     "userUpdateFail":"Nebylo možné upravit uživatelské údaje.",
     "dataSaved":"Údaje byly úspěšně uloženy.",
     "dataSaveFail":"Uložení informací selhalo. Zkuste to prosím později.",
@@ -722,7 +708,6 @@
     "editProfileDesc":"Upravte své osobní údaje",
     "emailCantChange":"E-mail nelze změnit",
     "saveChanges":"Uložit změny",
-
     "selectCompetition":"Vyberte ročník soutěže pro\u00a0registraci vašeho týmu",
     "noCompetitions":"Žádné dostupné soutěže",
     "registered":"Registrován",
@@ -734,16 +719,12 @@
     "pending":"Čeká na\u00a0potvrzení",
     "setup":"Nastavit",
     "verification":"Ověření",
-
     "wrongMailPassword":"Chybný e-mail nebo heslo",
-
     "lightMode":"Světlý mód",
     "darkMode":"Tmavý mód",
     "cz":"CZ",
     "en":"EN",
-
     "about":"O\u00a0soutěži",
-
     "notification":"Oznámení",
     "notifHere":"Zde se zobrazí vaše upozornění",
     "inviteFrom":"Máte pozvánku do\u00a0týmu od\u00a0",
@@ -790,7 +771,6 @@
     "noUsersFound": "Žádní uživatelé nenalezeni",
     "teacherInfo": "Informace o\u00a0učiteli",
     "noMembers": "Žádní členové týmu nejsou k\u00a0dispozici",
-
     "teamRegister": "Registrace týmu",
     "teacherName": "Jméno učitele",
     "teacherSurname": "Příjmení učitele",
@@ -810,12 +790,10 @@
     "notProvided": "Neuvedeno",
     "back":"Zpět",
     "err":"Chyba",
-
     "loggingIn":"Probíhá přihlašování...",
     "loginFailed":"Přihlášení se nezdařilo.",
     "generate": "Generování",
     "saveSchedule": "Uložit rozpis",
-
     "teamManagement": "Správa týmů",
     "teamCreated": "Tým byl úspěšně vytvořen!",
     "teamEdited": "Tým byl úspěšně upraven!",
@@ -836,7 +814,6 @@
     "transfer": "Přesunout",
     "selectUser": "Vyberte uživatele",
     "noChange": "Beze změny",
-
     "registrationManagement": "Správa registrací",
     "registrationCreate": "Vytvořit registraci",
     "registrationCreated": "Registrace byla úspěšně vytvořena!",
@@ -852,7 +829,6 @@
     "registrationRemoved": "Registrace byla úspěšně odstraněna!",
     "registrationRemoveFail": "Nepodařilo se odstranit registraci.",
     "selectRegistration": "Vyberte registraci",
-
     "robotCreated": "Robot byl úspěšně vytvořen!",
     "robotCreateFail": "Nepodařilo se vytvořit robota.",
     "robotEdit": "Upravit robota",
@@ -869,7 +845,6 @@
     "forceRemove": "Vynucené odstranění",
     "teamRegistration": "Registrace týmu",
     "removeDiscipline": "Odebrat z\u00a0disciplíny",
-
     "searchUserPlaceholder": "Začněte psát pro\u00a0vyhledávání...",
     "searchAndSelectUser": "Vyhledat a\u00a0vybrat uživatele",
     "leaveEmptyNoChange": "Nechte prázdné pro\u00a0zachování současného vedoucího",
@@ -878,7 +853,6 @@
     "selectedUser": "Nalezený uživatel",
     "clearSelection": "Zrušit výběr",
     "searchTeamPlaceholder": "Začněte psát pro\u00a0vyhledávání týmu...",
-
     "competitionYear": "Ročník soutěže",
     "competitionStarted": "Soutěž zahájena",
     "competitionNotStarted": "Soutěž nezahájena",
@@ -923,7 +897,6 @@
     "userBanned": "Váš účet byl zabanován. Kontaktujte administrátora pro\u00a0více informací.",
     "cannotBanSelf": "Nemůžete zabanovat sami sebe",
     "accountBannedTitle": "Účet zabanován",
-
     "matchSchedule": "Vyvolávací systém",
     "allCategories": "Všechny kategorie",
     "autoRotate": "Automatická rotace",
@@ -933,17 +906,14 @@
     "matchesInQueue": "zápasů ve\u00a0frontě",
     "scheduledMatchesInfo": "Data se automaticky aktualizují každých 5\u00a0sekund",
     "all": "Vše",
-
     "robotMatches": "Zápasy robota",
     "noMatches": "Robot zatím nemá žádné naplánované ani odehrané zápasy.",
-
     "matchCallSystem": "Vyvolávací systém",
     "matchCallSystemDesc": "Roboti, kteří jsou právě voláni k\u00a0zápasu",
     "noActiveMatches": "Žádné aktivní zápasy",
     "noActiveMatchesDesc": "V\u00a0tuto chvíli nejsou žádní roboti voláni k\u00a0zápasu.",
     "fullscreen": "Maximalizovat",
     "exitFullscreen": "Ukončit maximalizaci",
-
     "lastUpdate": "Poslední změna",
     "scoreHintInt": "Zadejte celé číslo",
     "confirmedRobots": "Potvrzení roboti",
@@ -951,28 +921,21 @@
     "onlyConfirmedRobots": "Pouze potvrzení roboti",
     "confirmedRobotsAvailable": "potvrzených robotů k\u00a0dispozici",
     "opponent": "Soupeř",
-
     "showingItems": "Zobrazeno",
     "itemsPerPage": "Na\u00a0stránku",
     "of": "z",
-
     "groupName": "Název skupiny",
     "noGroup": "Bez skupiny",
-
     "competitionManagement": "Správa ročníků",
     "totalCompetitions": "Celkem ročníků",
     "allStatuses": "Všechny stavy",
     "searchCompetition": "Hledat ročník...",
-
     "totalTeams": "Celkem týmů",
-
     "playgroundManagement": "Správa hřišť",
     "disciplines": "Disciplín",
     "filtered": "Filtrováno",
     "searchPlayground": "Hledat hřiště...",
-
     "createAndWriteScore": "Vytvořit a\u00a0zapsat skóre",
-
     "searchByName": "Jméno",
     "searchBySurname": "Příjmení",
     "searchByFullname": "Jméno + Příjmení",
@@ -1000,7 +963,6 @@
     "allDisciplines":"Všechny disciplíny",
     "create": "Vytvořit",
     "compCreated": "Ročník byl vytvořen",
-
     "tournamentGenerator": "Generátor turnajů",
     "generatePreview": "Generovat náhled",
     "generating": "Generuji...",
@@ -1019,12 +981,15 @@
     "startFinalDescription": "Tato akce přesune vítěze ze skupin do finálového pavouka. Ujistěte se, že všechny skupinové zápasy jsou dokončeny.",
     "finalStarted": "Finálový pavouk spuštěn",
     "errorStartingFinal": "Chyba při spouštění finále",
-    "tournamentAlreadyExists": "Pro tuto kombinaci disciplíny, kategorie a roku již existuje turnaj.",
+    "tournamentAlreadyExists": "V systému již existují vygenerované zápasy pro tuto disciplínu a kategorii.",
+    "warning": "Upozornění",
+    "deleteAllMatches": "Odstranit všechny zápasy",
+    "deleteMatchesHint": "Tlačítko 'Odstranit všechny zápasy' smaže pouze zápasy odpovídající vybrané disciplíně a kategorii.",
     "preview": "Náhled",
     "parameters": "Parametry generování",
     "matchTime": "Čas na zápas (min)",
     "groupCount": "Počet skupin",
-    "maxGroupSize": "Max. ve skupině",
+    
     "advancingPerGroup": "Postupujících ze skupiny",
     "playgroundsAvailable": "Hřišť k dispozici",
     "noPlaygroundsForDiscipline": "Pro tuto disciplínu nejsou definována žádná hřiště. Vytvořte hřiště ve správě hřišť.",
@@ -1034,12 +999,12 @@
     "group": "Skupina",
     "robotsInGroup": "Roboti ve skupině",
     "matchesSchedule": "Rozpis zápasů",
-    "matches": "zápasů",
     "dropRobotHere": "Přetáhněte sem robota",
     "advancing": "Postupuje",
     "groupMatches": "Zápasy ve skupině",
     "totalGroupMatches": "Skupinové zápasy",
-    "totalBracketMatches": "Vyřazovací zápasy",
+    "bracketMatches": "Pavouk",
+    "bye": "BYE - automatický postup",
     "estimatedTime": "Odhadovaný čas",
     "waitingForWinner": "Čeká na vítěze",
     "dragDropHint": "Přetáhněte roboty mezi skupinami pro změnu rozložení",
@@ -1049,7 +1014,7 @@
     "confirmedRobotsInCategory": "potvrzených robotů v této kategorii",
     "selectDifferentCategory": "vyberte jinou kategorii nebo disciplínu",
     "robotsInTournament": "Robotů v turnaji",
-    "groupSizeAuto": "velikost",
+    
     "groupPhaseTime": "Čas skupiny",
     "bracketPhaseTime": "Čas pavouk",
     "totalTimeEstimate": "Celkem",
@@ -1065,5 +1030,8 @@
     "competitionManagementTitle": "Správa soutěže",
     "tools": "Nástroje",
     "tournamentGeneratorDesc": "Generování skupin a pavouka pro turnajové disciplíny",
-    "matchCount": "Počet zápasů"
+    "matchCount": "Počet zápasů",
+    "confirmSaveTournament": "Potvrdit uložení turnaje",
+    "confirmSaveTournamentDescription": "Opravdu chcete uložit tento turnaj? Tato akce vytvoří všechny skupinové zápasy a strukturu vyřazovacího pavouka.",
+    "confirmAndSave": "Potvrdit a uložit"
 }
