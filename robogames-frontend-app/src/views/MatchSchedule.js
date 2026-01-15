@@ -138,7 +138,6 @@ function MatchSchedule() {
             case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
             case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
             case 'FINAL': return t('phaseFinal') || 'Finále';
-            case 'THIRD_PLACE': return t('phaseThirdPlace') || 'O 3. místo';
             default: return phase || '';
         }
     };

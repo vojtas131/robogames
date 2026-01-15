@@ -54,7 +54,7 @@ function PlaygroundMatches() {
     const [selectedRobotA, setSelectedRobotA] = useState(null);
     const [selectedRobotB, setSelectedRobotB] = useState(null);
 
-    const phases = ['PRELIMINARY', 'QUARTERFINAL', 'SEMIFINAL', 'FINAL', 'THIRD_PLACE'];
+    const phases = ['GROUP_STAGE', 'PRELIMINARY', 'ROUND_OF_16', 'QUARTERFINAL', 'SEMIFINAL', 'FINAL'];
 
     // Fetch playground info
     const fetchPlayground = useCallback(async () => {
@@ -339,11 +339,12 @@ function PlaygroundMatches() {
 
     const getPhaseLabel = (phase) => {
         switch (phase) {
+            case 'GROUP_STAGE': return t('phaseGroupStage') || 'Skupinová fáze';
             case 'PRELIMINARY': return t('phasePreliminary') || 'Předkolo';
+            case 'ROUND_OF_16': return t('phaseRoundOf16') || 'Osmifinále';
             case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
             case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
             case 'FINAL': return t('phaseFinal') || 'Finále';
-            case 'THIRD_PLACE': return t('phaseThirdPlace') || 'O 3. místo';
             default: return phase || '-';
         }
     };

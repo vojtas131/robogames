@@ -365,19 +365,6 @@ function RobotRegistration() {
                 <div className="text-center py-5">
                   <i className="tim-icons icon-spaceship" style={{ fontSize: '3rem', opacity: 0.5 }} />
                   <p className="mt-3 text-muted">{t("noRobots") || "Zatím nemáte žádné roboty"}</p>
-                  {(!currentCompetition || !currentCompetition.started) && (
-                    <Button 
-                      color="primary" 
-                      onClick={() => {
-                        setEditMode(false);
-                        setCreationError('');
-                        toggleModal();
-                      }}
-                    >
-                      <i className="tim-icons icon-simple-add mr-2" />
-                      {t("robotAdd")}
-                    </Button>
-                  )}
                 </div>
               ) : (
                 <Row>

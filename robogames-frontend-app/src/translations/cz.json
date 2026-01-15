@@ -315,11 +315,12 @@
     "enterScore":"Zadejte skóre",
     "matchScorePH":"U\u00a0robosumo = 1\u00a0vyhrál, 0\u00a0=\u00a0prohrál, sledovač čáry: 8:14",
     
+    "phaseGroupStage":"Skupinová fáze",
     "phasePreliminary":"Předkolo",
+    "phaseRoundOf16":"Osmifinále",
     "phaseQuarterfinal":"Čtvrtfinále",
     "phaseSemifinal":"Semifinále",
     "phaseFinal":"Finále",
-    "phaseThirdPlace":"O\u00a03.\u00a0místo",
     "phase":"Fáze",
     
     "scoreTypeTime":"Čas",
@@ -1042,5 +1043,22 @@
     "noMatchesPlayedYet": "Zatím nebyly odehrány žádné zápasy",
     "remaining": "zbývá",
     "refresh": "Obnovit",
-    "groupStandingsAndAdvancing": "Pořadí ve skupině a postupující"
+    "groupStandingsAndAdvancing": "Pořadí ve skupině a postupující",
+    "finalStartedLabel": "Finále spuštěno",
+    "noDiscipline": "Žádná disciplína",
+    
+    "tournamentVisualization": "Vizualizace turnaje",
+    "tournamentView": "Turnaj",
+    "tournamentMode": "Turnajový režim",
+    "regularMode": "Standardní režim",
+    "groupStage": "Skupinová fáze",
+    "eliminationBracket": "Vyřazovací pavouk",
+    "standings": "Pořadí",
+    "noDataAvailable": "Pro tuto kombinaci nejsou dostupná žádná data",
+    "selectAllFilters": "Vyberte ročník, disciplínu a kategorii pro zobrazení dat",
+    "noMatchesYet": "Zatím žádné zápasy",
+    "noStandingsYet": "Zatím žádné výsledky",
+    "tbd": "TBD",
+    "accessDenied": "Přístup odepřen",
+    "robotProfileAccessDenied": "Profil robota je přístupný pouze pro členy týmu a organizátory."
 }

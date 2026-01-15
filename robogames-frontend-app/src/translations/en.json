@@ -315,11 +315,12 @@
     "enterScore": "Enter score",
     "matchScorePH": "Robosumo: 1\u00a0=\u00a0win, 0\u00a0=\u00a0loss; Line Follower: 8:14",
     
+    "phaseGroupStage": "Group Stage",
     "phasePreliminary": "Preliminary",
+    "phaseRoundOf16": "Round of 16",
     "phaseQuarterfinal": "Quarterfinals",
     "phaseSemifinal": "Semifinals",
     "phaseFinal": "Final",
-    "phaseThirdPlace": "3rd Place Match",
     "phase": "Phase",
     
     "scoreTypeTime": "Time",
@@ -1042,5 +1043,22 @@
     "noMatchesPlayedYet": "No matches played yet",
     "remaining": "remaining",
     "refresh": "Refresh",
-    "groupStandingsAndAdvancing": "Group Standings and Advancing"
+    "groupStandingsAndAdvancing": "Group Standings and Advancing",
+    "finalStartedLabel": "Final Started",
+    "noDiscipline": "No discipline",
+    
+    "tournamentVisualization": "Tournament Visualization",
+    "tournamentView": "Tournament",
+    "tournamentMode": "Tournament mode",
+    "regularMode": "Regular mode",
+    "groupStage": "Group Stage",
+    "eliminationBracket": "Elimination Bracket",
+    "standings": "Standings",
+    "noDataAvailable": "No data available for this combination",
+    "selectAllFilters": "Select year, discipline and category to display data",
+    "noMatchesYet": "No matches yet",
+    "noStandingsYet": "No standings yet",
+    "tbd": "TBD",
+    "accessDenied": "Access Denied",
+    "robotProfileAccessDenied": "Robot profile is only accessible to team members and organizers."
 }

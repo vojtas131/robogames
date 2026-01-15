@@ -34,7 +34,20 @@ function ConfirmModal({
   };
 
   return (
-    <Modal isOpen={isOpen} toggle={toggle} className={isDark ? 'modal-black' : ''}>
+    <Modal 
+      isOpen={isOpen} 
+      toggle={toggle} 
+      centered 
+      className={isDark ? 'modal-black' : ''}
+      style={{ 
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        margin: 0
+      }}
+      contentClassName="mx-auto"
+    >
       <ModalHeader toggle={toggle}>
         <i className="tim-icons icon-alert-circle-exc mr-2" />
         {title || t("confirmTitle")}

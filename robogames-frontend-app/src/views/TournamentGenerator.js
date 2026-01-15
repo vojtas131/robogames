@@ -817,7 +817,7 @@ function TournamentGenerator() {
                             borderRadius: '12px 12px 0 0'
                         }}>
                             <CardTitle tag="h4" style={{ color: isDark ? 'white' : '#32325d' }}>
-                                <i className="tim-icons icon-trophy mr-2" style={{ color: '#ffd600' }} />
+                                <i className="tim-icons icon-trophy mr-2" style={{ color: '#000' }} />
                                 {t('tournamentGenerator') || 'Generátor turnajů'}
                             </CardTitle>
                         </CardHeader>
@@ -919,10 +919,14 @@ function TournamentGenerator() {
                                                     size="sm" 
                                                     className="ml-2 ms-2"
                                                     onClick={() => setShowStartFinalModal(true)}
+                                                    disabled={tournamentStatus?.finalStarted}
+                                                    title={tournamentStatus?.finalStarted ? (t('finalAlreadyStarted') || 'Finále již bylo spuštěno') : ''}
                                                     style={{ borderRadius: '6px' }}
                                                 >
                                                     <i className="tim-icons icon-triangle-right-17 mr-1" />
-                                                    {t('startFinal') || 'Spustit finále'}
+                                                    {tournamentStatus?.finalStarted 
+                                                        ? (t('finalStartedLabel') || 'Finále spuštěno') 
+                                                        : (t('startFinal') || 'Spustit finále')}
                                                 </Button>
                                                 <Button 
                                                     color="info" 

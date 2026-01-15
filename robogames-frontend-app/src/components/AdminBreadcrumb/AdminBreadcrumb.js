@@ -475,6 +475,12 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       icon: 'icon-trophy',
       needsYear: true
     },
+    '/admin/tournament-view': { 
+      label: t('tournamentView') || 'Turnaj', 
+      parent: '/admin/dashboard',
+      icon: 'icon-trophy',
+      needsYear: true
+    },
   };
   
   // Helper to find route config - supports parameterized paths like /admin/match-score/:id
@@ -583,8 +589,8 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
   // Check if we're in admin section (deeper than dashboard)
   const isAdminSection = breadcrumbs.some(b => b.path === '/admin/admin-dashboard');
   
-  // Show year selector only for admins in admin section OR when the page needs year
-  const showYearSelector = isAdmin && (needsYear || isAdminSection);
+  // Show year selector for admins in admin section OR when the page needs year (for all users)
+  const showYearSelector = needsYear || (isAdmin && isAdminSection);
 
   // Theme-aware colors - FIXED for light theme
   const bgColor = isDark ? 'rgba(30, 30, 47, 0.98)' : 'rgba(248, 249, 250, 0.98)';

@@ -51,6 +51,19 @@ function RobotProfile() {
   const { token, tokenExpired } = useUser();
   const toast = useToast();
 
+  // Helper function to get phase label
+  const getPhaseLabel = (phase) => {
+    switch (phase) {
+      case 'GROUP_STAGE': return t('phaseGroupStage') || 'Skupinová fáze';
+      case 'PRELIMINARY': return t('phasePreliminary') || 'Předkolo';
+      case 'ROUND_OF_16': return t('phaseRoundOf16') || 'Osmifinále';
+      case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
+      case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
+      case 'FINAL': return t('phaseFinal') || 'Finále';
+      default: return phase || '-';
+    }
+  };
+
   // Check user roles
   const roles = localStorage.getItem('roles') || '';
   const canConfirm = roles.includes('ADMIN') || roles.includes('LEADER') || roles.includes('ASSISTANT');
@@ -538,7 +551,7 @@ function RobotProfile() {
                       <th>{t("playground")}</th>
                       <th>{t("opponent") || 'Soupeř'}</th>
                       <th>{t("score")}</th>
-                      <th>{t("time") || 'Čas'}</th>
+                      <th>{t("phase") || 'Fáze'}</th>
                       <th>{t("groupName") || 'Skupina'}</th>
                       <th>{t("status")}</th>
                     </tr>
@@ -597,8 +610,10 @@ function RobotProfile() {
                             )}
                           </td>
                           <td>
-                            {match.timestamp ? (
-                              <span>{new Date(match.timestamp).toLocaleString('cs-CZ')}</span>
+                            {match.phaseName ? (
+                              <Badge color="primary" style={{ fontSize: '11px' }}>
+                                {getPhaseLabel(match.phaseName)}
+                              </Badge>
                             ) : (
                               <span className="text-muted">-</span>
                             )}

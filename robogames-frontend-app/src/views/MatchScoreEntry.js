@@ -242,11 +242,12 @@ function MatchScoreEntry() {
 
     const getPhaseLabel = (phase) => {
         switch (phase) {
+            case 'GROUP_STAGE': return t('phaseGroupStage') || 'Skupinová fáze';
             case 'PRELIMINARY': return t('phasePreliminary') || 'Předkolo';
+            case 'ROUND_OF_16': return t('phaseRoundOf16') || 'Osmifinále';
             case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
             case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
             case 'FINAL': return t('phaseFinal') || 'Finále';
-            case 'THIRD_PLACE': return t('phaseThirdPlace') || 'O 3. místo';
             default: return phase || '';
         }
     };
@@ -336,19 +337,18 @@ function MatchScoreEntry() {
     return (
         <div className="content">
             <Row className="justify-content-center">
-                <Col lg="8" md="10">
+                <Col xl="10" lg="11" md="12">
                     {/* Match Info Card */}
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="pb-2">
                             <Row className="align-items-center">
                                 <Col xs="auto">
-                                    <Button color="secondary" size="sm" onClick={() => navigate(-1)} disabled={submitting}>
-                                        <i className="tim-icons icon-minimal-left mr-1" />
-                                        {t('back') || 'Zpět'}
+                                    <Button color="link" className="p-0" onClick={() => navigate(-1)} disabled={submitting}>
+                                        <i className="tim-icons icon-minimal-left" style={{ fontSize: '1.2rem' }} />
                                     </Button>
                                 </Col>
                                 <Col>
-                                    <CardTitle tag="h3" className="mb-0">
+                                    <CardTitle tag="h3" className="mb-0 d-inline">
                                         <i className="tim-icons icon-pencil mr-2" />
                                         {t('scoreEntry') || 'Zápis skóre'} - {t('match') || 'Zápas'} #{matchId}
                                     </CardTitle>
@@ -360,48 +360,51 @@ function MatchScoreEntry() {
                                 </Col>
                             </Row>
                         </CardHeader>
-                        <CardBody>
+                        <CardBody className="pt-2">
                             {/* Discipline - Prominent Display */}
-                            <Row className="mb-3">
-                                <Col className="text-center">
-                                    <Badge 
-                                        color="info" 
-                                        style={{ 
-                                            fontSize: '16px', 
-                                            padding: '8px 20px',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        <i className="tim-icons icon-trophy mr-2" />
-                                        {match.disciplineName || (t('noDiscipline') || 'Bez disciplíny')}
-                                    </Badge>
-                                </Col>
-                            </Row>
+                            <div className="text-center mb-2">
+                                <Badge 
+                                    color="info" 
+                                    style={{ 
+                                        fontSize: '15px', 
+                                        padding: '6px 18px',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    <i className="tim-icons icon-trophy mr-2" />
+                                    {match.disciplineName || (t('noDiscipline') || 'Bez disciplíny')}
+                                </Badge>
+                            </div>
 
-                            {/* Match Details - Compact Layout */}
-                            <Row className="mb-2">
-                                <Col xs="6" md="3" lg="2" className="mb-2 mb-md-0">
-                                    <small className="text-muted d-block">
+                            {/* Match Details - Better organized grid */}
+                            <Row className="mb-2 justify-content-center" style={{ 
+                                background: 'rgba(94, 114, 228, 0.05)', 
+                                borderRadius: '8px', 
+                                padding: '8px 10px',
+                                margin: '0 15px'
+                            }}>
+                                <Col xs="6" sm="4" md="2" className="text-center mb-1 mb-md-0">
+                                    <small className="text-muted d-block mb-1">
                                         <i className="tim-icons icon-compass-05 mr-1" />
                                         {t('playground') || 'Hřiště'}
                                     </small>
-                                    <span>
-                                        <strong>{match.playgroundName}</strong>{' '}
+                                    <div>
+                                        <strong>{match.playgroundName}</strong>
                                         <Badge 
+                                            className="ml-1"
                                             style={{ 
                                                 backgroundColor: 'rgba(94, 114, 228, 0.2)', 
                                                 color: '#5e72e4',
-                                                fontSize: '12px',
-                                                fontWeight: '800',
-                                                padding: '3px 8px'
+                                                fontSize: '11px',
+                                                fontWeight: '700'
                                             }}
                                         >
                                             {match.playgroundNumber}
                                         </Badge>
-                                    </span>
+                                    </div>
                                 </Col>
-                                <Col xs="6" md="3" lg="2" className="mb-2 mb-md-0">
-                                    <small className="text-muted d-block">
+                                <Col xs="6" sm="4" md="2" className="text-center mb-1 mb-md-0">
+                                    <small className="text-muted d-block mb-1">
                                         <i className="tim-icons icon-badge mr-1" />
                                         {t('category') || 'Kategorie'}
                                     </small>
@@ -413,8 +416,8 @@ function MatchScoreEntry() {
                                         <span className="text-muted">-</span>
                                     )}
                                 </Col>
-                                <Col xs="6" md="2" lg="2" className="mb-2 mb-md-0">
-                                    <small className="text-muted d-block">
+                                <Col xs="6" sm="4" md="2" className="text-center mb-1 mb-md-0">
+                                    <small className="text-muted d-block mb-1">
                                         <i className="tim-icons icon-chart-bar-32 mr-1" />
                                         {t('phase') || 'Fáze'}
                                     </small>
@@ -422,8 +425,8 @@ function MatchScoreEntry() {
                                         {getPhaseLabel(match.phaseName)}
                                     </Badge>
                                 </Col>
-                                <Col xs="6" md="2" lg="2" className="mb-2 mb-md-0">
-                                    <small className="text-muted d-block">
+                                <Col xs="6" sm="4" md="2" className="text-center mb-1 mb-sm-0">
+                                    <small className="text-muted d-block mb-1">
                                         <i className="tim-icons icon-components mr-1" />
                                         {t('groupName') || 'Skupina'}
                                     </small>
@@ -432,11 +435,11 @@ function MatchScoreEntry() {
                                             {match.group}
                                         </Badge>
                                     ) : (
-                                        <span className="text-muted">{t('noGroup') || 'Bez skupiny'}</span>
+                                        <span className="text-muted">-</span>
                                     )}
                                 </Col>
-                                <Col xs="12" md="2" lg="4">
-                                    <small className="text-muted d-block">
+                                <Col xs="12" sm="8" md="4" className="text-center">
+                                    <small className="text-muted d-block mb-1">
                                         <i className="tim-icons icon-time-alarm mr-1" />
                                         {t('lastUpdate') || 'Poslední změna'}
                                     </small>
@@ -449,14 +452,12 @@ function MatchScoreEntry() {
                                 </Col>
                             </Row>
 
-                            <hr className="my-2" />
-
                             {/* No Robot Warning */}
                             {noRobotAssigned && (
-                                <Alert color="danger" className="text-center py-2">
+                                <Alert color="danger" className="text-center py-2 mx-3">
                                     <i className="tim-icons icon-alert-circle-exc mr-2" />
                                     <strong>{t('noRobotAssignedTitle') || 'Žádný robot není přiřazen'}</strong>
-                                    <p className="mb-0 small">
+                                    <p className="mb-0 small mt-1">
                                         {t('noRobotAssignedDesc') || 'Nelze zapsat skóre, protože tomuto zápasu nejsou přiřazeni žádní roboti.'}
                                     </p>
                                 </Alert>
@@ -465,62 +466,67 @@ function MatchScoreEntry() {
                             {/* Two Robot Match Layout */}
                             {isTwoRobotMatch && (
                                 <>
-                                    <Row className="align-items-center mb-3">
-                                        <Col md="5" className="text-center">
+                                    {/* Robots display */}
+                                    <Row className="align-items-stretch mb-2 mx-2">
+                                        <Col md="5" className="mb-2 mb-md-0">
                                             <div 
-                                                className="robot-info-box p-2" 
+                                                className="robot-info-box p-2 h-100 d-flex flex-column justify-content-center" 
                                                 style={{ 
                                                     background: winner === 'A' ? 'rgba(45, 206, 137, 0.25)' : 'rgba(45, 206, 137, 0.1)', 
                                                     borderRadius: '10px',
-                                                    border: winner === 'A' ? '3px solid #2dce89' : 'none',
-                                                    transition: 'all 0.3s ease'
+                                                    border: winner === 'A' ? '3px solid #2dce89' : '1px solid rgba(45, 206, 137, 0.3)',
+                                                    transition: 'all 0.3s ease',
+                                                    textAlign: 'center'
                                                 }}
                                             >
                                                 {winner === 'A' && (
-                                                    <Badge color="success" className="mb-1" style={{ fontSize: '11px' }}>
+                                                    <Badge color="success" className="mb-1" style={{ fontSize: '10px', alignSelf: 'center' }}>
                                                         <i className="tim-icons icon-trophy mr-1" />
                                                         {t('winner') || 'VÍTĚZ'}
                                                     </Badge>
                                                 )}
-                                                <div style={{ fontSize: '36px', fontWeight: '900', color: '#2dce89' }}>
+                                                <div style={{ fontSize: '32px', fontWeight: '900', color: '#2dce89', lineHeight: '1.1' }}>
                                                     {match.robotANumber || '?'}
                                                 </div>
-                                                <h6 className="mb-0">{match.robotAName || 'Robot A'}</h6>
-                                                <small className="text-muted">
+                                                <div className="mb-0" style={{ fontSize: '14px', fontWeight: '600' }}>{match.robotAName || 'Robot A'}</div>
+                                                <small className="text-muted" style={{ fontSize: '11px' }}>
                                                     <i className="tim-icons icon-single-02 mr-1" />
                                                     {match.teamAName || '-'}
                                                 </small>
                                             </div>
                                         </Col>
-                                        <Col md="2" className="text-center">
-                                            <div style={{ fontSize: '20px', fontWeight: '900', color: '#fff' }}>VS</div>
-                                            {winner === 'TIE' && (
-                                                <Badge color="warning" className="mt-2">
-                                                    {t('tie') || 'REMÍZA'}
-                                                </Badge>
-                                            )}
+                                        <Col md="2" className="d-flex align-items-center justify-content-center mb-2 mb-md-0">
+                                            <div className="text-center">
+                                                <div style={{ fontSize: '18px', fontWeight: '900', opacity: 0.7 }}>VS</div>
+                                                {winner === 'TIE' && (
+                                                    <Badge color="warning" className="mt-1" style={{ fontSize: '10px' }}>
+                                                        {t('tie') || 'REMÍZA'}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </Col>
-                                        <Col md="5" className="text-center">
+                                        <Col md="5">
                                             <div 
-                                                className="robot-info-box p-2" 
+                                                className="robot-info-box p-2 h-100 d-flex flex-column justify-content-center" 
                                                 style={{ 
                                                     background: winner === 'B' ? 'rgba(94, 114, 228, 0.25)' : 'rgba(94, 114, 228, 0.1)', 
                                                     borderRadius: '10px',
-                                                    border: winner === 'B' ? '3px solid #5e72e4' : 'none',
-                                                    transition: 'all 0.3s ease'
+                                                    border: winner === 'B' ? '3px solid #5e72e4' : '1px solid rgba(94, 114, 228, 0.3)',
+                                                    transition: 'all 0.3s ease',
+                                                    textAlign: 'center'
                                                 }}
                                             >
                                                 {winner === 'B' && (
-                                                    <Badge color="primary" className="mb-1" style={{ fontSize: '11px' }}>
+                                                    <Badge color="primary" className="mb-1" style={{ fontSize: '10px', alignSelf: 'center' }}>
                                                         <i className="tim-icons icon-trophy mr-1" />
                                                         {t('winner') || 'VÍTĚZ'}
                                                     </Badge>
                                                 )}
-                                                <div style={{ fontSize: '36px', fontWeight: '900', color: '#5e72e4' }}>
+                                                <div style={{ fontSize: '32px', fontWeight: '900', color: '#5e72e4', lineHeight: '1.1' }}>
                                                     {match.robotBNumber || '?'}
                                                 </div>
-                                                <h6 className="mb-0">{match.robotBName || 'Robot B'}</h6>
-                                                <small className="text-muted">
+                                                <div className="mb-0" style={{ fontSize: '14px', fontWeight: '600' }}>{match.robotBName || 'Robot B'}</div>
+                                                <small className="text-muted" style={{ fontSize: '11px' }}>
                                                     <i className="tim-icons icon-single-02 mr-1" />
                                                     {match.teamBName || '-'}
                                                 </small>
@@ -529,271 +535,273 @@ function MatchScoreEntry() {
                                     </Row>
 
                                     {/* Win condition hint */}
-                                    <Alert color="info" className="text-center mb-2 py-1">
-                                        <i className="tim-icons icon-bulb-63 mr-2" />
+                                    <Alert color="info" className="text-center mb-2 py-1 mx-3" style={{ borderRadius: '8px', fontSize: '12px' }}>
+                                        <i className="tim-icons icon-bulb-63 mr-1" />
                                         {match.highScoreWin 
                                             ? (t('highScoreWinsHint') || 'Robot s vyšším skóre vyhrává (např. RoboSumo - počet výher)')
                                             : (t('lowScoreWinsHint') || 'Robot s nižším skóre vyhrává (např. Line Follower - kratší čas)')
                                         }
                                     </Alert>
 
-                                    <hr />
-
                                     {/* Score Entry Form - Two Robots */}
-                                    <Form onSubmit={(e) => { e.preventDefault(); setConfirmSaveOpen(true); }}>
-                                        <Row>
-                                            <Col md="5">
-                                                <FormGroup>
-                                                    <Label for="scoreA" className="text-success" style={{ fontSize: '14px' }}>
-                                                        <i className="tim-icons icon-chart-pie-36 mr-2" />
-                                                        {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotAName}
-                                                    </Label>
-                                                    {isTimeScore ? (
-                                                        <div className="d-flex align-items-center justify-content-center">
+                                    <div style={{ 
+                                        background: 'rgba(255,255,255,0.03)', 
+                                        borderRadius: '8px', 
+                                        padding: '10px',
+                                        margin: '0 10px'
+                                    }}>
+                                        <Form onSubmit={(e) => { e.preventDefault(); setConfirmSaveOpen(true); }}>
+                                            <Row className="align-items-center">
+                                                <Col md="5">
+                                                    <FormGroup className="mb-0">
+                                                        <Label for="scoreA" className="text-success text-center d-block mb-1" style={{ fontSize: '13px' }}>
+                                                            {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotAName}
+                                                        </Label>
+                                                        {isTimeScore ? (
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="59"
+                                                                    value={timeAMinutes}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeAMinutes(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '18px', textAlign: 'center', height: '42px', width: '55px', padding: '4px' }}
+                                                                />
+                                                                <span style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 3px' }}>:</span>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="59"
+                                                                    value={timeASeconds}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeASeconds(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '18px', textAlign: 'center', height: '42px', width: '55px', padding: '4px' }}
+                                                                />
+                                                                <span style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 3px' }}>.</span>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="999"
+                                                                    step="100"
+                                                                    value={timeAMillis}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(999, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeAMillis(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '18px', textAlign: 'center', height: '42px', width: '60px', padding: '4px' }}
+                                                                />
+                                                            </div>
+                                                        ) : (
                                                             <Input
                                                                 type="number"
+                                                                id="scoreA"
+                                                                step="1"
                                                                 min="0"
-                                                                max="59"
-                                                                value={timeAMinutes}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeAMinutes(val.toString());
-                                                                }}
+                                                                value={scoreA}
+                                                                onChange={(e) => setScoreA(e.target.value)}
+                                                                placeholder="0"
                                                                 disabled={submitting}
-                                                                style={{ fontSize: '18px', textAlign: 'center', height: '45px', width: '60px', padding: '5px' }}
+                                                                style={{ fontSize: '24px', textAlign: 'center', height: '46px' }}
                                                             />
-                                                            <span style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 4px' }}>:</span>
+                                                        )}
+                                                    </FormGroup>
+                                                </Col>
+                                                <Col md="2" className="d-flex align-items-center justify-content-center">
+                                                    <span style={{ fontSize: '28px', fontWeight: 'bold', opacity: 0.5 }}>:</span>
+                                                </Col>
+                                                <Col md="5">
+                                                    <FormGroup className="mb-0">
+                                                        <Label for="scoreB" className="text-primary text-center d-block mb-1" style={{ fontSize: '13px' }}>
+                                                            {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotBName}
+                                                        </Label>
+                                                        {isTimeScore ? (
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="59"
+                                                                    value={timeBMinutes}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeBMinutes(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '18px', textAlign: 'center', height: '42px', width: '55px', padding: '4px' }}
+                                                                />
+                                                                <span style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 3px' }}>:</span>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="59"
+                                                                    value={timeBSeconds}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeBSeconds(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '18px', textAlign: 'center', height: '42px', width: '55px', padding: '4px' }}
+                                                                />
+                                                                <span style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 3px' }}>.</span>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="999"
+                                                                    step="100"
+                                                                    value={timeBMillis}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(999, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeBMillis(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '18px', textAlign: 'center', height: '42px', width: '60px', padding: '4px' }}
+                                                                />
+                                                            </div>
+                                                        ) : (
                                                             <Input
                                                                 type="number"
+                                                                id="scoreB"
+                                                                step="1"
                                                                 min="0"
-                                                                max="59"
-                                                                value={timeASeconds}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeASeconds(val.toString());
-                                                                }}
+                                                                value={scoreB}
+                                                                onChange={(e) => setScoreB(e.target.value)}
+                                                                placeholder="0"
                                                                 disabled={submitting}
-                                                                style={{ fontSize: '18px', textAlign: 'center', height: '45px', width: '60px', padding: '5px' }}
+                                                                style={{ fontSize: '24px', textAlign: 'center', height: '46px' }}
                                                             />
-                                                            <span style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 4px' }}>.</span>
-                                                            <Input
-                                                                type="number"
-                                                                min="0"
-                                                                max="999"
-                                                                step="100"
-                                                                value={timeAMillis}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(999, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeAMillis(val.toString());
-                                                                }}
-                                                                disabled={submitting}
-                                                                style={{ fontSize: '18px', textAlign: 'center', height: '45px', width: '70px', padding: '5px' }}
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <Input
-                                                            type="number"
-                                                            id="scoreA"
-                                                            step="1"
-                                                            min="0"
-                                                            value={scoreA}
-                                                            onChange={(e) => setScoreA(e.target.value)}
-                                                            placeholder={t('enterScore') || 'Zadejte skóre'}
-                                                            disabled={submitting}
-                                                            style={{ fontSize: '22px', textAlign: 'center', height: '50px' }}
-                                                        />
-                                                    )}
-                                                    {isTimeScore && (
-                                                        <small className="form-text text-muted text-center">
-                                                            {t('timeFormatHint') || 'Formát: mm:ss.ms'}
-                                                        </small>
-                                                    )}
-                                                </FormGroup>
-                                            </Col>
-                                            <Col md="2" className="d-flex align-items-center justify-content-center">
-                                                <span style={{ fontSize: '28px', fontWeight: 'bold' }}>:</span>
-                                            </Col>
-                                            <Col md="5">
-                                                <FormGroup>
-                                                    <Label for="scoreB" className="text-primary" style={{ fontSize: '14px' }}>
-                                                        <i className="tim-icons icon-chart-pie-36 mr-2" />
-                                                        {isTimeScore ? (t('time') || 'Čas') : (t('score') || 'Skóre')} - {match.robotBName}
-                                                    </Label>
-                                                    {isTimeScore ? (
-                                                        <div className="d-flex align-items-center justify-content-center">
-                                                            <Input
-                                                                type="number"
-                                                                min="0"
-                                                                max="59"
-                                                                value={timeBMinutes}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeBMinutes(val.toString());
-                                                                }}
-                                                                disabled={submitting}
-                                                                style={{ fontSize: '18px', textAlign: 'center', height: '45px', width: '60px', padding: '5px' }}
-                                                            />
-                                                            <span style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 4px' }}>:</span>
-                                                            <Input
-                                                                type="number"
-                                                                min="0"
-                                                                max="59"
-                                                                value={timeBSeconds}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeBSeconds(val.toString());
-                                                                }}
-                                                                disabled={submitting}
-                                                                style={{ fontSize: '18px', textAlign: 'center', height: '45px', width: '60px', padding: '5px' }}
-                                                            />
-                                                            <span style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 4px' }}>.</span>
-                                                            <Input
-                                                                type="number"
-                                                                min="0"
-                                                                max="999"
-                                                                step="100"
-                                                                value={timeBMillis}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(999, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeBMillis(val.toString());
-                                                                }}
-                                                                disabled={submitting}
-                                                                style={{ fontSize: '18px', textAlign: 'center', height: '45px', width: '70px', padding: '5px' }}
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <Input
-                                                            type="number"
-                                                            id="scoreB"
-                                                            step="1"
-                                                            min="0"
-                                                            value={scoreB}
-                                                            onChange={(e) => setScoreB(e.target.value)}
-                                                            placeholder={t('enterScore') || 'Zadejte skóre'}
-                                                            disabled={submitting}
-                                                            style={{ fontSize: '22px', textAlign: 'center', height: '50px' }}
-                                                        />
-                                                    )}
-                                                    {isTimeScore && (
-                                                        <small className="form-text text-muted text-center">
-                                                            {t('timeFormatHint') || 'Formát: mm:ss.ms'}
-                                                        </small>
-                                                    )}
-                                                </FormGroup>
-                                            </Col>
-                                        </Row>
-                                    </Form>
+                                                        )}
+                                                    </FormGroup>
+                                                </Col>
+                                            </Row>
+                                        </Form>
+                                    </div>
                                 </>
                             )}
 
                             {/* Single Robot Match Layout */}
                             {isSingleRobotMatch && (
                                 <>
-                                    <Row className="mb-4">
-                                        <Col md={{ size: 6, offset: 3 }} className="text-center">
-                                            <div className="robot-info-box p-2" style={{ background: 'rgba(45, 206, 137, 0.1)', borderRadius: '10px' }}>
-                                                <div style={{ fontSize: '48px', fontWeight: '900', color: '#2dce89' }}>
+                                    <Row className="mb-2 justify-content-center mx-2">
+                                        <Col md="6" className="text-center">
+                                            <div className="robot-info-box p-2" style={{ 
+                                                background: 'rgba(45, 206, 137, 0.1)', 
+                                                borderRadius: '10px',
+                                                border: '1px solid rgba(45, 206, 137, 0.3)'
+                                            }}>
+                                                <div style={{ fontSize: '32px', fontWeight: '900', color: '#2dce89', lineHeight: '1.1' }}>
                                                     {match.robotANumber || match.robotBNumber || '?'}
                                                 </div>
-                                                <h4 className="mb-1">{match.robotAName || match.robotBName || 'Robot'}</h4>
-                                                <p className="text-muted mb-0">
+                                                <div className="mb-0" style={{ fontSize: '14px', fontWeight: '600' }}>{match.robotAName || match.robotBName || 'Robot'}</div>
+                                                <small className="text-muted" style={{ fontSize: '11px' }}>
                                                     <i className="tim-icons icon-single-02 mr-1" />
                                                     {match.teamAName || match.teamBName || '-'}
-                                                </p>
+                                                </small>
                                             </div>
                                         </Col>
                                     </Row>
 
-                                    <hr />
-
                                     {/* Score Entry Form - Single Robot */}
-                                    <Form onSubmit={(e) => { e.preventDefault(); setConfirmSaveOpen(true); }}>
-                                        <Row>
-                                            <Col md={{ size: 6, offset: 3 }}>
-                                                <FormGroup>
-                                                    <Label for="scoreA" style={{ fontSize: '18px' }}>
-                                                        <i className="tim-icons icon-chart-pie-36 mr-2" />
-                                                        {isTimeScore 
-                                                            ? (t('time') || 'Čas')
-                                                            : (t('score') || 'Skóre')
-                                                        }
-                                                    </Label>
-                                                    {isTimeScore ? (
-                                                        <div className="d-flex align-items-center justify-content-center">
+                                    <div style={{ 
+                                        background: 'rgba(255,255,255,0.03)', 
+                                        borderRadius: '8px', 
+                                        padding: '10px',
+                                        margin: '0 10px'
+                                    }}>
+                                        <Form onSubmit={(e) => { e.preventDefault(); setConfirmSaveOpen(true); }}>
+                                            <Row className="justify-content-center">
+                                                <Col md="6">
+                                                    <FormGroup className="mb-0">
+                                                        <Label for="scoreA" className="text-center d-block mb-1" style={{ fontSize: '14px' }}>
+                                                            {isTimeScore 
+                                                                ? (t('time') || 'Čas')
+                                                                : (t('score') || 'Skóre')
+                                                            }
+                                                        </Label>
+                                                        {isTimeScore ? (
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="59"
+                                                                    value={timeAMinutes}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeAMinutes(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '20px', textAlign: 'center', height: '46px', width: '60px', padding: '4px' }}
+                                                                />
+                                                                <span style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 5px' }}>:</span>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="59"
+                                                                    value={timeASeconds}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeASeconds(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '20px', textAlign: 'center', height: '46px', width: '60px', padding: '4px' }}
+                                                                />
+                                                                <span style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 5px' }}>.</span>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="999"
+                                                                    step="100"
+                                                                    value={timeAMillis}
+                                                                    onChange={(e) => {
+                                                                        const val = Math.min(999, Math.max(0, parseInt(e.target.value) || 0));
+                                                                        setTimeAMillis(val.toString());
+                                                                    }}
+                                                                    disabled={submitting}
+                                                                    style={{ fontSize: '20px', textAlign: 'center', height: '46px', width: '70px', padding: '4px' }}
+                                                                />
+                                                            </div>
+                                                        ) : (
                                                             <Input
                                                                 type="number"
+                                                                id="scoreA"
+                                                                step="1"
                                                                 min="0"
-                                                                max="59"
-                                                                value={timeAMinutes}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeAMinutes(val.toString());
-                                                                }}
+                                                                value={scoreA}
+                                                                onChange={(e) => setScoreA(e.target.value)}
+                                                                placeholder="0"
                                                                 disabled={submitting}
-                                                                style={{ fontSize: '22px', textAlign: 'center', height: '50px', width: '70px', padding: '5px' }}
+                                                                style={{ fontSize: '22px', textAlign: 'center', height: '46px' }}
                                                             />
-                                                            <span style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 6px' }}>:</span>
-                                                            <Input
-                                                                type="number"
-                                                                min="0"
-                                                                max="59"
-                                                                value={timeASeconds}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeASeconds(val.toString());
-                                                                }}
-                                                                disabled={submitting}
-                                                                style={{ fontSize: '22px', textAlign: 'center', height: '50px', width: '70px', padding: '5px' }}
-                                                            />
-                                                            <span style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 6px' }}>.</span>
-                                                            <Input
-                                                                type="number"
-                                                                min="0"
-                                                                max="999"
-                                                                step="100"
-                                                                value={timeAMillis}
-                                                                onChange={(e) => {
-                                                                    const val = Math.min(999, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setTimeAMillis(val.toString());
-                                                                }}
-                                                                disabled={submitting}
-                                                                style={{ fontSize: '22px', textAlign: 'center', height: '50px', width: '80px', padding: '5px' }}
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <Input
-                                                            type="number"
-                                                            id="scoreA"
-                                                            step="1"
-                                                            min="0"
-                                                            value={scoreA}
-                                                            onChange={(e) => setScoreA(e.target.value)}
-                                                            placeholder={t('enterScore') || 'Zadejte skóre'}
-                                                            disabled={submitting}
-                                                            style={{ fontSize: '28px', textAlign: 'center', height: '55px' }}
-                                                        />
-                                                    )}
-                                                    <small className="form-text text-muted text-center">
-                                                        {isTimeScore 
-                                                            ? (t('timeFormatHint') || 'Formát: mm:ss.ms')
-                                                            : (t('scoreHintInt') || 'Zadejte celé číslo')
-                                                        }
-                                                    </small>
-                                                </FormGroup>
-                                            </Col>
-                                        </Row>
-                                    </Form>
+                                                        )}
+                                                        <small className="form-text text-muted text-center" style={{ fontSize: '11px' }}>
+                                                            {isTimeScore ? 'mm:ss.ms' : ''}</small>
+                                                    </FormGroup>
+                                                </Col>
+                                            </Row>
+                                        </Form>
+                                    </div>
                                 </>
                             )}
 
                             {/* Current Score Display (if already set) */}
                             {isDone && !noRobotAssigned && (
-                                <Row className="mt-3">
-                                    <Col className="text-center">
-                                        <Alert color="success" style={{ backgroundColor: '#2dce89', color: 'white' }}>
+                                <Row className="mt-2 mx-2">
+                                    <Col>
+                                        <Alert color="success" className="text-center mb-0 py-2" style={{ 
+                                            backgroundColor: 'rgba(45, 206, 137, 0.2)', 
+                                            border: '1px solid #2dce89',
+                                            borderRadius: '8px',
+                                            fontSize: '13px'
+                                        }}>
                                             <i className="tim-icons icon-check-2 mr-2" />
                                             {t('currentScore') || 'Aktuální skóre'}: 
-                                            <strong className="ml-2" style={{ color: 'white' }}>
+                                            <strong className="ml-2">
                                                 {match.scoreA !== null ? match.scoreA : '-'}
                                                 {isTwoRobotMatch && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
                                             </strong>
@@ -804,23 +812,25 @@ function MatchScoreEntry() {
                             
                             {/* Action buttons at bottom */}
                             {!noRobotAssigned && (
-                                <Row className="mt-4">
+                                <Row className="mt-3 pb-1">
                                     <Col className="text-center">
                                         <Button 
                                             color="warning" 
-                                            className="mr-3"
+                                            className="mr-2"
                                             onClick={() => setConfirmRematchOpen(true)}
                                             disabled={submitting}
+                                            style={{ minWidth: '130px', padding: '8px 16px' }}
                                         >
-                                            {submitting ? <Spinner size="sm" /> : <i className="tim-icons icon-refresh-02 mr-2" />}
-                                            {t('requestRematch') || 'Opakovat zápas'}
+                                            {submitting ? <Spinner size="sm" /> : <i className="tim-icons icon-refresh-02 mr-1" />}
+                                            {t('requestRematch') || 'Opakovat'}
                                         </Button>
                                         <Button 
                                             color="success"
                                             onClick={() => setConfirmSaveOpen(true)}
                                             disabled={submitting}
+                                            style={{ minWidth: '130px', padding: '8px 16px' }}
                                         >
-                                            {submitting ? <Spinner size="sm" /> : <i className="tim-icons icon-check-2 mr-2" />}
+                                            {submitting ? <Spinner size="sm" /> : <i className="tim-icons icon-check-2 mr-1" />}
                                             {t('saveScore') || 'Uložit skóre'}
                                         </Button>
                                     </Col>
