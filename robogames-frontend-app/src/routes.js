@@ -45,6 +45,7 @@ import MatchSchedule from "views/MatchSchedule";
 import MatchGroup from "views/MatchGroup";
 import PlaygroundMatches from "views/PlaygroundMatches";
 import Generate from "views/Generate.js";
+import TournamentGenerator from "views/TournamentGenerator.js";
 import { t } from "translations/translate";
 
 
@@ -255,6 +256,15 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-puzzle-10",
     component: <Generate />,
+    layout: "/admin",
+    hidden: true,
+  },
+  {
+    path: "/tournament-generator",
+    name: t("tournamentGenerator"), 
+    rtlName: "",
+    icon: "tim-icons icon-trophy",
+    component: <TournamentGenerator />,
     layout: "/admin",
     hidden: true,
   }

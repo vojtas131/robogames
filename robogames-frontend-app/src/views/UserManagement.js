@@ -52,7 +52,8 @@ function UserManagement() {
   
   // Search/Filter
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'surname', 'fullname', 'email', 'role'
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'surname', 'fullname', 'email'
+  const [filterRole, setFilterRole] = useState(''); // '' = all roles
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,7 +62,7 @@ function UserManagement() {
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, searchType]);
+  }, [searchQuery, searchType, filterRole]);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -441,8 +442,8 @@ function UserManagement() {
                 )}
               </div>
               {isAdminOrLeader && (
-                <Row>
-                  <Col md="3">
+                <Row className="mb-2">
+                  <Col md="2">
                     <Input
                       type="select"
                       value={searchType}
@@ -454,10 +455,9 @@ function UserManagement() {
                       <option value="surname">{t('searchBySurname') || 'Příjmení'}</option>
                       <option value="fullname">{t('searchByFullname') || 'Jméno + Příjmení'}</option>
                       <option value="email">{t('searchByEmail') || 'Email'}</option>
-                      <option value="role">{t('searchByRole') || 'Role'}</option>
                     </Input>
                   </Col>
-                  <Col md="9">
+                  <Col md="7">
                     <InputGroup>
                       <InputGroupText>
                         <i className="tim-icons icon-zoom-split" />
@@ -469,7 +469,6 @@ function UserManagement() {
                           searchType === 'surname' ? (t('enterSurname') || 'Zadejte příjmení...') :
                           searchType === 'fullname' ? (t('enterFullname') || 'Zadejte jméno a příjmení...') :
                           searchType === 'email' ? (t('enterEmail') || 'Zadejte email...') :
-                          searchType === 'role' ? (t('enterRole') || 'Zadejte roli...') :
                           (t('searchUserPlaceholder') || 'Hledat uživatele...')
                         }
                         value={searchQuery}
@@ -485,6 +484,19 @@ function UserManagement() {
                         </InputGroupText>
                       )}
                     </InputGroup>
+                  </Col>
+                  <Col md="3">
+                    <Input
+                      type="select"
+                      value={filterRole}
+                      onChange={(e) => setFilterRole(e.target.value)}
+                      title={t('filterByRole') || 'Filtrovat podle role'}
+                    >
+                      <option value="">{t('allRoles') || 'Všechny role'}</option>
+                      {roles.map(role => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </Input>
                   </Col>
                 </Row>
               )}
@@ -508,6 +520,11 @@ function UserManagement() {
                 <tbody>
                   {users
                     .filter(user => {
+                      // Filter by role first
+                      if (filterRole && !user.roles?.some(role => role.name === filterRole)) {
+                        return false;
+                      }
+                      
                       const searchLower = searchQuery.toLowerCase();
                       if (!searchQuery) return true;
                       
@@ -522,8 +539,6 @@ function UserManagement() {
                           return `${user.name} ${user.surname}`.toLowerCase().includes(searchLower);
                         case 'email':
                           return user.email?.toLowerCase().includes(searchLower);
-                        case 'role':
-                          return user.roles?.some(role => role.name?.toLowerCase().includes(searchLower));
                         case 'all':
                         default:
                           return (
@@ -531,8 +546,7 @@ function UserManagement() {
                             user.name?.toLowerCase().includes(searchLower) ||
                             user.surname?.toLowerCase().includes(searchLower) ||
                             `${user.name} ${user.surname}`.toLowerCase().includes(searchLower) ||
-                            user.email?.toLowerCase().includes(searchLower) ||
-                            user.roles?.some(role => role.name?.toLowerCase().includes(searchLower))
+                            user.email?.toLowerCase().includes(searchLower)
                           );
                       }
                     })

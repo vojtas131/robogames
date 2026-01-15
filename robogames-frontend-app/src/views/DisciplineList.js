@@ -41,7 +41,8 @@ function Tables() {
     maxRounds: '',
     scoreType: 'SCORE',
     highScoreWin: true,
-    hidden: false
+    hidden: false,
+    competitionMode: 'BEST_SCORE'
   });
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
@@ -91,7 +92,8 @@ function Tables() {
       maxRounds: '',
       scoreType: 'SCORE',
       highScoreWin: true,
-      hidden: false
+      hidden: false,
+      competitionMode: 'BEST_SCORE'
     });
   };
 
@@ -110,7 +112,8 @@ function Tables() {
       maxRounds: discipline.maxRounds,
       scoreType: discipline.scoreTypeName || 'SCORE',
       highScoreWin: discipline.highScoreWin !== undefined ? discipline.highScoreWin : true,
-      hidden: discipline.hidden || false
+      hidden: discipline.hidden || false,
+      competitionMode: discipline.competitionModeName || 'BEST_SCORE'
     });
     setModal(true);
   };
@@ -378,7 +381,7 @@ function Tables() {
                 </Col>
               </Row>
               <Row>
-                <Col md="12">
+                <Col md="6">
                   <FormGroup>
                     <Label for="highScoreWin">{t("winCondition") || "Podmínka výhry"}</Label>
                     <Input 
@@ -391,6 +394,22 @@ function Tables() {
                     >
                       <option value="true">{t("highScoreWinsShort") || "Vyšší skóre vyhrává"}</option>
                       <option value="false">{t("lowScoreWinsShort") || "Nižší skóre vyhrává"}</option>
+                    </Input>
+                  </FormGroup>
+                </Col>
+                <Col md="6">
+                  <FormGroup>
+                    <Label for="competitionMode">{t("competitionMode") || "Režim soutěže"}</Label>
+                    <Input 
+                      style={{ color: 'black' }} 
+                      type="select" 
+                      name="competitionMode" 
+                      id="competitionMode" 
+                      value={formData.competitionMode} 
+                      onChange={handleInputChange}
+                    >
+                      <option value="BEST_SCORE">{t("competitionModeBestScore") || "Nejlepší skóre"}</option>
+                      <option value="TOURNAMENT">{t("competitionModeTournament") || "Turnaj"}</option>
                     </Input>
                   </FormGroup>
                 </Col>
@@ -578,11 +597,20 @@ function Tables() {
                           {discipline.scoreTypeName === 'TIME' ? (t("scoreTypeTime") || "Čas") : (t("scoreTypeScore") || "Body")}
                         </span>
                       </div>
-                      <div>
+                      <div className="mb-2">
                         <i className="tim-icons icon-trophy mr-2" style={{ color: colors.primary }} />
                         <strong style={{ color: colors.textSecondary }}>{t("winCondition") || "Výhra"}:</strong>{' '}
                         <span style={{ color: colors.textPrimary }}>
                           {discipline.highScoreWin ? (t("highScoreWins") || "Vyšší vyhrává") : (t("lowScoreWins") || "Nižší vyhrává")}
+                        </span>
+                      </div>
+                      <div>
+                        <i className="tim-icons icon-controller mr-2" style={{ color: colors.primary }} />
+                        <strong style={{ color: colors.textSecondary }}>{t("competitionMode") || "Režim"}:</strong>{' '}
+                        <span style={{ color: colors.textPrimary }}>
+                          {discipline.competitionModeName === 'TOURNAMENT' 
+                            ? (t("competitionModeTournament") || "Turnaj") 
+                            : (t("competitionModeBestScore") || "Nejlepší skóre")}
                         </span>
                       </div>
                     </div>

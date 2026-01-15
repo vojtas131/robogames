@@ -469,6 +469,12 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       icon: 'icon-puzzle-10',
       needsYear: true
     },
+    '/admin/tournament-generator': { 
+      label: t('tournamentGenerator') || 'Generování turnaje', 
+      parent: '/admin/admin-dashboard',
+      icon: 'icon-trophy',
+      needsYear: true
+    },
   };
   
   // Helper to find route config - supports parameterized paths like /admin/match-score/:id

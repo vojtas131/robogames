@@ -28,7 +28,9 @@ function RobotManagement() {
   const { selectedYear } = useAdmin();
   const [robots, setRobots] = useState([]);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'number', 'name', 'team', 'discipline', 'category'
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'number', 'name', 'team', 'discipline'
+  const [filterCategory, setFilterCategory] = useState(''); // '' = all categories
+  const [filterConfirmed, setFilterConfirmed] = useState(''); // '' = all, 'true' = confirmed, 'false' = unconfirmed
   const [disciplines, setDisciplines] = useState([]);
   const [registrations, setRegistrations] = useState([]);
 
@@ -118,6 +120,19 @@ function RobotManagement() {
   };
 
   const filteredRobots = robots.filter(robot => {
+    // Filter by category first
+    if (filterCategory && robot.category !== filterCategory) {
+      return false;
+    }
+    
+    // Filter by confirmed status
+    if (filterConfirmed === 'true' && !robot.confirmed) {
+      return false;
+    }
+    if (filterConfirmed === 'false' && robot.confirmed) {
+      return false;
+    }
+    
     const searchLower = searchTerm.toLowerCase();
     if (!searchTerm) return true;
     
@@ -132,17 +147,13 @@ function RobotManagement() {
         return robot.teamName?.toLowerCase().includes(searchLower);
       case 'discipline':
         return robot.diciplineName?.toLowerCase().includes(searchLower);
-      case 'category':
-        return robot.category?.toLowerCase().includes(searchLower) ||
-               getCategoryDisplay(robot.category).toLowerCase().includes(searchLower);
       case 'all':
       default:
         return robot.id?.toString().includes(searchTerm) ||
                robot.number?.toString().includes(searchTerm) ||
                robot.name?.toLowerCase().includes(searchLower) ||
                robot.teamName?.toLowerCase().includes(searchLower) ||
-               robot.diciplineName?.toLowerCase().includes(searchLower) ||
-               getCategoryDisplay(robot.category).toLowerCase().includes(searchLower);
+               robot.diciplineName?.toLowerCase().includes(searchLower);
     }
   });
   
@@ -153,7 +164,7 @@ function RobotManagement() {
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, searchType]);
+  }, [searchTerm, searchType, filterCategory, filterConfirmed]);
 
   // Statistics
   const totalRobots = robots.length;
@@ -465,8 +476,8 @@ function RobotManagement() {
                   </Button>
                 </Col>
               </Row>
-              <Row>
-                <Col md="3">
+              <Row className="mb-2">
+                <Col md="2">
                   <Input
                     type="select"
                     value={searchType}
@@ -478,10 +489,9 @@ function RobotManagement() {
                     <option value="name">{t('searchByRobotName') || 'Název robota'}</option>
                     <option value="team">{t('searchByTeamName') || 'Tým'}</option>
                     <option value="discipline">{t('searchByDiscipline') || 'Disciplína'}</option>
-                    <option value="category">{t('searchByCategory') || 'Kategorie'}</option>
                   </Input>
                 </Col>
-                <Col md="9">
+                <Col md="4">
                   <InputGroup>
                     <InputGroupText>
                       <i className="tim-icons icon-zoom-split" />
@@ -494,7 +504,6 @@ function RobotManagement() {
                         searchType === 'name' ? (t('enterRobotName') || 'Zadejte název robota...') :
                         searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
                         searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
-                        searchType === 'category' ? (t('enterCategory') || 'Zadejte kategorii...') :
                         (t('findByTeam') || 'Hledat...')
                       }
                       value={searchTerm}
@@ -510,6 +519,30 @@ function RobotManagement() {
                       </InputGroupText>
                     )}
                   </InputGroup>
+                </Col>
+                <Col md="3">
+                  <Input
+                    type="select"
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    title={t('filterByCategory') || 'Filtrovat podle kategorie'}
+                  >
+                    <option value="">{t('allCategories') || 'Všechny kategorie'}</option>
+                    <option value="LOW_AGE_CATEGORY">{t('pupils') || 'Žáci'}</option>
+                    <option value="HIGH_AGE_CATEGORY">{t('students') || 'Studenti a dospělí'}</option>
+                  </Input>
+                </Col>
+                <Col md="3">
+                  <Input
+                    type="select"
+                    value={filterConfirmed}
+                    onChange={(e) => setFilterConfirmed(e.target.value)}
+                    title={t('filterByConfirmed') || 'Filtrovat podle stavu'}
+                  >
+                    <option value="">{t('allStates') || 'Všechny stavy'}</option>
+                    <option value="true">{t('confirmedOnly') || 'Pouze potvrzené'}</option>
+                    <option value="false">{t('unconfirmedOnly') || 'Pouze nepotvrzené'}</option>
+                  </Input>
                 </Col>
               </Row>
             </CardHeader>
