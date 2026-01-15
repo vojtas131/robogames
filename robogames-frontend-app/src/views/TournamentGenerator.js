@@ -177,7 +177,7 @@ const TournamentSeed = ({ seed, breakpoint, isDark }) => {
 };
 
 // Bracket visualization component using react-brackets
-const BracketVisualization = ({ bracket, isDark }) => {
+const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange }) => {
     if (!bracket || !bracket.rounds || bracket.rounds.length === 0) {
         return (
             <Alert color="info">
@@ -208,17 +208,47 @@ const BracketVisualization = ({ bracket, isDark }) => {
     }));
 
     return (
-        <div className="rs-bracket-wrapper" style={{ 
-            overflowX: 'auto', 
-            padding: '20px',
-            background: isDark ? '#1e1e2f' : '#f8f9fa',
-            borderRadius: '8px'
-        }}>
-            <Bracket
-                rounds={transformedRounds}
-                renderSeedComponent={(props) => <TournamentSeed {...props} isDark={isDark} />}
-                mobileBreakpoint={0}
-            />
+        <div>
+            {/* Playground selector for bracket */}
+            {playgrounds && playgrounds.length > 0 && (
+                <div className="mb-3 d-flex align-items-center">
+                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f', marginRight: '8px' }}>
+                        <i className="tim-icons icon-square-pin mr-1" />
+                        {t('bracketPlayground') || 'Hřiště pro pavouk'}:
+                    </small>
+                    <Input
+                        type="select"
+                        bsSize="sm"
+                        value={bracket.playgroundId || ''}
+                        onChange={(e) => onPlaygroundChange && onPlaygroundChange(parseInt(e.target.value))}
+                        className={isDark ? 'bg-dark text-white' : ''}
+                        style={{ 
+                            borderRadius: '6px', 
+                            width: 'auto',
+                            minWidth: '180px',
+                            fontSize: '0.9em'
+                        }}
+                    >
+                        {playgrounds.map(pg => (
+                            <option key={pg.id} value={pg.id}>
+                                N{pg.number} - {pg.name || `Hřiště ${pg.id}`}
+                            </option>
+                        ))}
+                    </Input>
+                </div>
+            )}
+            <div className="rs-bracket-wrapper" style={{ 
+                overflowX: 'auto', 
+                padding: '20px',
+                background: isDark ? '#1e1e2f' : '#f8f9fa',
+                borderRadius: '8px'
+            }}>
+                <Bracket
+                    rounds={transformedRounds}
+                    renderSeedComponent={(props) => <TournamentSeed {...props} isDark={isDark} />}
+                    mobileBreakpoint={0}
+                />
+            </div>
         </div>
     );
 };
@@ -429,12 +459,26 @@ function TournamentGenerator() {
             
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
-                // Assign playgrounds to groups randomly
+                // Backend already assigns playgrounds, but ensure matches have playgroundId set
                 const previewData = data.data;
-                if (previewData.groups && playgrounds.length > 0) {
-                    previewData.groups = previewData.groups.map((group, idx) => ({
+                if (previewData.groups) {
+                    previewData.groups = previewData.groups.map((group) => ({
                         ...group,
-                        playgroundId: playgrounds[idx % playgrounds.length].id
+                        // Ensure all matches in group have the group's playgroundId
+                        matches: group.matches.map(m => ({
+                            ...m,
+                            playgroundId: m.playgroundId || group.playgroundId
+                        }))
+                    }));
+                }
+                // Ensure bracket matches have the bracket's playgroundId
+                if (previewData.bracket && previewData.bracket.rounds) {
+                    previewData.bracket.rounds = previewData.bracket.rounds.map(round => ({
+                        ...round,
+                        matches: round.matches.map(m => ({
+                            ...m,
+                            playgroundId: m.playgroundId || previewData.bracket.playgroundId
+                        }))
                     }));
                 }
                 setPreview(previewData);
@@ -458,9 +502,32 @@ function TournamentGenerator() {
             ...prev,
             groups: prev.groups.map(g => 
                 g.groupId === groupId 
-                    ? { ...g, playgroundId } 
+                    ? { 
+                        ...g, 
+                        playgroundId,
+                        // Update playgroundId for all matches in this group
+                        matches: g.matches.map(m => ({ ...m, playgroundId }))
+                    } 
                     : g
             )
+        }));
+    };
+
+    // Handle playground change for bracket
+    const handleBracketPlaygroundChange = (playgroundId) => {
+        if (!preview || !preview.bracket) return;
+        
+        setPreview(prev => ({
+            ...prev,
+            bracket: {
+                ...prev.bracket,
+                playgroundId,
+                // Update playgroundId for all matches in all bracket rounds
+                rounds: prev.bracket.rounds.map(round => ({
+                    ...round,
+                    matches: round.matches.map(m => ({ ...m, playgroundId }))
+                }))
+            }
         }));
     };
 
@@ -1007,6 +1074,8 @@ function TournamentGenerator() {
                                         <BracketVisualization 
                                             bracket={preview.bracket} 
                                             isDark={isDark}
+                                            playgrounds={playgrounds}
+                                            onPlaygroundChange={handleBracketPlaygroundChange}
                                         />
                                         <Alert color="secondary" className="mt-3" style={{ borderRadius: '8px' }}>
                                             <i className="tim-icons icon-sound-wave mr-1" />
