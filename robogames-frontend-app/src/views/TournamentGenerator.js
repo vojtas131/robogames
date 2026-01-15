@@ -520,14 +520,6 @@ function TournamentGenerator() {
 
         setSaving(true);
         setShowSaveConfirmModal(false);
-
-        console.log(JSON.stringify({
-                        disciplineId: preview.disciplineId,
-                        category: preview.category,
-                        year: preview.year,
-                        groups: preview.groups,
-                        bracket: preview.bracket
-                    }));
         
         try {
             const response = await fetch(
@@ -555,7 +547,9 @@ function TournamentGenerator() {
                 setTournamentExists(true);
                 setPreview(null);
             } else {
-                toast.error(data.message || t('errorSaving') || 'Chyba při ukládání');
+                // Backend returns error in data.data field
+                const errorMessage = data.data || data.message || t('errorSaving') || 'Chyba při ukládání';
+                toast.error(errorMessage);
             }
         } catch (error) {
             console.error('Failed to save tournament:', error);
