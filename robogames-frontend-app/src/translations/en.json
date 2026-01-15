@@ -1033,5 +1033,14 @@
     "matchCount": "Match Count",
     "confirmSaveTournament": "Confirm Save Tournament",
     "confirmSaveTournamentDescription": "Are you sure you want to save this tournament? This action will create all group matches and the elimination bracket structure.",
-    "confirmAndSave": "Confirm and Save"
+    "confirmAndSave": "Confirm and Save",
+
+    "tournamentExists": "Tournament already exists",
+    "groupPhaseProgress": "Group phase progress",
+    "bracketProgress": "Bracket progress",
+    "remaining:": "Remaining:",
+    "noMatchesPlayedYet": "No matches played yet",
+    "remaining": "remaining",
+    "refresh": "Refresh",
+    "groupStandingsAndAdvancing": "Group Standings and Advancing"
 }

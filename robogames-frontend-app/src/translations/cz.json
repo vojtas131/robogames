@@ -1033,5 +1033,14 @@
     "matchCount": "Počet zápasů",
     "confirmSaveTournament": "Potvrdit uložení turnaje",
     "confirmSaveTournamentDescription": "Opravdu chcete uložit tento turnaj? Tato akce vytvoří všechny skupinové zápasy a strukturu vyřazovacího pavouka.",
-    "confirmAndSave": "Potvrdit a uložit"
+    "confirmAndSave": "Potvrdit a uložit",
+    
+    "tournamentExists": "Turnaj již existuje",
+    "groupPhaseProgress": "Průběh skupinové fáze",
+    "bracketProgress": "Průběh pavoukové fáze",
+    "remaining:": "Zbývá:",
+    "noMatchesPlayedYet": "Zatím nebyly odehrány žádné zápasy",
+    "remaining": "zbývá",
+    "refresh": "Obnovit",
+    "groupStandingsAndAdvancing": "Pořadí ve skupině a postupující"
 }

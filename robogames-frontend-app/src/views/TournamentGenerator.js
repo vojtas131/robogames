@@ -9,9 +9,11 @@ import {
     FormGroup, Label, Input,
     Table, Badge, Spinner, Alert,
     Modal, ModalHeader, ModalBody, ModalFooter,
-    Nav, NavItem, NavLink, TabContent, TabPane
+    Nav, NavItem, NavLink, TabContent, TabPane,
+    Progress
 } from 'reactstrap';
 import classnames from 'classnames';
+import { Link } from 'react-router-dom';
 import { Bracket, Seed, SeedItem, SeedTeam } from "react-brackets";
 import { useUser } from "contexts/UserContext";
 import { useAdmin } from "contexts/AdminContext";
@@ -111,9 +113,17 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
                                 }}>
                                     N{robot.number}
                                 </span>
-                                <span style={{ fontWeight: '600' }}>
+                                <Link 
+                                    to={`/admin/robot-profile?id=${robot.id}`}
+                                    style={{ 
+                                        fontWeight: '600',
+                                        color: isDark ? '#5e72e4' : '#5e72e4',
+                                        textDecoration: 'none'
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
                                     {robot.name}
-                                </span>
+                                </Link>
                             </div>
                         ))}
                     </div>
@@ -141,6 +151,28 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
 const TournamentSeed = ({ seed, breakpoint, isDark }) => {
     const isBye = seed.isBye;
     
+    const renderTeam = (team, teamIndex) => {
+        if (!team || !team.name) {
+            return t('waitingForWinner') || 'Čeká na vítěze';
+        }
+        
+        // If robot has ID, make it a link
+        if (team.robotId) {
+            return (
+                <Link 
+                    to={`/admin/robot-profile?id=${team.robotId}`}
+                    style={{ 
+                        color: isDark ? '#5e72e4' : '#5e72e4',
+                        textDecoration: 'none'
+                    }}
+                >
+                    {team.name}
+                </Link>
+            );
+        }
+        return team.name;
+    };
+    
     return (
         <Seed mobileBreakpoint={breakpoint} style={{ fontSize: 12 }}>
             <SeedItem style={{
@@ -162,13 +194,13 @@ const TournamentSeed = ({ seed, breakpoint, isDark }) => {
                         color: isDark ? '#fff' : '#32325d',
                         borderBottom: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
                     }}>
-                        {isBye ? (t('bye') || 'BYE - automatický postup') : (seed.teams[0]?.name || (t('waitingForWinner') || 'Čeká na vítěze'))}
+                        {isBye ? (t('bye') || 'BYE - automatický postup') : renderTeam(seed.teams[0], 0)}
                     </SeedTeam>
                     <SeedTeam style={{
                         background: isDark ? '#252536' : '#fff',
                         color: isDark ? (isBye ? '#666' : '#fff') : (isBye ? '#aaa' : '#32325d')
                     }}>
-                        {isBye ? '—' : (seed.teams[1]?.name || (t('waitingForWinner') || 'Čeká na vítěze'))}
+                        {isBye ? '—' : renderTeam(seed.teams[1], 1)}
                     </SeedTeam>
                 </div>
             </SeedItem>
@@ -196,12 +228,14 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
                 { 
                     name: match.robotA 
                         ? `#${match.robotA.number} ${match.robotA.name}` 
-                        : null 
+                        : null,
+                    robotId: match.robotA?.id || null
                 },
                 { 
                     name: match.robotB 
                         ? `#${match.robotB.number} ${match.robotB.name}` 
-                        : null 
+                        : null,
+                    robotId: match.robotB?.id || null
                 }
             ]
         }))
@@ -288,6 +322,8 @@ function TournamentGenerator() {
     
     // Tournament exists check
     const [tournamentExists, setTournamentExists] = useState(false);
+    const [tournamentStatus, setTournamentStatus] = useState(null);
+    const [loadingStatus, setLoadingStatus] = useState(false);
     
     // Modals
     const [showStartFinalModal, setShowStartFinalModal] = useState(false);
@@ -387,6 +423,33 @@ function TournamentGenerator() {
         }
     }, [selectedDiscipline, selectedYear, token, tokenExpired]);
 
+    // Fetch tournament status (groups standings, match progress)
+    const fetchTournamentStatus = useCallback(async () => {
+        if (!selectedDiscipline || !selectedYear) return;
+        
+        setLoadingStatus(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/tournament/status?disciplineId=${selectedDiscipline}&category=${selectedCategory}&year=${selectedYear}&advancingPerGroup=${params.advancingPerGroup}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+            
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setTournamentStatus(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch tournament status:', error);
+        } finally {
+            setLoadingStatus(false);
+        }
+    }, [selectedDiscipline, selectedCategory, selectedYear, params.advancingPerGroup, token, tokenExpired]);
+
     // Check if tournament already exists
     const checkTournamentExists = useCallback(async () => {
         if (!selectedDiscipline || !selectedYear) return;
@@ -405,11 +468,17 @@ function TournamentGenerator() {
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setTournamentExists(data.data);
+                // If tournament exists, fetch detailed status
+                if (data.data) {
+                    fetchTournamentStatus();
+                } else {
+                    setTournamentStatus(null);
+                }
             }
         } catch (error) {
             console.error('Failed to check tournament:', error);
         }
-    }, [selectedDiscipline, selectedCategory, selectedYear, token, tokenExpired]);
+    }, [selectedDiscipline, selectedCategory, selectedYear, token, tokenExpired, fetchTournamentStatus]);
 
     useEffect(() => {
         fetchDisciplines();
@@ -753,7 +822,7 @@ function TournamentGenerator() {
                             </CardTitle>
                         </CardHeader>
                         <CardBody>
-                            {/* Configuration Form */}
+                            {/* Configuration Form - discipline and category selectors always visible */}
                             <Row>
                                 <Col md="6">
                                     <FormGroup>
@@ -806,8 +875,8 @@ function TournamentGenerator() {
                                 </Col>
                             </Row>
 
-                            {/* Robot count info */}
-                            {selectedDiscipline && (
+                            {/* Robot count info - hidden when tournament exists */}
+                            {!tournamentExists && selectedDiscipline && (
                                 <Alert color={currentRobotCount > 0 ? 'info' : 'warning'} style={{ borderRadius: '8px' }}>
                                     <i className={`tim-icons ${currentRobotCount > 0 ? 'icon-check-2' : 'icon-alert-circle-exc'} mr-2`} />
                                     <strong>{currentRobotCount}</strong> {t('confirmedRobotsInCategory') || 'potvrzených robotů v této kategorii'}
@@ -819,124 +888,320 @@ function TournamentGenerator() {
                                 </Alert>
                             )}
 
-                            {/* Tournament exists warning */}
+                            {/* Tournament exists warning with status info */}
                             {tournamentExists && (
-                                <Alert color="warning" style={{ borderRadius: '8px' }}>
-                                    <i className="tim-icons icon-alert-circle-exc mr-2" />
-                                    <strong>{t('warning') || 'Upozornění'}:</strong> {t('tournamentAlreadyExists') || 'V systému již existují vygenerované zápasy pro tuto disciplínu a kategorii.'}
-                                    <div className="mt-2">
-                                        <Button 
-                                            color="danger" 
-                                            size="sm" 
-                                            onClick={handleDeleteTournament}
-                                            style={{ borderRadius: '6px' }}
-                                        >
-                                            <i className="tim-icons icon-trash-simple mr-1" />
-                                            {t('deleteAllMatches') || 'Odstranit všechny zápasy'}
-                                        </Button>
-                                        <Button 
-                                            color="success" 
-                                            size="sm" 
-                                            className="ml-2 ms-2"
-                                            onClick={() => setShowStartFinalModal(true)}
-                                            style={{ borderRadius: '6px' }}
-                                        >
-                                            <i className="tim-icons icon-triangle-right-17 mr-1" />
-                                            {t('startFinal') || 'Spustit finále'}
-                                        </Button>
-                                    </div>
-                                    <small className="d-block mt-2" style={{ opacity: 0.8 }}>
-                                        <i className="tim-icons icon-bulb-63 mr-1" />
-                                        {t('deleteMatchesHint') || 'Tlačítko "Odstranit všechny zápasy" smaže pouze zápasy odpovídající vybrané disciplíně a kategorii.'}
-                                    </small>
-                                </Alert>
+                                <Card className={isDark ? 'bg-dark' : ''} style={{ 
+                                    borderRadius: '12px', 
+                                    border: `2px solid ${isDark ? '#ffd600' : '#ffc107'}`,
+                                    marginBottom: '20px'
+                                }}>
+                                    <CardHeader style={{ 
+                                        background: isDark ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)' : 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
+                                        borderRadius: '10px 10px 0 0'
+                                    }}>
+                                        <div className="d-flex justify-content-between align-items-center flex-wrap">
+                                            <h5 className="mb-0" style={{ color: isDark ? '#ffd600' : '#856404' }}>
+                                                <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                                {t('tournamentExists') || 'Turnaj existuje'}
+                                            </h5>
+                                            <div>
+                                                <Button 
+                                                    color="danger" 
+                                                    size="sm" 
+                                                    onClick={handleDeleteTournament}
+                                                    style={{ borderRadius: '6px' }}
+                                                >
+                                                    <i className="tim-icons icon-trash-simple mr-1" />
+                                                    {t('deleteAllMatches') || 'Smazat'}
+                                                </Button>
+                                                <Button 
+                                                    color="success" 
+                                                    size="sm" 
+                                                    className="ml-2 ms-2"
+                                                    onClick={() => setShowStartFinalModal(true)}
+                                                    style={{ borderRadius: '6px' }}
+                                                >
+                                                    <i className="tim-icons icon-triangle-right-17 mr-1" />
+                                                    {t('startFinal') || 'Spustit finále'}
+                                                </Button>
+                                                <Button 
+                                                    color="info" 
+                                                    size="sm" 
+                                                    className="ml-2 ms-2"
+                                                    onClick={fetchTournamentStatus}
+                                                    disabled={loadingStatus}
+                                                    style={{ borderRadius: '6px' }}
+                                                >
+                                                    <i className="tim-icons icon-refresh-02 mr-1" />
+                                                    {loadingStatus ? '...' : t('refresh') || 'Obnovit'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardBody>
+                                        {loadingStatus && !tournamentStatus ? (
+                                            <div className="text-center py-3">
+                                                <Spinner color="primary" />
+                                                <div className="mt-2" style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                    {t('loadingStatus') || 'Načítám stav turnaje...'}
+                                                </div>
+                                            </div>
+                                        ) : tournamentStatus && tournamentStatus.exists ? (
+                                            <>
+                                                {/* Overall progress */}
+                                                <div className="mb-4">
+                                                    <div className="d-flex justify-content-between mb-2">
+                                                        <span style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                            <i className="tim-icons icon-bullet-list-67 mr-2" />
+                                                            {t('groupPhaseProgress') || 'Průběh skupin'}
+                                                        </span>
+                                                        <span style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                            {tournamentStatus.completedGroupMatches} / {tournamentStatus.totalGroupMatches} {t('matches') || 'zápasů'}
+                                                            {tournamentStatus.remainingGroupMatches > 0 && (
+                                                                <Badge color="warning" className="ml-2 ms-2">
+                                                                    {t('remaining') || 'Zbývá'}: {tournamentStatus.remainingGroupMatches}
+                                                                </Badge>
+                                                            )}
+                                                            {tournamentStatus.remainingGroupMatches === 0 && (
+                                                                <Badge color="success" className="ml-2 ms-2">
+                                                                    <i className="tim-icons icon-check-2 mr-1" />
+                                                                    {t('completed') || 'Dokončeno'}
+                                                                </Badge>
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <Progress 
+                                                        value={tournamentStatus.totalGroupMatches > 0 ? (tournamentStatus.completedGroupMatches / tournamentStatus.totalGroupMatches) * 100 : 0}
+                                                        color={tournamentStatus.remainingGroupMatches === 0 ? 'success' : 'info'}
+                                                        style={{ height: '10px', borderRadius: '5px' }}
+                                                    />
+                                                </div>
+
+                                                {/* Bracket progress */}
+                                                <div className="mb-4">
+                                                    <div className="d-flex justify-content-between mb-2">
+                                                        <span style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                            <i className="tim-icons icon-trophy mr-2" />
+                                                            {t('bracketProgress') || 'Průběh pavouka'}
+                                                        </span>
+                                                        <span style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                            {tournamentStatus.completedBracketMatches} / {tournamentStatus.totalBracketMatches} {t('matches') || 'zápasů'}
+                                                        </span>
+                                                    </div>
+                                                    <Progress 
+                                                        value={tournamentStatus.totalBracketMatches > 0 ? (tournamentStatus.completedBracketMatches / tournamentStatus.totalBracketMatches) * 100 : 0}
+                                                        color={tournamentStatus.remainingBracketMatches === 0 && tournamentStatus.totalBracketMatches > 0 ? 'success' : 'primary'}
+                                                        style={{ height: '10px', borderRadius: '5px' }}
+                                                    />
+                                                </div>
+
+                                                {/* Groups with standings */}
+                                                <h6 style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600', marginBottom: '15px' }}>
+                                                    <i className="tim-icons icon-components mr-2" />
+                                                    {t('groupStandingsAndAdvancing') || 'Stav skupin a postupující'}
+                                                    <Badge color="info" className="ml-2 ms-2">
+                                                        {t('advancingPerGroup') || 'Postupujících'}: {tournamentStatus.advancingPerGroup}
+                                                    </Badge>
+                                                </h6>
+                                                <Row>
+                                                    {tournamentStatus.groups && tournamentStatus.groups.map((group, idx) => (
+                                                        <Col md="6" lg="4" key={group.groupId}>
+                                                            <Card className={`mb-3 ${isDark ? 'bg-secondary' : ''}`} style={{ 
+                                                                borderRadius: '8px',
+                                                                border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
+                                                            }}>
+                                                                <CardHeader className="py-2 px-3" style={{ 
+                                                                    background: isDark ? '#1e1e2f' : '#f8f9fa',
+                                                                    borderRadius: '8px 8px 0 0'
+                                                                }}>
+                                                                    <div className="d-flex justify-content-between align-items-center">
+                                                                        <span style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                                            {t('group') || 'Skupina'} {group.groupName}
+                                                                        </span>
+                                                                        <small style={{ color: isDark ? '#a0aec0' : '#666' }}>
+                                                                            {group.completedMatches}/{group.totalMatches} {t('matches') || 'zápasů'}
+                                                                        </small>
+                                                                    </div>
+                                                                    <Progress 
+                                                                        value={group.totalMatches > 0 ? (group.completedMatches / group.totalMatches) * 100 : 0}
+                                                                        color={group.remainingMatches === 0 ? 'success' : 'info'}
+                                                                        style={{ height: '4px', marginTop: '5px' }}
+                                                                    />
+                                                                </CardHeader>
+                                                                <CardBody className="p-2" style={{ overflow: 'hidden' }}>
+                                                                    {group.standings && group.standings.length > 0 ? (
+                                                                        <Table size="sm" className="mb-0" style={{ fontSize: '0.85em', tableLayout: 'fixed', width: '100%' }}>
+                                                                            <thead>
+                                                                                <tr style={{ color: isDark ? '#a0aec0' : '#666' }}>
+                                                                                    <th style={{ width: '28px' }}>#</th>
+                                                                                    <th style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('robot') || 'Robot'}</th>
+                                                                                    <th className="text-center" style={{ width: '32px' }}>V</th>
+                                                                                    <th className="text-center" style={{ width: '32px' }}>P</th>
+                                                                                    <th className="text-center" style={{ width: '38px' }}>+/-</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {group.standings.map((standing, sIdx) => (
+                                                                                    <tr 
+                                                                                        key={standing.robotId}
+                                                                                        style={{ 
+                                                                                            background: standing.advancing 
+                                                                                                ? (isDark ? 'rgba(45, 206, 137, 0.15)' : 'rgba(45, 206, 137, 0.1)')
+                                                                                                : 'transparent',
+                                                                                            color: isDark ? '#fff' : '#32325d'
+                                                                                        }}
+                                                                                    >
+                                                                                        <td style={{ fontWeight: '600', textAlign: 'center' }}>
+                                                                                            {standing.advancing ? (
+                                                                                                <span style={{ 
+                                                                                                    background: '#2dce89', 
+                                                                                                    color: '#fff', 
+                                                                                                    borderRadius: '50%', 
+                                                                                                    width: '20px', 
+                                                                                                    height: '20px', 
+                                                                                                    display: 'inline-flex', 
+                                                                                                    alignItems: 'center', 
+                                                                                                    justifyContent: 'center',
+                                                                                                    fontSize: '0.75em'
+                                                                                                }}>
+                                                                                                    {standing.rank}
+                                                                                                </span>
+                                                                                            ) : standing.rank}
+                                                                                        </td>
+                                                                                        <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                                                            <Link 
+                                                                                                to={`/admin/robot-profile?id=${standing.robotId}`}
+                                                                                                style={{ 
+                                                                                                    color: standing.advancing ? '#2dce89' : (isDark ? '#5e72e4' : '#5e72e4'),
+                                                                                                    fontWeight: standing.advancing ? '700' : '500',
+                                                                                                    textDecoration: 'none'
+                                                                                                }}
+                                                                                            >
+                                                                                                {standing.robotName}
+                                                                                            </Link>
+                                                                                            {standing.advancing && (
+                                                                                                <i className="tim-icons icon-check-2 ml-1 ms-1" style={{ color: '#2dce89', fontSize: '0.8em' }} />
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className="text-center" style={{ color: '#2dce89' }}>{standing.wins}</td>
+                                                                                        <td className="text-center" style={{ color: '#f5365c' }}>{standing.losses}</td>
+                                                                                        <td className="text-center">{standing.scoreDiff > 0 ? '+' : ''}{standing.scoreDiff}</td>
+                                                                                    </tr>
+                                                                                ))}
+                                                                            </tbody>
+                                                                        </Table>
+                                                                    ) : (
+                                                                        <div className="text-center py-2" style={{ color: isDark ? '#666' : '#aaa' }}>
+                                                                            <i className="tim-icons icon-time-alarm mr-1" />
+                                                                            {t('noMatchesPlayedYet') || 'Zatím neodehrány žádné zápasy'}
+                                                                        </div>
+                                                                    )}
+                                                                </CardBody>
+                                                            </Card>
+                                                        </Col>
+                                                    ))}
+                                                </Row>
+                                            </>
+                                        ) : (
+                                            <Alert color="info" style={{ borderRadius: '8px' }}>
+                                                <i className="tim-icons icon-bulb-63 mr-2" />
+                                                {t('tournamentExistsHint') || 'V systému již existují vygenerované zápasy pro tuto disciplínu a kategorii.'}
+                                            </Alert>
+                                        )}
+                                    </CardBody>
+                                </Card>
                             )}
 
-                            <hr style={{ borderColor: isDark ? '#3d3d5c' : '#e9ecef' }} />
+                            {/* Parameters and Generate button - hidden when tournament exists */}
+                            {!tournamentExists && (
+                                <>
+                                    <hr style={{ borderColor: isDark ? '#3d3d5c' : '#e9ecef' }} />
 
-                            {/* Parameters */}
-                            <h5 style={{ color: isDark ? 'white' : '#32325d', fontWeight: '600' }}>
-                                <i className="tim-icons icon-settings mr-2" />
-                                {t('parameters') || 'Parametry generování'}
-                            </h5>
-                            <Row className="mt-3">
-                                <Col md="4">
-                                    <FormGroup>
-                                        <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
-                                            {t('matchTime') || 'Čas na zápas (min)'}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            value={params.matchTimeMinutes}
-                                            onChange={(e) => setParams({...params, matchTimeMinutes: parseInt(e.target.value) || 1})}
-                                            className={isDark ? 'bg-dark text-white' : ''}
-                                            style={{ borderRadius: '8px' }}
-                                        />
-                                    </FormGroup>
-                                </Col>
-                                <Col md="4">
-                                    <FormGroup>
-                                        <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
-                                            {t('groupCount') || 'Počet skupin'}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            max="16"
-                                            value={params.groupCount}
-                                            onChange={(e) => setParams({...params, groupCount: parseInt(e.target.value) || 1})}
-                                            className={isDark ? 'bg-dark text-white' : ''}
-                                            style={{ borderRadius: '8px' }}
-                                        />
-                                    </FormGroup>
-                                </Col>
-                                <Col md="4">
-                                    <FormGroup>
-                                        <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
-                                            {t('advancingPerGroup') || 'Postupujících ze skupiny'}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            max="4"
-                                            value={params.advancingPerGroup}
-                                            onChange={(e) => setParams({...params, advancingPerGroup: parseInt(e.target.value) || 1})}
-                                            className={isDark ? 'bg-dark text-white' : ''}
-                                            style={{ borderRadius: '8px' }}
-                                        />
-                                    </FormGroup>
-                                </Col>
-                            </Row>
-                            <Row className="mt-2">
-                                <Col md="12" className="d-flex justify-content-center">
-                                    <Button 
-                                        color="primary" 
-                                        onClick={handleGeneratePreview}
-                                        disabled={generating || !selectedDiscipline || currentRobotCount === 0 || playgrounds.length === 0}
-                                        style={{ 
-                                            borderRadius: '8px',
-                                            padding: '12px 30px',
-                                            fontSize: '1rem',
-                                            fontWeight: '600',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                        }}
-                                    >
-                                        {generating ? (
-                                            <><Spinner size="sm" /> {t('generating') || 'Generuji...'}</>
-                                        ) : (
-                                            <><i className="tim-icons icon-spaceship" /> {t('generatePreview') || 'Generovat náhled'}</>
-                                        )}
-                                    </Button>
-                                </Col>
-                            </Row>
-                            {playgrounds.length === 0 && selectedDiscipline && (
-                                <Alert color="warning" style={{ borderRadius: '8px' }}>
-                                    <i className="tim-icons icon-alert-circle-exc mr-2" />
-                                    {t('noPlaygroundsForDiscipline') || 'Pro tuto disciplínu nejsou definována žádná hřiště. Vytvořte hřiště ve správě hřišť.'}
-                                </Alert>
+                                    {/* Parameters */}
+                                    <h5 style={{ color: isDark ? 'white' : '#32325d', fontWeight: '600' }}>
+                                        <i className="tim-icons icon-settings mr-2" />
+                                        {t('parameters') || 'Parametry generování'}
+                                    </h5>
+                                    <Row className="mt-3">
+                                        <Col md="4">
+                                            <FormGroup>
+                                                <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                    {t('matchTime') || 'Čas na zápas (min)'}
+                                                </Label>
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    value={params.matchTimeMinutes}
+                                                    onChange={(e) => setParams({...params, matchTimeMinutes: parseInt(e.target.value) || 1})}
+                                                    className={isDark ? 'bg-dark text-white' : ''}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md="4">
+                                            <FormGroup>
+                                                <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                    {t('groupCount') || 'Počet skupin'}
+                                                </Label>
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    max="16"
+                                                    value={params.groupCount}
+                                                    onChange={(e) => setParams({...params, groupCount: parseInt(e.target.value) || 1})}
+                                                    className={isDark ? 'bg-dark text-white' : ''}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md="4">
+                                            <FormGroup>
+                                                <Label style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                    {t('advancingPerGroup') || 'Postupujících ze skupiny'}
+                                                </Label>
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    max="4"
+                                                    value={params.advancingPerGroup}
+                                                    onChange={(e) => setParams({...params, advancingPerGroup: parseInt(e.target.value) || 1})}
+                                                    className={isDark ? 'bg-dark text-white' : ''}
+                                                    style={{ borderRadius: '8px' }}
+                                                />
+                                            </FormGroup>
+                                        </Col>
+                                    </Row>
+                                    <Row className="mt-2">
+                                        <Col md="12" className="d-flex justify-content-center">
+                                            <Button 
+                                                color="primary" 
+                                                onClick={handleGeneratePreview}
+                                                disabled={generating || !selectedDiscipline || currentRobotCount === 0 || playgrounds.length === 0}
+                                                style={{ 
+                                                    borderRadius: '8px',
+                                                    padding: '12px 30px',
+                                                    fontSize: '1rem',
+                                                    fontWeight: '600',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}
+                                            >
+                                                {generating ? (
+                                                    <><Spinner size="sm" /> {t('generating') || 'Generuji...'}</>
+                                                ) : (
+                                                    <><i className="tim-icons icon-spaceship" /> {t('generatePreview') || 'Generovat náhled'}</>
+                                                )}
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                    {playgrounds.length === 0 && selectedDiscipline && (
+                                        <Alert color="warning" style={{ borderRadius: '8px' }}>
+                                            <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                            {t('noPlaygroundsForDiscipline') || 'Pro tuto disciplínu nejsou definována žádná hřiště. Vytvořte hřiště ve správě hřišť.'}
+                                        </Alert>
+                                    )}
+                                </>
                             )}
                         </CardBody>
                     </Card>
