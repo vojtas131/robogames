@@ -320,8 +320,11 @@
     "phaseRoundOf16": "Round of 16",
     "phaseQuarterfinal": "Quarterfinals",
     "phaseSemifinal": "Semifinals",
+    "phaseThirdPlace": "3rd Place Match",
     "phaseFinal": "Final",
     "phase": "Phase",
+    "thirdPlaceMatch": "3rd Place Match",
+    "thirdPlaceDesc": "Semifinal losers will compete for 3rd place",
     
     "scoreTypeTime": "Time",
     "scoreTypeScore": "Points",
@@ -1060,5 +1063,6 @@
     "noStandingsYet": "No standings yet",
     "tbd": "TBD",
     "accessDenied": "Access Denied",
-    "robotProfileAccessDenied": "Robot profile is only accessible to team members and organizers."
+    "robotProfileAccessDenied": "Robot profile is only accessible to team members and organizers.",
+    "tournamentExistsHint": "A tournament already exists for this discipline and category."
 }

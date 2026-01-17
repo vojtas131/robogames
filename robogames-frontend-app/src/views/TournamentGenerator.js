@@ -218,8 +218,18 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
         );
     }
 
+    // Filter out the 3rd place round from main bracket (it will be shown separately)
+    const mainRounds = bracket.rounds.filter(round => 
+        !round.name.includes('3. místo') && round.name !== 'O 3. místo'
+    );
+
+    // Find the 3rd place match
+    const thirdPlaceRound = bracket.rounds.find(round => 
+        round.name.includes('3. místo') || round.name === 'O 3. místo'
+    );
+
     // Transform bracket data for react-brackets format
-    const transformedRounds = bracket.rounds.map((round, roundIndex) => ({
+    const transformedRounds = mainRounds.map((round, roundIndex) => ({
         title: round.name,
         seeds: round.matches.map((match, matchIndex) => ({
             id: match.tempId || `${roundIndex}-${matchIndex}`,
@@ -283,6 +293,62 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
                     mobileBreakpoint={0}
                 />
             </div>
+
+            {/* 3rd Place Match - shown separately below the bracket */}
+            {thirdPlaceRound && thirdPlaceRound.matches && thirdPlaceRound.matches.length > 0 && (
+                <div style={{ 
+                    marginTop: '20px',
+                    padding: '15px',
+                    background: isDark 
+                        ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)' 
+                        : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                    borderRadius: '8px',
+                    border: `2px solid ${isDark ? '#cd7f32' : '#cd7f32'}` // Bronze color
+                }}>
+                    <h6 style={{ 
+                        color: '#cd7f32', 
+                        marginBottom: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <i className="tim-icons icon-trophy" />
+                        {t('thirdPlaceMatch') || 'Zápas o 3. místo'}
+                    </h6>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <TournamentSeed 
+                            seed={{
+                                id: thirdPlaceRound.matches[0].tempId || 'third-place',
+                                isBye: false,
+                                teams: [
+                                    { 
+                                        name: thirdPlaceRound.matches[0].robotA 
+                                            ? `#${thirdPlaceRound.matches[0].robotA.number} ${thirdPlaceRound.matches[0].robotA.name}` 
+                                            : null,
+                                        robotId: thirdPlaceRound.matches[0].robotA?.id || null
+                                    },
+                                    { 
+                                        name: thirdPlaceRound.matches[0].robotB 
+                                            ? `#${thirdPlaceRound.matches[0].robotB.number} ${thirdPlaceRound.matches[0].robotB.name}` 
+                                            : null,
+                                        robotId: thirdPlaceRound.matches[0].robotB?.id || null
+                                    }
+                                ]
+                            }}
+                            isDark={isDark}
+                            breakpoint={0}
+                        />
+                    </div>
+                    <small style={{ 
+                        color: isDark ? '#a0aec0' : '#666',
+                        display: 'block',
+                        textAlign: 'center',
+                        marginTop: '8px'
+                    }}>
+                        {t('thirdPlaceDesc') || 'Poražení ze semifinále budou soutěžit o 3. místo'}
+                    </small>
+                </div>
+            )}
         </div>
     );
 };

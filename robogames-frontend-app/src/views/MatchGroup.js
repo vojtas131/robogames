@@ -264,6 +264,7 @@ function MatchGroup() {
             case 'ROUND_OF_16': return t('phaseRoundOf16') || 'Osmifinále';
             case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
             case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
+            case 'THIRD_PLACE': return t('phaseThirdPlace') || 'O 3. místo';
             case 'FINAL': return t('phaseFinal') || 'Finále';
             default: return phase || '-';
         }
