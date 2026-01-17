@@ -27,9 +27,6 @@ function CompetitionResults() {
     const toast = useToast();
     const { tokenExpired, token } = useUser();
 
-    const [userEditName, setUserEditName] = useState(false);
-    const [currentUsers, setCurrentUsers] = useState([]);
-
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -154,12 +151,12 @@ function CompetitionResults() {
                 filtered = filtered.filter(res => res.category === categoryAPI);
             }
 
-            const finalResults = filtered.map(result => {
+            const finalResults = filtered.map(result => ({
                 ...result,
                 userIds: users?.filter(user => user.teamID === result.teamID).map(user => user.id),
                 userNames: users?.filter(user => user.teamID === result.teamID).map(user => user.name + '\u00A0' + user.surname),
                 isChecked: true
-            });
+            }));
 
             setResults(finalResults);
         } catch (error) {
@@ -298,7 +295,7 @@ function CompetitionResults() {
                                                                         <td>{result.score}</td>
                                                                         {isAdminOrLeaderOrAssistantOrReferee && (
                                                                             <td>
-                                                                                <Button onClick={() => generatePDF(result, index + 1)}>{t("diploma_caps")}</Button>
+                                                                                <DiplomaButton data={[{robot: result, place: index + 1}]}>{t("diploma_caps")}</DiplomaButton>
                                                                             </td>)}
                                                                     </tr>
                                                                 ))}
@@ -314,9 +311,18 @@ function CompetitionResults() {
                                             <Table responsive>
                                                 <thead>
                                                     <tr>
+                                                        {isAdminOrLeaderOrAssistantOrReferee && <th>
+                                                            <Input type="checkbox" checked={results.every(result => result.isChecked)} onChange={(event) => {
+                                                                const newResults = [...results];
+                                                                newResults.forEach(result => result.isChecked = event.target.checked);
+                                                                setResults(newResults);
+                                                            }}/>
+                                                            </th>
+                                                        }
                                                         <th>{t("place")}</th>
                                                         <th>{t("robot")}</th>
-                                                        <th>{t("team")}</th>
+                                                        <th>{t("team")}</th>¨
+                                                        <th>{t("names")}</th>
                                                         <th>{t("score")}</th>
                                                         <th>{t("discipline")}</th>
 
@@ -328,31 +334,40 @@ function CompetitionResults() {
                                                     {results
                                                         .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                                         .map((result, index) => (
-
                                                             <tr key={result.robotID}>
                                                                 {isAdminOrLeaderOrAssistantOrReferee && <td><Input type="checkbox" checked={result.isChecked} onChange={(event) => {
-                                                    const newResults = [...results];
-                                                    newResults[index].isChecked = event.target.checked;
-                                                    setResults(newResults);
-                                                }}/></td>}
-                                                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                                                                    const newResults = [...results];
+                                                                    newResults[index].isChecked = event.target.checked;
+                                                                    setResults(newResults);
+                                                                }}/></td>}
+                                                                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                                                 <td>{result.robotName}</td>
                                                                 <td>{result.teamName}</td>
-                                                                {
-                                                    // Mutate result object when saving changes from the modal
-                                                }
-                                                <td>{result.userNames.join(', ')}</td>
-                                                <td>{result.score}</td>
+                                                                <td>{result.userNames.join(', ')}</td>
+                                                                <td>{result.score}</td>
                                                                 <td>{result.disciplindeName}</td>
-
-                                                {isAdminOrLeaderOrAssistantOrReferee && (
-                                                <td>
-                                                    <DiplomaButton data={[{robot: result, place: index + 1}]}>{t("diploma_caps")}</DiplomaButton>
-                                                </td>)}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
+                                                                {isAdminOrLeaderOrAssistantOrReferee && (
+                                                                <td>
+                                                                    <DiplomaButton data={[{robot: result, place: index + 1}]}>{t("diploma_caps")}</DiplomaButton>
+                                                                </td>)}
+                                                            </tr>
+                                                        ))
+                                                    }
+                                                </tbody>
+                                            </Table>
+                                            <TablePagination
+                                                currentPage={currentPage}
+                                                totalItems={results.length}
+                                                itemsPerPage={itemsPerPage}
+                                                onPageChange={(page) => setCurrentPage(page)}
+                                                onItemsPerPageChange={(items) => {
+                                                    setItemsPerPage(items);
+                                                    setCurrentPage(1);
+                                                }}
+                                            />
+                                        </>
+                                    )}
+                                </>
                             ) : (
                                 <div>{t("noRobotsFound")}</div>
                             )}
@@ -360,42 +375,6 @@ function CompetitionResults() {
                     </Card>
                 </Col>
             </Row>
-            {
-            /* Figure out how to have multiple names in one form?
-            <Modal isOpen={userEditName} toggle={() => setUserEditName(false)}>
-                <ModalHeader toggle={() => setUserEditName(false)}>{t("userEdit")}</ModalHeader>
-                <ModalBody>
-                    <Form onSubmit={handleUserEditSubmit}>
-                        <FormGroup>
-                            <Label>{t("name")}</Label>
-                            <Input
-                                name="name"
-                                type="text"
-                                value={currentUser?.name || ""}
-                                onChange={handleChange}
-                                invalid={!!errors.name}
-                            />
-                            {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
-                        </FormGroup>
-                        <FormGroup>
-                            <Label>{t("surname")}</Label>
-                            <Input
-                                name="surname"
-                                type="text"
-                                value={currentUser?.surname || ""}
-                                onChange={handleChange}
-                                invalid={!!errors.surname}
-                            />
-                            {errors.surname && <FormFeedback>{errors.surname}</FormFeedback>}
-                        </FormGroup>
-
-                        <Button color="primary" type="submit">{t("save")}</Button>
-                        <Button color="secondary" onClick={() => setUserEditName(false)} style={{ margin: '10px' }}>{t("cancel")}</Button>
-                    </Form>
-                </ModalBody>
-            </Modal>
-            */
-            }
         </div>
     );
 }
