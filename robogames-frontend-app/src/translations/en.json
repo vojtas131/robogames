@@ -774,6 +774,6 @@
 	"fullscreen": "Fullscreen",
 	"exitFullscreen": "Exit fullscreen",
 
-	"generateDiplomas": "Generate dimplomas",
+	"generateDiplomas": "Generate selected dimplomas",
 	"diplomaTemplate": "Správa templatu diplomu"
 }

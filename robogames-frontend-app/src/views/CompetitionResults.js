@@ -8,8 +8,6 @@ import {
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
-import { BlobProvider, pdf } from '@react-pdf/renderer';
-import { PdfDocument } from 'components/Diploma/PdfDocument';
 import { DiplomaButton } from 'components/Diploma/DiplomaButton';
 
 function CompetitionResults() {
@@ -125,7 +123,8 @@ function CompetitionResults() {
                     return {
                         ...result,
                         userIds: users?.filter(user => user.teamID === result.teamID).map(user => user.id),
-                        userNames: users?.filter(user => user.teamID === result.teamID).map(user => user.name + ' ' + user.surname)?.join(', ')
+                        userNames: users?.filter(user => user.teamID === result.teamID).map(user => user.name + '\u00A0' + user.surname),
+                        isChecked: true
                     };
                 }));
                 setResults(filteredResults);
@@ -187,7 +186,7 @@ function CompetitionResults() {
                                     </DropdownMenu>
                                 </Dropdown>
                                 {results.length > 0 && isAdminOrLeaderOrAssistantOrReferee && (
-                                    <DiplomaButton style={{ marginLeft: 'auto' }} data={results.map(result => ({ robot: result, place: results.indexOf(result) + 1 }))}>{t('generateDiplomas')}</DiplomaButton>
+                                    <DiplomaButton disabled={!results.some(result => result.isChecked)} style={{ marginLeft: 'auto' }} data={results.filter(result => result.isChecked).map(result => ({ robot: result, place: results.indexOf(result) + 1 }))}>{t('generateDiplomas')}</DiplomaButton>
                                 )}
                             </div>
                         </CardHeader>
@@ -198,6 +197,14 @@ function CompetitionResults() {
                                 <Table responsive>
                                     <thead>
                                         <tr>
+                                            {isAdminOrLeaderOrAssistantOrReferee && <th>
+                                                <Input type="checkbox" checked={results.every(result => result.isChecked)} onChange={(event) => {
+                                                    const newResults = [...results];
+                                                    newResults.forEach(result => result.isChecked = event.target.checked);
+                                                    setResults(newResults);
+                                                }}/>
+                                                </th>
+                                            }
                                             <th>{t("place")}</th>
                                             <th>{t("robot")}</th>
                                             <th>{t("team")}</th>
@@ -213,13 +220,18 @@ function CompetitionResults() {
                                         {results.map((result, index) => (
 
                                             <tr key={result.robotID}>
+                                                {isAdminOrLeaderOrAssistantOrReferee && <td><Input type="checkbox" checked={result.isChecked} onChange={(event) => {
+                                                    const newResults = [...results];
+                                                    newResults[index].isChecked = event.target.checked;
+                                                    setResults(newResults);
+                                                }}/></td>}
                                                 <td>{index + 1}</td>
                                                 <td>{result.robotName}</td>
                                                 <td>{result.teamName}</td>
                                                 {
                                                     // Mutate result object when saving changes from the modal
                                                 }
-                                                <td>{result.userNames} {isAdminOrLeader && (<i onClick={() => openEditModal(result.userIds)} role="button" className="tim-icons icon-caps-small" />)}</td>
+                                                <td>{result.userNames.join(', ')}</td>
                                                 <td>{result.score}</td>
                                                 <td>{result.disciplindeName}</td>
 

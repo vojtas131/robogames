@@ -43,7 +43,7 @@ export const DiplomaButton = ({ data, children, ...props }) => {
 	}
 
 	return (
-		<Button style={props.style} disabled={isLoading} onClick={generatePdf}>
+		<Button {...props} disabled={isLoading || props.disabled} onClick={generatePdf}>
 			{children}
 		</Button>
 	);

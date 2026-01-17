@@ -772,6 +772,6 @@
 	"fullscreen": "Maximalizovat",
 	"exitFullscreen": "Ukončit maximalizaci",
 
-	"generateDiplomas": "Vygeneruj diplomy",
+	"generateDiplomas": "Vygeneruj vybrané diplomy",
 	"diplomaTemplate": "Správa templatu pro diplomy"
 }

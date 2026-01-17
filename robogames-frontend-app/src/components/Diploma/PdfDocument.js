@@ -18,6 +18,8 @@ export const PdfDocument = ({ diploms, propsStyles }) => {
 		fontWeight: 'normal',
 	});
 
+	Font.registerHyphenationCallback((word) => [word]);
+
 	const styles = StyleSheet.create(
 		propsStyles ?? {
 			page: {
@@ -27,10 +29,14 @@ export const PdfDocument = ({ diploms, propsStyles }) => {
 				paddingTop: 20,
 				fontSize: 15,
 			},
-			title: { fontSize: 80, fontWeight: 'bold' },
-			teamName: { margin: '6px 0', fontSize: 32 },
 			logo: { width: 280 },
-			bold: { fontSize: 30, fontWeight: 'bold' },
+			title: { fontSize: 80, fontWeight: 'bold' },
+			userNames: { margin: '6px 12px', fontSize: 32, textAlign: 'center' },
+			gets: {},
+			place: { fontSize: 30, fontWeight: 'bold' },
+			competition: {},
+			competitionYear: { fontSize: 42 },
+			discipline: { fontSize: 25 },
 			footer: {
 				position: 'absolute',
 				bottom: 50,
@@ -42,6 +48,8 @@ export const PdfDocument = ({ diploms, propsStyles }) => {
 				width: '100%',
 				padding: '0 50px',
 			},
+			footerWhere: { width: '100%' },
+			footerAwarder: { width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' },
 		}
 	);
 
@@ -50,26 +58,28 @@ export const PdfDocument = ({ diploms, propsStyles }) => {
 
 	return (
 		<Document>
-			{diploms.map(({ robot, place }) => (
-				<Page key={place} size="A4" style={styles.page}>
-					<Image src={logo2} style={styles.logo} />
-					<Image src={failogo} style={styles.logo} />
-					<Text style={styles.title}>DIPLOM</Text>
-					<Text style={styles.teamName}>{robot.userNames}</Text>
-					<Text>získává</Text>
-					<Text style={styles.bold}>{place}. místo</Text>
-					<Text>v robotické soutěži</Text>
-					<Text style={{ fontSize: 42 }}>ROBOGAMES {currentDate.getFullYear()}</Text>
-					<Text style={{ fontSize: 25 }}>v disciplíně {robot.disciplindeName}</Text>
-					<View style={styles.footer}>
-						<Text style={{ width: '100%' }}>Ve Zlíně dne {formattedDate}</Text>
-						<View style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-							<Text>doc. Ing. Jiří Vojtěšek, Ph.D.</Text>
-							<Text>děkan fakulty</Text>
+			{diploms.map(({ robot, place }) =>
+				robot.userNames.map((_) => (
+					<Page key={place} size="A4" style={styles.page}>
+						<Image src={logo2} style={styles.logo} />
+						<Image src={failogo} style={styles.logo} />
+						<Text style={styles.title}>DIPLOM</Text>
+						<Text style={styles.userNames}>{robot.userNames.join(', ')}</Text>
+						<Text style={styles.gets}>získává</Text>
+						<Text style={styles.place}>{place}. místo</Text>
+						<Text style={styles.competition}>v robotické soutěži</Text>
+						<Text style={styles.competitionYear}>ROBOGAMES {currentDate.getFullYear()}</Text>
+						<Text style={styles.discipline}>v disciplíně {robot.disciplindeName}</Text>
+						<View style={styles.footer}>
+							<Text style={styles.footerWhere}>Ve Zlíně dne {formattedDate}</Text>
+							<View style={styles.footerAwarder}>
+								<Text>doc. Ing. Jiří Vojtěšek, Ph.D.</Text>
+								<Text>děkan fakulty</Text>
+							</View>
 						</View>
-					</View>
-				</Page>
-			))}
+					</Page>
+				))
+			)}
 		</Document>
 	);
 };
