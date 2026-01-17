@@ -479,7 +479,9 @@ const BracketVisualization = ({ bracket, isDark, highScoreWin }) => {
                     ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)' 
                     : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
                 borderRadius: '8px',
-                border: `2px solid ${isDark ? '#cd7f32' : '#cd7f32'}` // Bronze color
+                border: `2px solid ${isDark ? '#cd7f32' : '#cd7f32'}`, // Bronze color
+                maxWidth: '350px',
+                margin: '20px auto 0 auto'
             }}>
                 <h6 style={{ 
                     color: '#cd7f32', 

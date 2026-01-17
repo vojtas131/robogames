@@ -443,7 +443,7 @@ function RegistrationManagement() {
                       .map((reg) => (
                       <tr key={reg.id}>
                         <td>#{reg.id}</td>
-                        <td>{reg.teamName} (ID: {reg.teamID})</td>
+                        <td>{reg.teamName}</td>
                         <td>{getCategoryDisplay(reg.category)}</td>
                         <td>{reg.teacherName || t("notProvided")}</td>
                         <td>{reg.teacherSurname || t("notProvided")}</td>
