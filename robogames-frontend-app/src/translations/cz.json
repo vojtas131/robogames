@@ -320,8 +320,11 @@
 	"phaseRoundOf16": "Osmifinále",
 	"phaseQuarterfinal": "Čtvrtfinále",
 	"phaseSemifinal": "Semifinále",
+	"phaseThirdPlace": "O\u00a03.\u00a0místo",
 	"phaseFinal": "Finále",
 	"phase": "Fáze",
+	"thirdPlaceMatch": "Zápas o\u00a03.\u00a0místo",
+	"thirdPlaceDesc": "Poražení ze\u00a0semifinále budou soutěžit o\u00a03.\u00a0místo",
 
 	"scoreTypeTime": "Čas",
 	"scoreTypeScore": "Body",
@@ -1061,6 +1064,7 @@
 	"tbd": "TBD",
 	"accessDenied": "Přístup odepřen",
 	"robotProfileAccessDenied": "Profil robota je přístupný pouze pro členy týmu a organizátory.",
+	"tournamentExistsHint": "Pro tuto disciplínu a kategorii již existuje turnaj.",
 
 	"names": "Jména",
 	"generateDiplomas": "Vygeneruj vybrané diplomy",

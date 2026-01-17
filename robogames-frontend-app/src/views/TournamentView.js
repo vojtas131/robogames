@@ -294,15 +294,14 @@ const CustomSeed = ({ seed, isDark, breakpoint }) => {
         if (!team || !team.name) {
             return (
                 <SeedTeam style={{
-                    backgroundColor: isDark ? '#1e1e2f' : '#f5f5f5',
+                    background: isDark ? '#252536' : '#fff',
                     color: isDark ? '#666' : '#999',
-                    padding: '8px 12px',
-                    fontSize: '0.85em',
-                    borderRadius: isTop ? '4px 4px 0 0' : '0 0 4px 4px',
+                    padding: '10px 14px',
+                    fontSize: '0.9em',
                     borderBottom: isTop ? `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}` : 'none'
                 }}>
                     <span style={{ fontStyle: 'italic' }}>
-                        {isBye ? 'BYE' : (t('tbd') || 'TBD')}
+                        {isBye ? (t('bye') || 'BYE') : (t('waitingForWinner') || 'Čeká na vítěze')}
                     </span>
                 </SeedTeam>
             );
@@ -312,31 +311,41 @@ const CustomSeed = ({ seed, isDark, breakpoint }) => {
 
         return (
             <SeedTeam style={{
-                backgroundColor: isWinner 
-                    ? (isDark ? 'rgba(45, 206, 137, 0.2)' : 'rgba(45, 206, 137, 0.1)')
-                    : (isDark ? '#1e1e2f' : '#fff'),
-                padding: '8px 12px',
-                fontSize: '0.85em',
-                borderRadius: isTop ? '4px 4px 0 0' : '0 0 4px 4px',
+                background: isWinner 
+                    ? (isDark ? 'rgba(45, 206, 137, 0.15)' : 'rgba(45, 206, 137, 0.1)')
+                    : (isDark ? '#252536' : '#fff'),
+                padding: '10px 14px',
+                fontSize: '0.9em',
                 borderBottom: isTop ? `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}` : 'none',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
             }}>
-                <span
+                <Link 
+                    to={`/admin/robot-profile?id=${team.id}`}
                     style={{ 
                         color: isDark ? '#fff' : '#32325d',
+                        textDecoration: 'none',
                         flex: 1,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
                     }}
                 >
-                    <span style={{ color: isDark ? '#a0aec0' : '#888', marginRight: '6px' }}>
-                        N{team.number}
+                    <span style={{ 
+                        color: isDark ? '#a0aec0' : '#888', 
+                        fontSize: '0.85em',
+                        fontWeight: '500'
+                    }}>
+                        #{team.number}
                     </span>
-                    {team.name}
-                </span>
+                    <span style={{ fontWeight: isWinner ? '600' : '500' }}>
+                        {team.name}
+                    </span>
+                </Link>
                 <span style={getScoreStyle(isWinner)}>
                     {team.score !== null && team.score !== undefined ? team.score : '-'}
                 </span>
@@ -345,19 +354,25 @@ const CustomSeed = ({ seed, isDark, breakpoint }) => {
     };
 
     return (
-        <Seed style={{ 
-            fontSize: 12, 
-            minWidth: breakpoint < 768 ? 180 : 220,
-            margin: '8px'
-        }}>
+        <Seed mobileBreakpoint={breakpoint} style={{ fontSize: 12 }}>
             <SeedItem style={{
-                backgroundColor: isDark ? '#27293d' : '#fff',
-                borderRadius: '4px',
-                border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
-                boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.1)'
+                background: isBye 
+                    ? (isDark ? 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)' : 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)')
+                    : (isDark 
+                        ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
+                        : 'linear-gradient(135deg, #fff 0%, #f8f9fa 100%)'),
+                border: `1px solid ${isBye ? (isDark ? '#4a5568' : '#a0aec0') : (isDark ? '#3d3d5c' : '#e0e0e0')}`,
+                borderRadius: '8px',
+                boxShadow: isDark 
+                    ? '0 4px 15px rgba(0,0,0,0.3)' 
+                    : '0 4px 15px rgba(0,0,0,0.1)',
+                opacity: isBye ? 0.7 : 1,
+                minWidth: '220px'
             }}>
-                <TeamDisplay team={robotA} isTop={true} />
-                <TeamDisplay team={robotB} isTop={false} />
+                <div>
+                    <TeamDisplay team={robotA} isTop={true} />
+                    <TeamDisplay team={robotB} isTop={false} />
+                </div>
             </SeedItem>
         </Seed>
     );
@@ -373,8 +388,33 @@ const BracketVisualization = ({ bracket, isDark, highScoreWin }) => {
         );
     }
 
+    // Filter out the 3rd place round from main bracket (it will be shown separately)
+    // Check by round name or by individual match phase
+    const mainRounds = bracket.filter(round => {
+        // Check round name
+        if (round.name && (round.name.includes('3. místo') || round.name === 'O 3. místo' || round.name === '3rd Place Match')) {
+            return false;
+        }
+        // Check if all matches in round have THIRD_PLACE phase
+        if (round.matches && round.matches.length > 0 && round.matches.every(m => m.phaseName === 'THIRD_PLACE')) {
+            return false;
+        }
+        return true;
+    });
+
+    // Find the 3rd place round (by name or by phase)
+    const thirdPlaceRound = bracket.find(round => {
+        if (round.name && (round.name.includes('3. místo') || round.name === 'O 3. místo' || round.name === '3rd Place Match')) {
+            return true;
+        }
+        if (round.matches && round.matches.length > 0 && round.matches.every(m => m.phaseName === 'THIRD_PLACE')) {
+            return true;
+        }
+        return false;
+    });
+
     // Transform bracket data for react-brackets format
-    const transformedRounds = bracket.map((round) => ({
+    const transformedRounds = mainRounds.map((round) => ({
         title: round.name,
         seeds: round.matches.map((match) => {
             // Determine winner
@@ -413,42 +453,136 @@ const BracketVisualization = ({ bracket, isDark, highScoreWin }) => {
         })
     }));
 
+    // Transform 3rd place match for display
+    const renderThirdPlaceMatch = () => {
+        if (!thirdPlaceRound || !thirdPlaceRound.matches || thirdPlaceRound.matches.length === 0) {
+            return null;
+        }
+        const match = thirdPlaceRound.matches[0];
+        let aWins = false;
+        let bWins = false;
+        if (match.stateName === 'DONE' && match.scoreA != null && match.scoreB != null) {
+            if (highScoreWin) {
+                aWins = match.scoreA > match.scoreB;
+                bWins = match.scoreB > match.scoreA;
+            } else {
+                aWins = match.scoreA < match.scoreB;
+                bWins = match.scoreB < match.scoreA;
+            }
+        }
+
+        return (
+            <div style={{ 
+                marginTop: '20px',
+                padding: '15px',
+                background: isDark 
+                    ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)' 
+                    : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                borderRadius: '8px',
+                border: `2px solid ${isDark ? '#cd7f32' : '#cd7f32'}` // Bronze color
+            }}>
+                <h6 style={{ 
+                    color: '#cd7f32', 
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <i className="tim-icons icon-trophy" />
+                    {t('thirdPlaceMatch') || 'Zápas o 3. místo'}
+                </h6>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <CustomSeed 
+                        seed={{
+                            id: match.id,
+                            matchState: match.stateName,
+                            teams: [
+                                match.robotAID ? {
+                                    id: match.robotAID,
+                                    name: match.robotAName,
+                                    number: match.robotANumber,
+                                    score: match.scoreA,
+                                    isWinner: aWins
+                                } : null,
+                                match.robotBID ? {
+                                    id: match.robotBID,
+                                    name: match.robotBName,
+                                    number: match.robotBNumber,
+                                    score: match.scoreB,
+                                    isWinner: bWins
+                                } : null
+                            ]
+                        }}
+                        isDark={isDark}
+                        breakpoint={0}
+                    />
+                </div>
+                <small style={{ 
+                    color: isDark ? '#a0aec0' : '#666',
+                    display: 'block',
+                    textAlign: 'center',
+                    marginTop: '10px',
+                    fontStyle: 'italic'
+                }}>
+                    {t('thirdPlaceDesc') || 'Poražení ze semifinále soutěží o 3. místo'}
+                </small>
+            </div>
+        );
+    };
+
     return (
-        <div className="bracket-container" style={{ 
+        <div className="bracket-wrapper" style={{ 
             overflowX: 'auto',
-            padding: '20px 10px'
+            padding: '20px',
+            background: isDark ? '#1e1e2f' : '#f8f9fa',
+            borderRadius: '12px',
+            border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
         }}>
             <style>{`
-                .bracket-container svg {
+                .bracket-wrapper .rs-bracket-wrapper {
+                    min-width: fit-content;
+                }
+                .bracket-wrapper svg {
                     overflow: visible !important;
                 }
-                .bracket-container [class*="Bracket"] {
-                    overflow: visible !important;
-                }
-                .bracket-container [class*="Round"] {
-                    overflow: visible !important;
-                }
-                .bracket-container path {
-                    stroke: ${isDark ? '#5e5e7a' : '#ccc'} !important;
+                .bracket-wrapper [class*="jMNptE"],
+                .bracket-wrapper [class*="sc-"],
+                .bracket-wrapper svg path {
+                    stroke: ${isDark ? '#5e72e4' : '#5e72e4'} !important;
                     stroke-width: 2px !important;
+                }
+                .bracket-wrapper [class*="Bracket"],
+                .bracket-wrapper [class*="Round"] {
+                    overflow: visible !important;
                 }
             `}</style>
             <Bracket
                 rounds={transformedRounds}
                 renderSeedComponent={(props) => <CustomSeed {...props} isDark={isDark} />}
+                mobileBreakpoint={0}
                 roundTitleComponent={(title) => (
                     <div style={{
                         textAlign: 'center',
                         color: isDark ? '#fff' : '#32325d',
                         fontWeight: '600',
-                        padding: '10px',
-                        borderBottom: `2px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
-                        marginBottom: '10px'
+                        padding: '12px 16px',
+                        marginBottom: '15px',
+                        background: isDark 
+                            ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)'
+                            : 'linear-gradient(135deg, #fff 0%, #f8f9fa 100%)',
+                        borderRadius: '8px',
+                        border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
+                        boxShadow: isDark 
+                            ? '0 2px 8px rgba(0,0,0,0.2)' 
+                            : '0 2px 8px rgba(0,0,0,0.08)'
                     }}>
                         {title}
                     </div>
                 )}
             />
+            
+            {/* 3rd Place Match - shown separately below the bracket */}
+            {renderThirdPlaceMatch()}
         </div>
     );
 };

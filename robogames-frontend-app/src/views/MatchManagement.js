@@ -176,7 +176,7 @@ function MatchManagement() {
         fetchRobots();
         fetchGroups();
         // Set available phases
-        setPhases(['GROUP_STAGE', 'PRELIMINARY', 'ROUND_OF_16', 'QUARTERFINAL', 'SEMIFINAL', 'FINAL']);
+        setPhases(['GROUP_STAGE', 'PRELIMINARY', 'ROUND_OF_16', 'QUARTERFINAL', 'SEMIFINAL', 'THIRD_PLACE', 'FINAL']);
     }, [fetchMatches, fetchPlaygrounds, fetchRobots, fetchGroups]);
 
     // Reset page when filters change
@@ -504,6 +504,7 @@ function MatchManagement() {
             case 'ROUND_OF_16': return t('phaseRoundOf16') || 'Osmifinále';
             case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
             case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
+            case 'THIRD_PLACE': return t('phaseThirdPlace') || 'O 3. místo';
             case 'FINAL': return t('phaseFinal') || 'Finále';
             default: return phase || '-';
         }
