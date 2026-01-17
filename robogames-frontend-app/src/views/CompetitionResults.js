@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Card, CardHeader, CardBody, CardTitle,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
@@ -20,7 +20,8 @@ function CompetitionResults() {
     const [selectedDiscipline, setSelectedDiscipline] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [results, setResults] = useState([]);
-    const [users, setUsers] = useState([]);
+    // Can't fetch users before fetching results
+    // const [users, setUsers] = useState([]);
     const [dropdownOpenYear, setDropdownOpenYear] = useState(false);
     const [dropdownOpenDiscipline, setDropdownOpenDiscipline] = useState(false);
     const [dropdownOpenCategory, setDropdownOpenCategory] = useState(false);
@@ -34,7 +35,6 @@ function CompetitionResults() {
     useEffect(() => {
         fetchCompetitionYears();
         fetchDisciplines();
-        fetchUsers();
     }, []);
 
     // Reset page when filters change
@@ -51,7 +51,7 @@ function CompetitionResults() {
             }
         });
         const userData = await userResponse.json();
-        setUsers(userData.data);
+        return userData.data;
     };
 
     const fetchCompetitionYears = async () => {
@@ -68,7 +68,7 @@ function CompetitionResults() {
         }
     };
 
-        const rolesString = localStorage.getItem('roles');
+    const rolesString = localStorage.getItem('roles');
     const rolesArray = rolesString ? rolesString.split(', ') : [];
 
     const isAdminOrLeader = rolesArray.some(role => ['ADMIN', 'LEADER'].includes(role));
@@ -151,10 +151,12 @@ function CompetitionResults() {
                 filtered = filtered.filter(res => res.category === categoryAPI);
             }
 
+            const userData = await fetchUsers();
+
             const finalResults = filtered.map(result => ({
                 ...result,
-                userIds: users?.filter(user => user.teamID === result.teamID).map(user => user.id),
-                userNames: users?.filter(user => user.teamID === result.teamID).map(user => user.name + '\u00A0' + user.surname),
+                userIds: userData?.filter(user => user.teamID === result.teamID).map(user => user.id),
+                userNames: userData?.filter(user => user.teamID === result.teamID).map(user => user.name + '\u00A0' + user.surname),
                 isChecked: true
             }));
 
@@ -186,6 +188,18 @@ function CompetitionResults() {
             map[cat][disc].push(r);
         });
         return map;
+    })();
+
+    const dataForDiplom = (() => {
+        if ((!selectedCategory || !selectedDiscipline)) {
+            const data = Object.keys(groupedByCategoryAndDiscipline).flatMap(cat => {
+                return Object.keys(groupedByCategoryAndDiscipline[cat]).flatMap(disc => {
+                    return groupedByCategoryAndDiscipline[cat][disc].filter(result => result.isChecked).map((result, index) => ({ robot: result, place: index + 1 }));
+                });
+            });
+            return data;
+        }
+        return results.filter(result => result.isChecked).map(result => ({ robot: result, place: results.indexOf(result) + 1 }));
     })();
 
     return (
@@ -241,7 +255,7 @@ function CompetitionResults() {
                                     </DropdownMenu>
                                 </Dropdown>
                                 {results.length > 0 && isAdminOrLeaderOrAssistantOrReferee && (
-                                    <DiplomaButton disabled={!results.some(result => result.isChecked)} style={{ marginLeft: 'auto' }} data={results.filter(result => result.isChecked).map(result => ({ robot: result, place: results.indexOf(result) + 1 }))}>{t('generateDiplomas')}</DiplomaButton>
+                                    <DiplomaButton disabled={!results.some(result => result.isChecked)} style={{ marginLeft: 'auto' }} data={dataForDiplom}>{t('generateDiplomas')}</DiplomaButton>
                                 )}
                             </div>
                         </CardHeader>
@@ -262,9 +276,13 @@ function CompetitionResults() {
                                                             <thead>
                                                                 <tr>
                                                                     {isAdminOrLeaderOrAssistantOrReferee && <th>
-                                                                        <Input type="checkbox" checked={results.every(result => result.isChecked)} onChange={(event) => {
+                                                                        <Input type="checkbox" checked={groupedByCategoryAndDiscipline[cat][disc].every(result => result.isChecked)} onChange={(event) => {
                                                                             const newResults = [...results];
-                                                                            newResults.forEach(result => result.isChecked = event.target.checked);
+                                                                            newResults.forEach(result => {
+                                                                                if (result.disciplindeName === disc && result.category === cat) {
+                                                                                    result.isChecked = event.target.checked;
+                                                                                }
+                                                                            });
                                                                             setResults(newResults);
                                                                         }}/>
                                                                         </th>
@@ -281,10 +299,13 @@ function CompetitionResults() {
                                                                 {groupedByCategoryAndDiscipline[cat][disc].map((result, index) => (
                                                                     <tr key={result.robotID}>
                                                                         {isAdminOrLeaderOrAssistantOrReferee && <th>
-                                                                            <Input type="checkbox" checked={results.every(result => result.isChecked)} onChange={(event) => {
+                                                                            <Input type="checkbox" checked={result.isChecked} onChange={(event) => {
                                                                                 const newResults = [...results];
-                                                                                newResults.forEach(result => result.isChecked = event.target.checked);
-                                                                                setResults(newResults);
+                                                                                const newResult = newResults.find(r => r.disciplindeName === disc && r.category === cat && r.robotID === result.robotID);
+                                                                                if (newResult) {
+                                                                                    newResult.isChecked = event.target.checked;
+                                                                                    setResults(newResults);
+                                                                                }
                                                                             }}/>
                                                                             </th>
                                                                         }

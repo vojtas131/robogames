@@ -52,6 +52,12 @@ function AdminDashboard() {
 					color: '#fc5603',
 					description: t('tournamentGeneratorDesc') || 'Generování skupin a pavouka pro turnajové disciplíny',
 				},
+				{
+					path: '/admin/diploma-template',
+					icon: 'icon-paper',
+					label: t('diplomaTemplate') || 'Šablona diplomu',
+					color: '#11cdef',
+				},
 			],
 		},
 	];
