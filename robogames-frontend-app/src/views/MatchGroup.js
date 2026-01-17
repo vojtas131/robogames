@@ -9,7 +9,8 @@ import {
     Row, Col, Button,
     Table, Badge, Spinner, Alert,
     Modal, ModalHeader, ModalBody, ModalFooter,
-    Form, FormGroup, Label, Input
+    Form, FormGroup, Label, Input,
+    InputGroup, InputGroupText
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useAdmin } from "contexts/AdminContext";
@@ -41,6 +42,22 @@ function MatchGroup() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(15);
 
+    // Filter states - load from localStorage
+    const STORAGE_KEY = 'matchGroup_filters';
+    const savedFilters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const [searchQuery, setSearchQuery] = useState(savedFilters.searchQuery || '');
+    const [searchType, setSearchType] = useState(savedFilters.searchType || 'all');
+    const [filterPhase, setFilterPhase] = useState(savedFilters.filterPhase || '');
+    const [filterState, setFilterState] = useState(savedFilters.filterState || '');
+    const [filterCategory, setFilterCategory] = useState(savedFilters.filterCategory || '');
+
+    // Save filters to localStorage when they change
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            searchQuery, searchType, filterPhase, filterState, filterCategory
+        }));
+    }, [searchQuery, searchType, filterPhase, filterState, filterCategory]);
+
     // Create Match Modal
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newMatch, setNewMatch] = useState({
@@ -51,7 +68,7 @@ function MatchGroup() {
     const [selectedRobotA, setSelectedRobotA] = useState(null);
     const [selectedRobotB, setSelectedRobotB] = useState(null);
 
-    const phases = ['GROUP_STAGE', 'PRELIMINARY', 'ROUND_OF_16', 'QUARTERFINAL', 'SEMIFINAL', 'FINAL'];
+    const phases = ['GROUP_STAGE', 'PRELIMINARY', 'ROUND_OF_16', 'QUARTERFINAL', 'SEMIFINAL', 'THIRD_PLACE', 'FINAL'];
 
     // Fetch matches for this group
     const fetchMatches = useCallback(async () => {
@@ -129,6 +146,65 @@ function MatchGroup() {
         fetchPlaygrounds();
         fetchRobots();
     }, [fetchMatches, fetchPlaygrounds, fetchRobots]);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, searchType, filterPhase, filterState, filterCategory]);
+
+    // Filter matches
+    const filteredMatches = matches.filter(match => {
+        // Search based on selected search type
+        const searchLower = searchQuery.toLowerCase();
+        let matchesSearch = !searchQuery;
+        
+        if (searchQuery) {
+            switch (searchType) {
+                case 'id':
+                    matchesSearch = match.id.toString().includes(searchQuery);
+                    break;
+                case 'robotName':
+                    matchesSearch = 
+                        (match.robotAName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotBName?.toLowerCase().includes(searchLower));
+                    break;
+                case 'robotNumber':
+                    matchesSearch = 
+                        (match.robotANumber?.toString().includes(searchQuery)) ||
+                        (match.robotBNumber?.toString().includes(searchQuery));
+                    break;
+                case 'teamName':
+                    matchesSearch = 
+                        (match.teamAName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamBName?.toLowerCase().includes(searchLower));
+                    break;
+                case 'all':
+                default:
+                    matchesSearch = 
+                        (match.robotAName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotBName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamAName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamBName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotANumber?.toString().includes(searchQuery)) ||
+                        (match.robotBNumber?.toString().includes(searchQuery)) ||
+                        match.id.toString().includes(searchQuery);
+                    break;
+            }
+        }
+
+        // Filter by phase
+        const matchesPhase = !filterPhase || match.phaseName === filterPhase;
+
+        // Filter by state
+        const matchesState = !filterState || match.state?.name === filterState;
+
+        // Filter by category
+        const matchesCategory = !filterCategory || 
+            match.categoryA === filterCategory ||
+            match.categoryB === filterCategory;
+
+        return matchesSearch && matchesPhase && matchesState && matchesCategory;
+    });
 
     // Reset create modal
     const resetCreateModal = () => {
@@ -364,15 +440,99 @@ function MatchGroup() {
                                 </Col>
                             </Row>
 
+                            {/* Filters */}
+                            <Row className="mb-4">
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={searchType}
+                                        onChange={(e) => setSearchType(e.target.value)}
+                                    >
+                                        <option value="all">{t('searchAll') || 'Hledat vše'}</option>
+                                        <option value="id">{t('searchById') || 'ID zápasu'}</option>
+                                        <option value="robotName">{t('searchByRobotName') || 'Jméno robota'}</option>
+                                        <option value="robotNumber">{t('searchByRobotNumber') || 'Číslo robota'}</option>
+                                        <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>
+                                    </Input>
+                                </Col>
+                                <Col md="3">
+                                    <InputGroup>
+                                        <InputGroupText>
+                                            <i className="tim-icons icon-zoom-split" />
+                                        </InputGroupText>
+                                        <Input
+                                            placeholder={
+                                                searchType === 'id' ? (t('enterMatchId') || 'Zadejte ID...') :
+                                                searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
+                                                searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
+                                                searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
+                                                (t('searchMatchPlaceholder') || 'ID, robot, tým...')
+                                            }
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                        {searchQuery && (
+                                            <InputGroupText 
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => setSearchQuery('')}
+                                                title={t('clearSearch') || 'Vymazat'}
+                                            >
+                                                <i className="tim-icons icon-simple-remove" />
+                                            </InputGroupText>
+                                        )}
+                                    </InputGroup>
+                                </Col>
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={filterPhase}
+                                        onChange={(e) => setFilterPhase(e.target.value)}
+                                    >
+                                        <option value="">{t('allPhases') || 'Všechny fáze'}</option>
+                                        {phases.map(phase => (
+                                            <option key={phase} value={phase}>
+                                                {getPhaseLabel(phase)}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                </Col>
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={filterState}
+                                        onChange={(e) => setFilterState(e.target.value)}
+                                    >
+                                        <option value="">{t('allStates') || 'Všechny stavy'}</option>
+                                        <option value="WAITING">{t('waitingStatus') || 'Čekající'}</option>
+                                        <option value="DONE">{t('doneStatus') || 'Hotové'}</option>
+                                        <option value="REMATCH">{t('rematchStatus') || 'Opakování'}</option>
+                                    </Input>
+                                </Col>
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                    >
+                                        <option value="">{t('allCategories') || 'Všechny kategorie'}</option>
+                                        <option value="LOW_AGE_CATEGORY">{t('pupils') || 'Žáci'}</option>
+                                        <option value="HIGH_AGE_CATEGORY">{t('students') || 'Studenti a dospělí'}</option>
+                                    </Input>
+                                </Col>
+                            </Row>
+
                             {/* Matches Table */}
                             {loading ? (
                                 <div className="text-center py-5">
                                     <Spinner color="primary" />
                                 </div>
-                            ) : matches.length === 0 ? (
+                            ) : filteredMatches.length === 0 ? (
                                 <Alert color="info">
                                     <i className="tim-icons icon-alert-circle-exc mr-2" />
-                                    {t('noMatchesInGroup') || 'V této skupině nejsou žádné zápasy'}
+                                    {matches.length === 0 
+                                        ? (t('noMatchesInGroup') || 'V této skupině nejsou žádné zápasy')
+                                        : (t('noMatchesMatchingFilters') || 'Žádné zápasy neodpovídají filtrům')
+                                    }
                                 </Alert>
                             ) : (
                                 <Table responsive hover className="table-management">
@@ -391,7 +551,7 @@ function MatchGroup() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {matches
+                                        {filteredMatches
                                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                             .map(match => (
                                             <tr key={match.id}>
@@ -492,7 +652,7 @@ function MatchGroup() {
 
                             <TablePagination
                                 currentPage={currentPage}
-                                totalItems={matches.length}
+                                totalItems={filteredMatches.length}
                                 itemsPerPage={itemsPerPage}
                                 onPageChange={(page) => setCurrentPage(page)}
                                 onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}

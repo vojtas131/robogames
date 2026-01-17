@@ -325,6 +325,16 @@
     "phase":"Fáze",
     "thirdPlaceMatch":"Zápas o\u00a03.\u00a0místo",
     "thirdPlaceDesc":"Poražení ze\u00a0semifinále budou soutěžit o\u00a03.\u00a0místo",
+    "loadingWinners":"Načítám vítěze...",
+    "noWinnersYet":"Zatím nejsou k\u00a0dispozici žádní vítězové",
+    "winnersOverview":"Přehled vítězů",
+    "winnersDescription":"Vyberte disciplínu a\u00a0kategorii pro\u00a0podrobné zobrazení turnaje",
+    "noWinnerInCategory":"Zatím žádný vítěz",
+    "resultsHidden":"Globální výsledky jsou pro\u00a0tento ročník skryty",
+    "showGlobalResults":"Zobrazit globální výsledky",
+    "hideGlobalResults":"Skrýt globální výsledky",
+    "resultsShown":"Globální výsledky jsou nyní zobrazeny",
+    "resultsHiddenMsg":"Globální výsledky jsou nyní skryty",
     
     "scoreTypeTime":"Čas",
     "scoreTypeScore":"Body",
@@ -1064,5 +1074,6 @@
     "tbd": "TBD",
     "accessDenied": "Přístup odepřen",
     "robotProfileAccessDenied": "Profil robota je přístupný pouze pro členy týmu a organizátory.",
-    "tournamentExistsHint": "Pro tuto disciplínu a kategorii již existuje turnaj."
+    "tournamentExistsHint": "Pro tuto disciplínu a kategorii již existuje turnaj.",
+    "allStandings": "Všechna pořadí"
 }

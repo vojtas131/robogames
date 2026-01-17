@@ -476,7 +476,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       needsYear: true
     },
     '/admin/tournament-view': { 
-      label: t('tournamentView') || 'Turnaj', 
+      label: t('result') || 'Výsledky', 
       parent: '/admin/dashboard',
       icon: 'icon-trophy',
       needsYear: true

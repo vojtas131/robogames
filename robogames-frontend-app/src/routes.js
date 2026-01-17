@@ -100,13 +100,21 @@ var routes = [
     layout: "/admin",
   },
   {
-    path: "/competition-results",
-    name: t("result"),
+    path: "/tournament-view",
+    name: t("result"), 
     rtlName: "",
-    icon: "tim-icons icon-book-bookmark",
-    component: <CompetitionResults />,
+    icon: "tim-icons icon-trophy",
+    component: <TournamentView />,
     layout: "/admin",
   },
+//  {
+//    path: "/competition-results",
+//    name: t("result"),
+//    rtlName: "",
+//    icon: "tim-icons icon-book-bookmark",
+//    component: <CompetitionResults />,
+//    layout: "/admin",
+//  },
   {
     path: "/match-schedule",
     name: t("matchSchedule"),
@@ -268,14 +276,6 @@ var routes = [
     component: <TournamentGenerator />,
     layout: "/admin",
     hidden: true,
-  },
-  {
-    path: "/tournament-view",
-    name: t("tournamentView") || "Turnaj", 
-    rtlName: "",
-    icon: "tim-icons icon-trophy",
-    component: <TournamentView />,
-    layout: "/admin",
   }
 
 ];

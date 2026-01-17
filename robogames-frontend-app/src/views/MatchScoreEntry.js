@@ -26,8 +26,8 @@ function MatchScoreEntry() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
 
-    const [scoreA, setScoreA] = useState('');
-    const [scoreB, setScoreB] = useState('');
+    const [scoreA, setScoreA] = useState('0');
+    const [scoreB, setScoreB] = useState('0');
     
     // Time input states for TIME score type (mm:ss:ms format) - default to 0
     const [timeAMinutes, setTimeAMinutes] = useState('0');

@@ -12,7 +12,7 @@ import React, { useState, useEffect, useCallback, useContext, useMemo } from 're
 import {
     Card, CardHeader, CardBody, CardTitle,
     Row, Col, Table, Badge, Progress,
-    Input, Label, FormGroup, Spinner
+    Input, Label, FormGroup, Spinner, Button
 } from 'reactstrap';
 import { Bracket, Seed, SeedItem, SeedTeam } from "react-brackets";
 import { Link, useSearchParams } from 'react-router-dom';
@@ -340,7 +340,7 @@ const CustomSeed = ({ seed, isDark, breakpoint }) => {
                         fontSize: '0.85em',
                         fontWeight: '500'
                     }}>
-                        #{team.number}
+                        N{team.number}
                     </span>
                     <span style={{ fontWeight: isWinner ? '600' : '500' }}>
                         {team.name}
@@ -548,7 +548,6 @@ const BracketVisualization = ({ bracket, isDark, highScoreWin }) => {
                 .bracket-wrapper [class*="jMNptE"],
                 .bracket-wrapper [class*="sc-"],
                 .bracket-wrapper svg path {
-                    stroke: ${isDark ? '#5e72e4' : '#5e72e4'} !important;
                     stroke-width: 2px !important;
                 }
                 .bracket-wrapper [class*="Bracket"],
@@ -587,12 +586,245 @@ const BracketVisualization = ({ bracket, isDark, highScoreWin }) => {
     );
 };
 
+// Medal icons component
+const MedalIcon = ({ place }) => {
+    const colors = {
+        1: { main: '#FFD700', shadow: '#B8860B' }, // Gold
+        2: { main: '#C0C0C0', shadow: '#A0A0A0' }, // Silver
+        3: { main: '#CD7F32', shadow: '#8B4513' }  // Bronze
+    };
+    const color = colors[place] || colors[3];
+    
+    return (
+        <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${color.main} 0%, ${color.shadow} 100%)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 'bold',
+            color: place === 2 ? '#333' : '#fff',
+            fontSize: '14px',
+            boxShadow: `0 2px 8px ${color.shadow}40`,
+            flexShrink: 0
+        }}>
+            {place}
+        </div>
+    );
+};
+
+// Winners Overview Component - displays all winners when no specific discipline/category selected
+const WinnersOverview = ({ winners, isDark, loading, year, onSelectCategory }) => {
+    if (loading) {
+        return (
+            <div className="text-center py-5">
+                <Spinner color="primary" />
+                <p className="mt-2" style={{ color: isDark ? '#a0aec0' : '#666' }}>
+                    {t('loadingWinners') || 'Načítám vítěze...'}
+                </p>
+            </div>
+        );
+    }
+
+    if (!winners || winners.length === 0) {
+        return (
+            <div className="text-center py-5">
+                <i className="tim-icons icon-trophy" style={{ fontSize: '3em', color: isDark ? '#a0aec0' : '#666' }} />
+                <p className="mt-3" style={{ color: isDark ? '#a0aec0' : '#666' }}>
+                    {t('noWinnersYet') || 'Zatím nejsou k dispozici žádní vítězové'}
+                </p>
+            </div>
+        );
+    }
+
+    // Filter disciplines that have at least some winners
+    const disciplinesWithWinners = winners.filter(d => d.hasAnyWinners);
+
+    if (disciplinesWithWinners.length === 0) {
+        return (
+            <div className="text-center py-5">
+                <i className="tim-icons icon-trophy" style={{ fontSize: '3em', color: isDark ? '#a0aec0' : '#666' }} />
+                <p className="mt-3" style={{ color: isDark ? '#a0aec0' : '#666' }}>
+                    {t('noWinnersYet') || 'Zatím nejsou k dispozici žádní vítězové'}
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <div className="text-center mb-4">
+                <h4 style={{ color: isDark ? '#fff' : '#32325d' }}>
+                    {t('winnersOverview')} {year}
+                </h4>
+                <p style={{ color: isDark ? '#a0aec0' : '#666', fontSize: '0.9em' }}>
+                    {t('winnersDescription') || 'Vyberte disciplínu a kategorii pro podrobné zobrazení turnaje'}
+                </p>
+            </div>
+
+            <Row>
+                {disciplinesWithWinners.map((discipline) => (
+                    <Col lg="6" key={discipline.disciplineId} className="mb-4">
+                        <Card style={{
+                            borderRadius: '12px',
+                            border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
+                            overflow: 'hidden',
+                            height: '100%',
+                            background: isDark ? '#27293d' : '#fff'
+                        }}>
+                            <CardHeader style={{
+                                background: 'linear-gradient(0deg, #ef6000 0%, #ef6000 100%)',
+                                color: '#fff',
+                                padding: '15px 20px',
+                                borderBottom: 'none'
+                            }}>
+                                <h5 className="mb-0" style={{ fontWeight: '600', color: '#fff' }}>
+                                    <i className="tim-icons icon-controller mr-2" style={{ color: '#fff' }} />
+                                    {discipline.disciplineName}
+                                </h5>
+                            </CardHeader>
+                            <CardBody style={{ 
+                                padding: '20px',
+                                background: isDark ? '#27293d' : '#fff'
+                            }}>
+                                {discipline.categories.map((category, catIdx) => (
+                                    <div key={category.category} style={{
+                                        marginBottom: catIdx < discipline.categories.length - 1 ? '20px' : 0,
+                                        paddingBottom: catIdx < discipline.categories.length - 1 ? '20px' : 0,
+                                        borderBottom: catIdx < discipline.categories.length - 1 
+                                            ? `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}` 
+                                            : 'none'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <Badge 
+                                                color={category.category === 'LOW_AGE_CATEGORY' ? 'info' : 'warning'}
+                                                style={{ fontSize: '0.8em' }}
+                                            >
+                                                {category.categoryLabel}
+                                            </Badge>
+                                            {onSelectCategory && (
+                                                <Button
+                                                    color="primary"
+                                                    size="sm"
+                                                    onClick={() => onSelectCategory(discipline.disciplineId, category.category)}
+                                                    style={{
+                                                        padding: '4px 10px',
+                                                        fontSize: '0.75em',
+                                                        borderRadius: '6px'
+                                                    }}
+                                                    title={t('showFullStandings') || 'Zobrazit kompletní pořadí'}
+                                                >
+                                                    <i className="tim-icons icon-bullet-list-67 mr-1" />
+                                                    {t('allStandings') || 'Vše'}
+                                                </Button>
+                                            )}
+                                        </div>
+                                        
+                                        {category.hasWinners ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {category.winners.map((winner) => (
+                                                    <div key={`${winner.robotId}-${winner.place}`} style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '12px',
+                                                        padding: '12px 14px',
+                                                        background: isDark 
+                                                            ? '#1e1e2f' 
+                                                            : '#f8f9fa',
+                                                        borderRadius: '8px',
+                                                        border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
+                                                    }}>
+                                                        <MedalIcon place={winner.place} />
+                                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px',
+                                                                color: isDark ? '#fff' : '#32325d',
+                                                                fontWeight: '600',
+                                                                fontSize: '0.95em'
+                                                            }}>
+                                                                <span style={{ 
+                                                                    color: isDark ? '#a0aec0' : '#888',
+                                                                    fontSize: '0.85em'
+                                                                }}>
+                                                                    N{winner.robotNumber}
+                                                                </span>
+                                                                <Link 
+                                                                    to={`/admin/robot-profile?id=${winner.robotId}`}
+                                                                    style={{ 
+                                                                        color: isDark ? '#fff' : '#32325d',
+                                                                        textDecoration: 'none',
+                                                                        overflow: 'hidden',
+                                                                        textOverflow: 'ellipsis',
+                                                                        whiteSpace: 'nowrap'
+                                                                    }}
+                                                                >
+                                                                    {winner.robotName}
+                                                                </Link>
+                                                            </div>
+                                                            <div style={{
+                                                                color: isDark ? '#a0aec0' : '#666',
+                                                                fontSize: '0.8em',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                <i className="tim-icons icon-single-02 mr-1" style={{ fontSize: '0.9em' }} />
+                                                                {winner.teamName}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div style={{
+                                                padding: '15px',
+                                                textAlign: 'center',
+                                                color: isDark ? '#a0aec0' : '#999',
+                                                fontStyle: 'italic',
+                                                fontSize: '0.85em',
+                                                background: isDark 
+                                                    ? '#1e1e2f' 
+                                                    : '#f8f9fa',
+                                                borderRadius: '8px',
+                                                border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
+                                            }}>
+                                                {t('noWinnerInCategory') || 'Zatím žádný vítěz'}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </CardBody>
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
+        </div>
+    );
+};
+
 function TournamentView() {
-    const { selectedYear } = useAdmin();
+    const { selectedYear, currentCompetition } = useAdmin();
     const toast = useToast();
     const { theme } = useContext(ThemeContext);
     const isDark = theme === themes.dark;
     const [searchParams] = useSearchParams();
+
+    // Check if user has admin-level role (can see results even when hidden)
+    const rolesString = localStorage.getItem('roles');
+    const rolesArray = rolesString ? rolesString.split(', ') : [];
+    const hasAdminAccess = rolesArray.some(role => ['ADMIN', 'LEADER', 'REFEREE', 'ROBOT_OPERATOR'].includes(role));
+    
+    // User can see results if: showResults is true OR user has admin access
+    const canSeeResults = currentCompetition?.showResults || hasAdminAccess;
 
     // State
     const [disciplines, setDisciplines] = useState([]);
@@ -600,6 +832,8 @@ function TournamentView() {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [tournamentData, setTournamentData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [allWinners, setAllWinners] = useState([]);
+    const [winnersLoading, setWinnersLoading] = useState(false);
 
     // Load initial data
     useEffect(() => {
@@ -615,12 +849,28 @@ function TournamentView() {
         if (cat) setSelectedCategory(cat);
     }, [searchParams]);
 
+    // Fetch all winners when year is selected but no specific discipline/category
+    useEffect(() => {
+        if (selectedYear && (!selectedDiscipline || !selectedCategory)) {
+            fetchAllWinners();
+        }
+    }, [selectedYear, selectedDiscipline, selectedCategory]);
+
     // Fetch tournament data when all params selected
     useEffect(() => {
         if (selectedYear && selectedDiscipline && selectedCategory) {
             fetchTournamentData();
         }
     }, [selectedYear, selectedDiscipline, selectedCategory]);
+
+    // Manual refresh function
+    const handleRefresh = () => {
+        if (selectedYear && selectedDiscipline && selectedCategory) {
+            fetchTournamentData();
+        } else if (selectedYear) {
+            fetchAllWinners();
+        }
+    };
 
     const fetchDisciplines = async () => {
         try {
@@ -631,6 +881,29 @@ function TournamentView() {
             }
         } catch (error) {
             console.error('Failed to fetch disciplines:', error);
+        }
+    };
+
+    const fetchAllWinners = async () => {
+        if (!selectedYear) return;
+        
+        setWinnersLoading(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}module/competitionEvaluation/allWinners?year=${selectedYear}`
+            );
+            const data = await response.json();
+            
+            if (response.ok && data.type === 'RESPONSE') {
+                setAllWinners(data.data);
+            } else {
+                setAllWinners([]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch winners:', error);
+            setAllWinners([]);
+        } finally {
+            setWinnersLoading(false);
         }
     };
 
@@ -676,9 +949,9 @@ function TournamentView() {
                         </CardHeader>
                         <CardBody>
                             {/* Selection filters */}
-                            <Row className="mb-4">
-                                <Col md="6">
-                                    <FormGroup>
+                            <Row className="mb-4 align-items-end">
+                                <Col md="5">
+                                    <FormGroup className="mb-0">
                                         <Label style={{ color: isDark ? '#fff' : '#32325d' }}>
                                             {t('discipline') || 'Disciplína'}
                                         </Label>
@@ -699,8 +972,8 @@ function TournamentView() {
                                         </Input>
                                     </FormGroup>
                                 </Col>
-                                <Col md="6">
-                                    <FormGroup>
+                                <Col md="5">
+                                    <FormGroup className="mb-0">
                                         <Label style={{ color: isDark ? '#fff' : '#32325d' }}>
                                             {t('category') || 'Kategorie'}
                                         </Label>
@@ -718,6 +991,32 @@ function TournamentView() {
                                             <option value="LOW_AGE_CATEGORY">{t('pupils') || 'Žáci'}</option>
                                             <option value="HIGH_AGE_CATEGORY">{t('students') || 'Studenti a dospělí'}</option>
                                         </Input>
+                                    </FormGroup>
+                                </Col>
+                                <Col md="2">
+                                    <FormGroup className="mb-0">
+                                        <Label style={{ color: 'transparent' }}>&nbsp;</Label>
+                                        <button
+                                            onClick={handleRefresh}
+                                            disabled={loading || winnersLoading}
+                                            className="btn btn-primary w-100"
+                                            style={{
+                                                height: '40px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                marginTop: '0',
+                                                marginBottom: '0'
+                                            }}
+                                        >
+                                            {(loading || winnersLoading) ? (
+                                                <Spinner size="sm" />
+                                            ) : (
+                                                <i className="tim-icons icon-refresh-02" />
+                                            )}
+                                            <span className="d-none d-lg-inline">{t('refresh') || 'Obnovit'}</span>
+                                        </button>
                                     </FormGroup>
                                 </Col>
                             </Row>
@@ -893,11 +1192,35 @@ function TournamentView() {
                             )}
 
                             {/* Empty state when nothing selected */}
-                            {!loading && !tournamentData && (!selectedYear || !selectedDiscipline || !selectedCategory) && (
+                            {!loading && !tournamentData && selectedYear && (!selectedDiscipline || !selectedCategory) && canSeeResults && (
+                                <WinnersOverview 
+                                    winners={allWinners}
+                                    isDark={isDark}
+                                    loading={winnersLoading}
+                                    year={selectedYear}
+                                    onSelectCategory={(disciplineId, category) => {
+                                        setSelectedDiscipline(disciplineId.toString());
+                                        setSelectedCategory(category);
+                                    }}
+                                />
+                            )}
+
+                            {/* Message when showResults is false and user doesn't have admin access */}
+                            {!loading && !tournamentData && selectedYear && (!selectedDiscipline || !selectedCategory) && !canSeeResults && (
+                                <div className="text-center py-5">
+                                    <i className="tim-icons icon-lock-circle" style={{ fontSize: '3em', color: isDark ? '#a0aec0' : '#666' }} />
+                                    <p className="mt-3" style={{ color: isDark ? '#a0aec0' : '#666' }}>
+                                        {t('resultsHidden') || 'Globální výsledky jsou pro tento ročník skryty'}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Empty state when no year selected */}
+                            {!loading && !selectedYear && (
                                 <div className="text-center py-5">
                                     <i className="tim-icons icon-zoom-split" style={{ fontSize: '3em', color: isDark ? '#a0aec0' : '#666' }} />
                                     <p className="mt-3" style={{ color: isDark ? '#a0aec0' : '#666' }}>
-                                        {t('selectAllFilters') || 'Vyberte ročník, disciplínu a kategorii pro zobrazení dat'}
+                                        {t('selectYear') || 'Vyberte ročník pro zobrazení dat'}
                                     </p>
                                 </div>
                             )}

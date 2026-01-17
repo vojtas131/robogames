@@ -49,13 +49,22 @@ function MatchManagement() {
         setSearchParams({ tab });
     };
 
-    // Search/Filter
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'robotName', 'robotNumber', 'teamName'
-    const [filterPlayground, setFilterPlayground] = useState('');
-    const [filterPhase, setFilterPhase] = useState('');
-    const [filterState, setFilterState] = useState('');
-    const [filterCategory, setFilterCategory] = useState('');
+    // Search/Filter - load from localStorage
+    const STORAGE_KEY = 'matchManagement_filters';
+    const savedFilters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const [searchQuery, setSearchQuery] = useState(savedFilters.searchQuery || '');
+    const [searchType, setSearchType] = useState(savedFilters.searchType || 'all'); // 'all', 'id', 'robotName', 'robotNumber', 'teamName'
+    const [filterPlayground, setFilterPlayground] = useState(savedFilters.filterPlayground || '');
+    const [filterPhase, setFilterPhase] = useState(savedFilters.filterPhase || '');
+    const [filterState, setFilterState] = useState(savedFilters.filterState || '');
+    const [filterCategory, setFilterCategory] = useState(savedFilters.filterCategory || '');
+
+    // Save filters to localStorage when they change
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            searchQuery, searchType, filterPlayground, filterPhase, filterState, filterCategory
+        }));
+    }, [searchQuery, searchType, filterPlayground, filterPhase, filterState, filterCategory]);
     
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);

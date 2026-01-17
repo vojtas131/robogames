@@ -354,10 +354,10 @@ function RobotProfile() {
                     <i className="tim-icons icon-settings text-primary mr-2" />
                     {profile.robotName}
                   </CardTitle>
-                  <h5 className="card-category">
+                  <h4 className="card-category" style={{ fontSize: '1.1rem' }}>
                     {t("robotNum")}:
-                    <Badge color="info" className='ml-2'>{profile.robotNumber}</Badge>
-                  </h5>
+                    <Badge color="warning" className='ml-2' style={{ fontSize: '1.2rem', padding: '8px 16px', fontWeight: 'bold' }}>{profile.robotNumber}</Badge>
+                  </h4>
                 </Col>
                 {/*
                 <Col sm="6">

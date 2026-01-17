@@ -325,6 +325,16 @@
     "phase": "Phase",
     "thirdPlaceMatch": "3rd Place Match",
     "thirdPlaceDesc": "Semifinal losers will compete for 3rd place",
+    "loadingWinners": "Loading winners...",
+    "noWinnersYet": "No winners available yet",
+    "winnersOverview": "Winners Overview",
+    "winnersDescription": "Select a discipline and category for detailed tournament view",
+    "noWinnerInCategory": "No winner yet",
+    "resultsHidden": "Global results are hidden for this year",
+    "showGlobalResults": "Show global results",
+    "hideGlobalResults": "Hide global results",
+    "resultsShown": "Global results are now visible",
+    "resultsHiddenMsg": "Global results are now hidden",
     
     "scoreTypeTime": "Time",
     "scoreTypeScore": "Points",
@@ -1064,5 +1074,6 @@
     "tbd": "TBD",
     "accessDenied": "Access Denied",
     "robotProfileAccessDenied": "Robot profile is only accessible to team members and organizers.",
-    "tournamentExistsHint": "A tournament already exists for this discipline and category."
+    "tournamentExistsHint": "A tournament already exists for this discipline and category.",
+    "allStandings": "All Standings"
 }
