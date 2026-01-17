@@ -1,5 +1,5 @@
 /**
-* The `RobotConfirmation` component is responsible for displaying a list of robots and allowing the user to confirm or reject their registration.
+* The `RobotManagement` component is responsible for displaying a list of robots and allowing the user to manage, confirm or reject their registration.
 * 
 * The component fetches the list of competition years and the robots for the selected year. It allows the user to filter the robots by team name and provides buttons to confirm or reject the registration of each robot.
 * 
@@ -10,7 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
-  Table, Row, Col, Input, Badge,
+  Table, Row, Col, Input, InputGroup, InputGroupText, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
   Form, FormGroup, Label, FormFeedback
 } from 'reactstrap';
@@ -20,15 +20,26 @@ import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
+import TablePagination from "components/TablePagination";
 
-function RobotConfirmation() {
+function RobotManagement() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedYear } = useAdmin();
   const [robots, setRobots] = useState([]);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'number', 'name', 'team', 'discipline'
+  const [filterCategory, setFilterCategory] = useState(''); // '' = all categories
+  const [filterConfirmed, setFilterConfirmed] = useState(''); // '' = all, 'true' = confirmed, 'false' = unconfirmed
   const [disciplines, setDisciplines] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+
+  // Helper function for category display
+  const getCategoryDisplay = (category) => {
+    if (category === 'LOW_AGE_CATEGORY') return t("pupils");
+    if (category === 'HIGH_AGE_CATEGORY') return t("students");
+    return category;
+  };
 
   // Admin modal states
   const [createModal, setCreateModal] = useState(false);
@@ -54,29 +65,32 @@ function RobotConfirmation() {
   }, [selectedYear]);
 
   const handleConfirmRegistration = async (robotId, confirmed) => {
-    if (await confirm({ message: t("robotAction", { conf: confirmed ? t("confirm_lower") : t("remove_lower") }) })) {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          }
-        });
-        if (tokenExpired(response.status)) { return; }
-
-        const data = await response.json();
-        if (response.ok) {
-          fetchRobotsForYear(selectedYear); // Refresh the list of robots to show updated statuses
-        } else if (data.type === 'ERROR') {
-          toast.error(t("dataError", { data: data.data }));
-        } else {
-          toast.error(t("robotUpdateFail", { message: data.message || t("unknownError") }));
+    // Pouze při odmítnutí (confirmed=false) zobrazit potvrzovací dialog
+    if (!confirmed && !await confirm({ message: t("robotAction", { conf: t("remove_lower") }) })) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         }
-      } catch (error) {
-        console.error('Error confirming the robot registration:', error);
-        toast.error(t("robotConfirmError", { message: error.message || t("serverCommFail") }));
+      });
+      if (tokenExpired(response.status)) { return; }
+
+      const data = await response.json();
+      if (response.ok) {
+        fetchRobotsForYear(selectedYear); // Refresh the list of robots to show updated statuses
+      } else if (data.type === 'ERROR') {
+        toast.error(t("dataError", { data: data.data }));
+      } else {
+        toast.error(t("robotUpdateFail", { message: data.message || t("unknownError") }));
       }
+    } catch (error) {
+      console.error('Error confirming the robot registration:', error);
+      toast.error(t("robotConfirmError", { message: error.message || t("serverCommFail") }));
     }
   };
 
@@ -105,7 +119,52 @@ function RobotConfirmation() {
     }
   };
 
-  const filteredRobots = robots.filter(robot => robot.teamName.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredRobots = robots.filter(robot => {
+    // Filter by category first
+    if (filterCategory && robot.category !== filterCategory) {
+      return false;
+    }
+    
+    // Filter by confirmed status
+    if (filterConfirmed === 'true' && !robot.confirmed) {
+      return false;
+    }
+    if (filterConfirmed === 'false' && robot.confirmed) {
+      return false;
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    if (!searchTerm) return true;
+    
+    switch (searchType) {
+      case 'id':
+        return robot.id?.toString().includes(searchTerm);
+      case 'number':
+        return robot.number?.toString().includes(searchTerm);
+      case 'name':
+        return robot.name?.toLowerCase().includes(searchLower);
+      case 'team':
+        return robot.teamName?.toLowerCase().includes(searchLower);
+      case 'discipline':
+        return robot.diciplineName?.toLowerCase().includes(searchLower);
+      case 'all':
+      default:
+        return robot.id?.toString().includes(searchTerm) ||
+               robot.number?.toString().includes(searchTerm) ||
+               robot.name?.toLowerCase().includes(searchLower) ||
+               robot.teamName?.toLowerCase().includes(searchLower) ||
+               robot.diciplineName?.toLowerCase().includes(searchLower);
+    }
+  });
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, searchType, filterCategory, filterConfirmed]);
 
   // Statistics
   const totalRobots = robots.length;
@@ -125,7 +184,7 @@ function RobotConfirmation() {
 
   // Navigate to robot profile while preserving search term
   const navigateToProfile = (robotId) => {
-    navigate(`/admin/robot-profile?id=${robotId}&from=confirmation${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`);
+    navigate(`/admin/robot-profile?id=${robotId}&from=management${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`);
   };
 
   const fetchDisciplines = async () => {
@@ -198,7 +257,7 @@ function RobotConfirmation() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotCreated"));
         setCreateModal(false);
         setNewRobot({ teamRegistrationId: '', name: '', disciplineId: '' });
@@ -232,7 +291,7 @@ function RobotConfirmation() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotEdited"));
         setEditModal(false);
         fetchRobotsForYear(selectedYear);
@@ -258,11 +317,11 @@ function RobotConfirmation() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotForceConfirmed"));
         fetchRobotsForYear(selectedYear);
       } else {
-        const result = await response.json();
         toast.error(result.data || t("robotForceConfirmFail"));
       }
     } catch (error) {
@@ -281,11 +340,11 @@ function RobotConfirmation() {
       });
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotForceRemoved"));
         fetchRobotsForYear(selectedYear);
       } else {
-        const result = await response.json();
         toast.error(result.data || t("robotForceRemoveFail"));
       }
     } catch (error) {
@@ -304,11 +363,11 @@ function RobotConfirmation() {
       });
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("robotRemoved"));
         fetchRobotsForYear(selectedYear);
       } else {
-        const result = await response.json();
         toast.error(result.data || t("robotRemoveFail"));
       }
     } catch (error) {
@@ -370,7 +429,7 @@ function RobotConfirmation() {
                   <i className="tim-icons icon-check-2" style={{ fontSize: '20px', color: '#fff' }} />
                 </div>
                 <div>
-                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("confirmedRobots")}</p>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("confirmedRobotsCount")}</p>
                   <CardTitle tag="h3" className="mb-0">{confirmedRobots} / {totalRobots}</CardTitle>
                 </div>
               </div>
@@ -406,7 +465,7 @@ function RobotConfirmation() {
         <Col xs="12">
           <Card>
             <CardHeader>
-              <Row className="align-items-center">
+              <Row className="align-items-center mb-3">
                 <Col>
                   <CardTitle tag="h4">{t("robotOverview")} {selectedYear && `(${selectedYear})`}</CardTitle>
                 </Col>
@@ -417,38 +476,109 @@ function RobotConfirmation() {
                   </Button>
                 </Col>
               </Row>
-              <Input
-                type="text"
-                placeholder={t("findByTeam")}
-                value={searchTerm}
-                onChange={handleSearchChange}
-                style={{ width: '300px', marginTop: '15px' }}
-              />
+              <Row className="mb-2">
+                <Col md="2">
+                  <Input
+                    type="select"
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}
+                  >
+                    <option value="all">{t('searchAll') || 'Vše'}</option>
+                    <option value="id">ID</option>
+                    <option value="number">{t('searchByNumber') || 'Číslo'}</option>
+                    <option value="name">{t('searchByRobotName') || 'Název robota'}</option>
+                    <option value="team">{t('searchByTeamName') || 'Tým'}</option>
+                    <option value="discipline">{t('searchByDiscipline') || 'Disciplína'}</option>
+                  </Input>
+                </Col>
+                <Col md="4">
+                  <InputGroup>
+                    <InputGroupText>
+                      <i className="tim-icons icon-zoom-split" />
+                    </InputGroupText>
+                    <Input
+                      type="text"
+                      placeholder={
+                        searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                        searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
+                        searchType === 'name' ? (t('enterRobotName') || 'Zadejte název robota...') :
+                        searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                        searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
+                        (t('findByTeam') || 'Hledat...')
+                      }
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                    />
+                    {searchTerm && (
+                      <InputGroupText 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => { setSearchTerm(''); setSearchParams({}); }}
+                        title={t('clearSearch') || 'Vymazat'}
+                      >
+                        <i className="tim-icons icon-simple-remove" />
+                      </InputGroupText>
+                    )}
+                  </InputGroup>
+                </Col>
+                <Col md="3">
+                  <Input
+                    type="select"
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    title={t('filterByCategory') || 'Filtrovat podle kategorie'}
+                  >
+                    <option value="">{t('allCategories') || 'Všechny kategorie'}</option>
+                    <option value="LOW_AGE_CATEGORY">{t('pupils') || 'Žáci'}</option>
+                    <option value="HIGH_AGE_CATEGORY">{t('students') || 'Studenti a dospělí'}</option>
+                  </Input>
+                </Col>
+                <Col md="3">
+                  <Input
+                    type="select"
+                    value={filterConfirmed}
+                    onChange={(e) => setFilterConfirmed(e.target.value)}
+                    title={t('filterByConfirmed') || 'Filtrovat podle stavu'}
+                  >
+                    <option value="">{t('allStates') || 'Všechny stavy'}</option>
+                    <option value="true">{t('confirmedOnly') || 'Pouze potvrzené'}</option>
+                    <option value="false">{t('unconfirmedOnly') || 'Pouze nepotvrzené'}</option>
+                  </Input>
+                </Col>
+              </Row>
             </CardHeader>
             <CardBody>
               {robots.length > 0 ? (
+                <>
                 <Table responsive>
                   <thead>
                     <tr>
                       <th>{t("id")}</th>
                       <th>{t("robotNum")}</th>
                       <th>{t("title")}</th>
-                      <th>{t("confirmed")}</th>
                       <th>{t("category")}</th>
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>
                       <th>{t("confirm")}</th>
-                      <th style={{ textAlign: 'center' }}>{t("adminActions")}</th>
+                      <th style={{ textAlign: 'center' }}>{t("action")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRobots.map(robot => (
+                    {filteredRobots
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map(robot => (
                       <tr key={robot.id} style={robot.teamMemberCount === 0 ? { backgroundColor: 'rgba(255, 90, 90, 0.15)' } : {}}>
-                        <td>{robot.id}</td>
+                        <td>
+                          <a 
+                            href="#" 
+                            onClick={(e) => { e.preventDefault(); navigateToProfile(robot.id); }}
+                            style={{ color: '#5e72e4', cursor: 'pointer', textDecoration: 'underline' }}
+                          >
+                            #{robot.id}
+                          </a>
+                        </td>
                         <td>{robot.number}</td>
                         <td>{robot.name}</td>
-                        <td>{robot.confirmed ? t("yes") : t("no")}</td>
-                        <td>{robot.category}</td>
+                        <td>{getCategoryDisplay(robot.category)}</td>
                         <td>
                           {robot.teamName}
                           {robot.teamMemberCount === 0 && (
@@ -458,28 +588,23 @@ function RobotConfirmation() {
                           )}
                         </td>
                         <td>{robot.diciplineName}</td>
-                        <td>
+                        <td style={{ textAlign: 'center' }}>
                           {robot.diciplineName && (
                             <Button
                               color={robot.confirmed ? "success" : "warning"}
-                              className="btn-icon btn-simple"
+                              size="sm"
+                              className="btn-icon"
                               onClick={() => handleConfirmRegistration(robot.id, !robot.confirmed)}
+                              title={robot.confirmed ? t("unconfirm") : t("confirm")}
                             >
                               <i className={robot.confirmed ? "tim-icons icon-check-2" : "tim-icons icon-simple-remove"} />
                             </Button>)}
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <Button
-                            color="info"
-                            className="btn-icon btn-simple"
-                            onClick={() => navigateToProfile(robot.id)}
-                            title={t("showProfile")}
-                          >
-                            <i className="tim-icons icon-badge" />
-                          </Button>
-                          <Button
                             color="primary"
-                            className="btn-icon btn-simple ml-1"
+                            size="sm"
+                            className="btn-icon"
                             onClick={() => openEditModal(robot)}
                             title={t("edit")}
                           >
@@ -487,7 +612,8 @@ function RobotConfirmation() {
                           </Button>
                           <Button
                             color="danger"
-                            className="btn-icon btn-simple ml-1"
+                            size="sm"
+                            className="btn-icon ml-1"
                             onClick={() => handleForceRemove(robot.id)}
                             title={t("remove")}
                           >
@@ -498,6 +624,15 @@ function RobotConfirmation() {
                     ))}
                   </tbody>
                 </Table>
+                
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={filteredRobots.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+                />
+                </>
               ) : (
                 <div>{t("noRobotsFoundYear")}</div>
               )}
@@ -610,4 +745,4 @@ function RobotConfirmation() {
   );
 }
 
-export default RobotConfirmation;
+export default RobotManagement;

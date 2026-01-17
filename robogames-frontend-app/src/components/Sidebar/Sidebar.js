@@ -10,7 +10,7 @@
 * @param {object} props.logo - An object with properties `innerLink`, `outterLink`, `text`, and `imgSrc` to configure the sidebar logo.
 * @returns {JSX.Element} - The rendered Sidebar component.
 */
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { PropTypes } from "prop-types";
 import PerfectScrollbar from "perfect-scrollbar";
@@ -24,8 +24,9 @@ function Sidebar(props) {
   const sidebarRef = useRef(null); // Create a ref to the sidebar element
   const { user } = useUser(); // Assuming useUser is the correct hook to access user context
   const [isLoggedIn, setIsLoggedIn] = React.useState(false); // State to track if the user is logged in
+  const [userTeamId, setUserTeamId] = useState(null); // Track if user is in a team
 
-  const { token } = useUser();
+  const { token, tokenExpired } = useUser();
 
   // Effect to initialize PerfectScrollbar and check if the user is logged in
   useEffect(() => {
@@ -37,6 +38,24 @@ function Sidebar(props) {
       });
     }
     setIsLoggedIn(!!token); // Check if a token exists in localStorage to determine if the user is logged in
+    
+    // Fetch user team info
+    if (token) {
+      fetch(`${process.env.REACT_APP_API_URL}api/user/info`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(response => {
+          if (tokenExpired && tokenExpired(response.status)) return null;
+          return response.ok ? response.json() : null;
+        })
+        .then(result => {
+          if (result && result.data) {
+            setUserTeamId(result.data.teamID);
+          }
+        })
+        .catch(error => console.error('Error fetching user info:', error));
+    }
+    
     return () => {
       if (ps && navigator.platform.indexOf("Win") > -1) {
         ps.destroy(); // Destroy PerfectScrollbar instance on component unmount
@@ -93,7 +112,7 @@ function Sidebar(props) {
 
   const isAdminOrLeaderOrAssistantOrReferee = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT', 'REFEREE'].includes(role)); // Check if the user has any of the specified roles
 
-  console.log("is referee:" + isAdminOrLeaderOrAssistantOrReferee) // Log the value of isAdminOrLeaderOrAssistantOrReferee to the console
+  // console.log("is referee:" + isAdminOrLeaderOrAssistantOrReferee) // Log the value of isAdminOrLeaderOrAssistantOrReferee to the console
 
 
   // Render the sidebar
@@ -105,6 +124,7 @@ function Sidebar(props) {
             {logoImg !== null || logoText !== null ? <div className="logo">{logoImg}{logoText}</div> : null} {/* Render the logo if it exists */}
             <Nav>
               {routes.map((prop, key) => {
+                if (prop.hidden) return null; // Hide routes marked as hidden
                 if (prop.path === "/login") return null; // Hide login
                 if (prop.path === "/auth/callback") return null; // Always hide callback
                 if (prop.path === "/register") return null; // Always hide register
@@ -116,16 +136,19 @@ function Sidebar(props) {
                 if (prop.path === "/robot-registration") return null; // Always hide robot registration
                 if (prop.path === "/all-teams") return null; // Always hide all teams
                 if (prop.path === "/playground-management") return null; // Always hide playground management
-                if (prop.path === "/robot-confirmation") return null; // Always hide robot confirmation
+                if (prop.path === "/robot-management") return null; // Always hide robot management
                 if (prop.path === "/playground-detail") return null; // Always hide playground detail
                 if (prop.path === "/match-generation") return null; // Always hide match generation
                 if (prop.path === "/robot-profile") return null; // Always hide robot profile
+                if (prop.path === "/match-score/:matchId") return null; // Always hide match score entry (accessible via match management)
+                if (prop.path === "/match-management") return null; // Hide match management from sidebar (accessible via admin dashboard)
                 if (prop.path === "/team-management") return null; // Hide team management from sidebar (accessible via admin dashboard)
                 if (prop.path === "/registration-management") return null; // Hide registration management from sidebar (accessible via admin dashboard)
-                if (prop.path === "/match-management" && !isAdminOrLeaderOrAssistantOrReferee) return null; // Hide match management if the user doesn't have the required roles
                 if (prop.path === "/admin-dashboard" && !isAdminOrLeaderOrAssistant) return null; // Hide admin dashboard if the user doesn't have the required roles
                 if (prop.path === "/user-profile" && !isLoggedIn) return null; // Show user profile only when logged in
                 if (prop.path === "/my-team" && !isLoggedIn) return null; // Show my team only when logged in
+                if (prop.path === "/browse-teams") return null; // Always hide browse teams from sidebar (shown on my-team page)
+                if (prop.path === "/match-group/:groupName") return null; // Always hide match group from sidebar
                 return (
                   <li className={activeRoute(prop.layout + prop.path) + (prop.pro ? " active-pro" : "")} key={key}>
                     <NavLink to={prop.layout + prop.path} className="nav-link" onClick={linkOnClick}>

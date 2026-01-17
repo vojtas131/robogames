@@ -4,8 +4,9 @@ import { t } from "translations/translate";
 import { ThemeContext, themes } from "contexts/ThemeContext";
 
 /**
- * MatchSchedule - Vyzvací systém pro roboty
- * Zobrazuje roboty, kteří se mají dostavit k zápasu (první ve frontě na každém hřišti)
+ * MatchSchedule - Match call system for robots
+ * Displays robots that should come to their match (first in queue on each playground)
+ * Supports both single-robot matches and two-robot matches (e.g. sumo)
  */
 function MatchSchedule() {
     const [currentMatches, setCurrentMatches] = useState([]);
@@ -28,7 +29,7 @@ function MatchSchedule() {
                 const newMatches = data.data || [];
                 const newTotalPages = Math.ceil(newMatches.length / ITEMS_PER_PAGE);
                 
-                // Pokud se změnil počet zápasů a aktuální stránka by byla mimo rozsah
+                // If match count changed and current page would be out of range
                 setCurrentPage(prev => {
                     if (newTotalPages === 0) return 0;
                     if (prev >= newTotalPages) return newTotalPages - 1;
@@ -48,12 +49,12 @@ function MatchSchedule() {
 
     useEffect(() => {
         fetchCurrentMatches();
-        // Aktualizace každých 15 sekund
-        const intervalId = setInterval(fetchCurrentMatches, 15000);
+        // Update every 10 seconds
+        const intervalId = setInterval(fetchCurrentMatches, 10000);
         return () => clearInterval(intervalId);
     }, [fetchCurrentMatches]);
 
-    // Automatické přepínání stránek
+    // Automatic page rotation
     useEffect(() => {
         const totalPages = Math.ceil(currentMatches.length / ITEMS_PER_PAGE);
         
@@ -62,7 +63,7 @@ function MatchSchedule() {
         }
 
         const rotateInterval = setInterval(() => {
-            // Nepřepínat během refreshe
+            // Don't switch during refresh
             if (isRefreshing.current) return;
             
             setCurrentPage(prev => {
@@ -70,7 +71,7 @@ function MatchSchedule() {
                 if (currentTotal <= 1) return 0;
                 return (prev + 1) % currentTotal;
             });
-        }, 5000); // Přepnutí každých 5 sekund
+        }, 5000); // Switch every 5 seconds
 
         return () => clearInterval(rotateInterval);
     }, [currentMatches.length]);
@@ -79,13 +80,13 @@ function MatchSchedule() {
     const toggleFullscreen = () => {
         setIsFullscreen(!isFullscreen);
         
-        // Skrytí/zobrazení navbar a sidebar
+        // Hide/show navbar and sidebar
         const sidebar = document.querySelector('.sidebar');
         const mainPanel = document.querySelector('.main-panel');
         const navbar = document.querySelector('.navbar');
         
         if (!isFullscreen) {
-            // Zapínáme fullscreen
+            // Enabling fullscreen
             if (sidebar) sidebar.style.display = 'none';
             if (navbar) navbar.style.display = 'none';
             if (mainPanel) {
@@ -93,7 +94,7 @@ function MatchSchedule() {
                 mainPanel.style.marginLeft = '0';
             }
         } else {
-            // Vypínáme fullscreen
+            // Disabling fullscreen
             if (sidebar) sidebar.style.display = '';
             if (navbar) navbar.style.display = '';
             if (mainPanel) {
@@ -103,7 +104,7 @@ function MatchSchedule() {
         }
     };
 
-    // Cleanup při unmount
+    // Cleanup on unmount
     useEffect(() => {
         return () => {
             const sidebar = document.querySelector('.sidebar');
@@ -131,13 +132,35 @@ function MatchSchedule() {
         return state === 'REMATCH' ? '#fb6340' : '#f5365c';
     };
 
-    const totalPages = Math.ceil(currentMatches.length / ITEMS_PER_PAGE);
-    const paginatedMatches = currentMatches.slice(
+    const getPhaseLabel = (phase) => {
+        switch (phase) {
+            case 'PRELIMINARY': return t('phasePreliminary') || 'Předkolo';
+            case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
+            case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
+            case 'FINAL': return t('phaseFinal') || 'Finále';
+            default: return phase || '';
+        }
+    };
+
+    // Check if match is a two-robot match
+    const isTwoRobotMatch = (match) => {
+        return match.robotBID !== null && match.robotBID !== undefined;
+    };
+
+    // Check if match has any robot assigned
+    const hasRobots = (match) => {
+        return match.robotAID !== null && match.robotAID !== undefined;
+    };
+
+    // Filter out matches without robots
+    const matchesWithRobots = currentMatches.filter(hasRobots);
+    const totalPages = Math.ceil(matchesWithRobots.length / ITEMS_PER_PAGE);
+    const paginatedMatches = matchesWithRobots.slice(
         currentPage * ITEMS_PER_PAGE, 
         (currentPage + 1) * ITEMS_PER_PAGE
     );
 
-    // Kontejner styly pro fullscreen
+    // Container styles for fullscreen
     const containerStyle = isFullscreen ? {
         position: 'fixed',
         top: 0,
@@ -154,13 +177,319 @@ function MatchSchedule() {
         paddingBottom: '50px'
     };
 
+    // Render single robot info
+    const renderSingleRobotCard = (match, stateColor, isRematch, idx) => (
+        <Col 
+            style={{ 
+                flex: '0 0 20%', 
+                maxWidth: '20%',
+                animation: 'fadeIn 0.5s ease-in-out',
+                animationDelay: `${idx * 0.1}s`,
+                animationFillMode: 'both'
+            }}
+            key={`${match.id}-${idx}`} 
+            className="mb-3 px-2"
+        >
+            <Card 
+                className="match-call-card"
+                style={{
+                    border: `4px solid ${stateColor}`,
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    background: `linear-gradient(135deg, rgba(30,30,47,1) 0%, rgba(30,30,47,0.95) 100%)`,
+                    boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 20px ${stateColor}40`,
+                    minHeight: isFullscreen ? '280px' : '250px'
+                }}
+            >
+                {/* Header - Playground */}
+                <div 
+                    className="text-center py-2 px-3"
+                    style={{ 
+                        background: stateColor,
+                        color: 'white'
+                    }}
+                >
+                    <div className="d-flex justify-content-between align-items-center">
+                        <span className="font-weight-bold" style={{ fontSize: '14px' }}>
+                            {match.playgroundName || 'Hřiště'}
+                        </span>
+                        <Badge 
+                            style={{ 
+                                backgroundColor: 'rgba(255,255,255,0.25)', 
+                                color: 'white',
+                                fontSize: '16px',
+                                fontWeight: '800',
+                                padding: '4px 10px'
+                            }}
+                        >
+                            {match.playgroundNumber || 0}
+                        </Badge>
+                    </div>
+                </div>
+
+                <CardBody className="text-center py-2 px-2">
+                    <div 
+                        style={{ 
+                            fontSize: isFullscreen ? '72px' : '56px', 
+                            fontWeight: '900',
+                            lineHeight: '1',
+                            color: stateColor,
+                            textShadow: `0 0 30px ${stateColor}60`
+                        }}
+                    >
+                        {match.robotANumber || '?'}
+                    </div>
+
+                    {/* Robot name */}
+                    <h3 
+                        className="mb-2 font-weight-bold text-white" 
+                        style={{ 
+                            fontSize: isFullscreen ? '16px' : '14px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px'
+                        }}
+                    >
+                        {match.robotAName || 'Robot'}
+                    </h3>
+
+                    {/* Team - highlighted */}
+                    <div 
+                        className="text-center mb-2 py-1 px-2" 
+                        style={{ 
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '8px'
+                        }}
+                    >
+                        <span className="text-warning font-weight-bold" style={{ fontSize: '15px' }}>
+                            <i className="tim-icons icon-single-02 mr-1" />
+                            {match.teamAName || '-'}
+                        </span>
+                    </div>
+
+                    {/* Info grid */}
+                    <div className="match-info-grid mt-2">
+                        {/* Discipline */}
+                        <div className="info-row mb-1">
+                            <span className="info-label text-muted">
+                                <i className="tim-icons icon-trophy mr-1" />
+                                {t('discipline')}:
+                            </span>
+                            <Badge color="warning" style={{ fontSize: '11px' }}>
+                                {match.disciplineName || '-'}
+                            </Badge>
+                        </div>
+
+                        {/* Category */}
+                        <div className="info-row">
+                            <span className="info-label text-muted">
+                                <i className="tim-icons icon-badge mr-1" />
+                                {t('category')}:
+                            </span>
+                            <Badge color="info" style={{ fontSize: '11px' }}>
+                                {getCategoryLabel(match.categoryA)}
+                            </Badge>
+                        </div>
+
+                        {/* Phase (if set) */}
+                        {match.phaseName && (
+                            <div className="info-row mt-1">
+                                <span className="info-label text-muted">
+                                    <i className="tim-icons icon-chart-bar-32 mr-1" />
+                                    {t('phase') || 'Fáze'}:
+                                </span>
+                                <Badge color="primary" style={{ fontSize: '11px' }}>
+                                    {getPhaseLabel(match.phaseName)}
+                                </Badge>
+                            </div>
+                        )}
+                    </div>
+                </CardBody>
+
+                {/* Footer - match state */}
+                {isRematch && (
+                    <div 
+                        className="text-center py-2"
+                        style={{ 
+                            background: 'rgba(251, 99, 64, 0.2)',
+                            borderTop: `2px solid ${stateColor}`
+                        }}
+                    >
+                        <Badge 
+                            style={{ 
+                                background: stateColor,
+                                fontSize: '14px',
+                                padding: '8px 20px'
+                            }}
+                        >
+                            <i className="tim-icons icon-refresh-02 mr-1" />
+                            {t('matchRematch')}
+                        </Badge>
+                    </div>
+                )}
+            </Card>
+        </Col>
+    );
+
+    // Render two-robot match card (e.g. sumo) - same width as single robot card
+    const renderTwoRobotCard = (match, stateColor, isRematch, idx) => (
+        <Col 
+            style={{ 
+                flex: '0 0 20%', 
+                maxWidth: '20%',
+                animation: 'fadeIn 0.5s ease-in-out',
+                animationDelay: `${idx * 0.1}s`,
+                animationFillMode: 'both'
+            }}
+            key={`${match.id}-${idx}`} 
+            className="mb-3 px-2"
+        >
+            <Card 
+                className="match-call-card"
+                style={{
+                    border: `4px solid ${stateColor}`,
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    background: `linear-gradient(135deg, rgba(30,30,47,1) 0%, rgba(30,30,47,0.95) 100%)`,
+                    boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 20px ${stateColor}40`,
+                    minHeight: isFullscreen ? '280px' : '250px'
+                }}
+            >
+                {/* Header - Playground */}
+                <div 
+                    className="text-center py-2 px-3"
+                    style={{ 
+                        background: stateColor,
+                        color: 'white'
+                    }}
+                >
+                    <div className="d-flex justify-content-between align-items-center">
+                        <span className="font-weight-bold" style={{ fontSize: '14px' }}>
+                            {match.playgroundName || 'Hřiště'}
+                        </span>
+                        <Badge 
+                            style={{ 
+                                backgroundColor: 'rgba(255,255,255,0.25)', 
+                                color: 'white',
+                                fontSize: '16px',
+                                fontWeight: '800',
+                                padding: '4px 10px'
+                            }}
+                        >
+                            {match.playgroundNumber || 0}
+                        </Badge>
+                    </div>
+                </div>
+
+                <CardBody className="text-center py-2 px-2">
+                    {/* Robot A - Top */}
+                    <div 
+                        className="py-1 px-2 mb-1" 
+                        style={{ 
+                            background: 'rgba(45, 206, 137, 0.15)',
+                            borderRadius: '8px'
+                        }}
+                    >
+                        <div 
+                            style={{ 
+                                fontSize: isFullscreen ? '36px' : '28px', 
+                                fontWeight: '900',
+                                lineHeight: '1',
+                                color: '#2dce89'
+                            }}
+                        >
+                            {match.robotANumber || '?'}
+                        </div>
+                        <div className="text-white font-weight-bold" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                            {match.robotAName || 'Robot A'}
+                        </div>
+                        <div className="text-warning" style={{ fontSize: '10px' }}>
+                            {match.teamAName || '-'}
+                        </div>
+                    </div>
+
+                    {/* VS divider */}
+                    <div style={{ fontSize: '16px', fontWeight: '900', color: '#fff', margin: '4px 0' }}>
+                        VS
+                    </div>
+
+                    {/* Robot B - Bottom */}
+                    <div 
+                        className="py-1 px-2 mt-1" 
+                        style={{ 
+                            background: 'rgba(94, 114, 228, 0.15)',
+                            borderRadius: '8px'
+                        }}
+                    >
+                        <div 
+                            style={{ 
+                                fontSize: isFullscreen ? '36px' : '28px', 
+                                fontWeight: '900',
+                                lineHeight: '1',
+                                color: '#5e72e4'
+                            }}
+                        >
+                            {match.robotBNumber || '?'}
+                        </div>
+                        <div className="text-white font-weight-bold" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                            {match.robotBName || 'Robot B'}
+                        </div>
+                        <div className="text-warning" style={{ fontSize: '10px' }}>
+                            {match.teamBName || '-'}
+                        </div>
+                    </div>
+
+                    {/* Discipline & Category */}
+                    <div className="mt-2">
+                        <Badge color="warning" style={{ fontSize: '10px', marginRight: '4px' }}>
+                            {match.disciplineName || '-'}
+                        </Badge>
+                        <Badge color="info" style={{ fontSize: '10px' }}>
+                            {getCategoryLabel(match.categoryA)}
+                        </Badge>
+                    </div>
+
+                    {/* Phase (if set) */}
+                    {match.phaseName && (
+                        <div className="mt-1">
+                            <Badge color="primary" style={{ fontSize: '10px' }}>
+                                {getPhaseLabel(match.phaseName)}
+                            </Badge>
+                        </div>
+                    )}
+                </CardBody>
+
+                {/* Footer - match state */}
+                {isRematch && (
+                    <div 
+                        className="text-center py-2"
+                        style={{ 
+                            background: 'rgba(251, 99, 64, 0.2)',
+                            borderTop: `2px solid ${stateColor}`
+                        }}
+                    >
+                        <Badge 
+                            style={{ 
+                                background: stateColor,
+                                fontSize: '14px',
+                                padding: '8px 20px'
+                            }}
+                        >
+                            <i className="tim-icons icon-refresh-02 mr-1" />
+                            {t('matchRematch')}
+                        </Badge>
+                    </div>
+                )}
+            </Card>
+        </Col>
+    );
+
     return (
         <div className={`content ${isFullscreen ? 'fullscreen-content' : ''}`} style={containerStyle}>
-            {/* Hlavička */}
+            {/* Header */}
             <Row className="mb-3">
                 <Col>
                     <div className="d-flex align-items-center">
-                        {/* Tlačítko maximalizace vlevo */}
+                        {/* Maximize button on left */}
                         <div className="mr-3">
                             <Button 
                                 color="info" 
@@ -173,7 +502,7 @@ function MatchSchedule() {
                             </Button>
                         </div>
                         
-                        {/* Titulek uprostřed */}
+                        {/* Title centered */}
                         <div className="text-center flex-grow-1">
                             <h1 className={`text-warning mb-1 ${isFullscreen ? 'display-3' : 'display-4'}`}>
                                 <i className="tim-icons icon-bell-55 mr-3" />
@@ -193,14 +522,14 @@ function MatchSchedule() {
                             </p>
                         </div>
                         
-                        {/* Prázdný prostor vpravo pro vycentrování */}
+                        {/* Empty space on right for centering */}
                         <div style={{ width: '52px' }}></div>
                     </div>
                 </Col>
             </Row>
 
-            {/* Výzvy */}
-            {currentMatches.length === 0 ? (
+            {/* Match calls */}
+            {matchesWithRobots.length === 0 ? (
                 <Row>
                     <Col md={{ size: 6, offset: 3 }}>
                         <Card className="text-center">
@@ -224,140 +553,15 @@ function MatchSchedule() {
                 >
                     <Row className="justify-content-center align-items-start">
                         {paginatedMatches.map((match, idx) => {
-                            const stateColor = getMatchStateColor(match.state?.name);
-                            const isRematch = match.state?.name === 'REMATCH';
+                            const stateColor = getMatchStateColor(match.state?.name || match.stateName);
+                            const isRematch = (match.state?.name || match.stateName) === 'REMATCH';
                             
-                            return (
-                                <Col 
-                                    style={{ 
-                                        flex: '0 0 20%', 
-                                        maxWidth: '20%',
-                                        animation: 'fadeIn 0.5s ease-in-out',
-                                        animationDelay: `${idx * 0.1}s`,
-                                        animationFillMode: 'both'
-                                    }}
-                                    key={`${match.id}-${idx}`} 
-                                    className="mb-3 px-2"
-                                >
-                                    <Card 
-                                        className="match-call-card"
-                                        style={{
-                                            border: `4px solid ${stateColor}`,
-                                            borderRadius: '20px',
-                                            overflow: 'hidden',
-                                            background: `linear-gradient(135deg, rgba(30,30,47,1) 0%, rgba(30,30,47,0.95) 100%)`,
-                                            boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 20px ${stateColor}40`
-                                        }}
-                                    >
-                                        {/* Header - Hřiště */}
-                                        <div 
-                                            className="text-center py-2 px-3"
-                                            style={{ 
-                                                background: stateColor,
-                                                color: 'white'
-                                            }}
-                                        >
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <span className="font-weight-bold" style={{ fontSize: '14px' }}>
-                                                    {match.playgroundName || 'Hřiště'}
-                                                </span>
-                                                <span style={{ fontSize: '20px', fontWeight: '800' }}>
-                                                    #{match.playgroundNumber || 0}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <CardBody className="text-center py-2 px-2">
-                                            {/* Číslo robota - největší */}
-                                            <div 
-                                                style={{ 
-                                                    fontSize: isFullscreen ? '72px' : '56px', 
-                                                    fontWeight: '900',
-                                                    lineHeight: '1',
-                                                    color: stateColor,
-                                                    textShadow: `0 0 30px ${stateColor}60`
-                                                }}
-                                            >
-                                                {match.robotNumber || '?'}
-                                            </div>
-
-                                            {/* Název robota */}
-                                            <h3 
-                                                className="mb-2 font-weight-bold text-white" 
-                                                style={{ 
-                                                    fontSize: isFullscreen ? '16px' : '14px',
-                                                    textTransform: 'uppercase',
-                                                    letterSpacing: '1px'
-                                                }}
-                                            >
-                                                {match.robotName || 'Robot'}
-                                            </h3>
-
-                                            {/* Tým - zvýrazněný */}
-                                            <div 
-                                                className="text-center mb-2 py-1 px-2" 
-                                                style={{ 
-                                                    background: 'rgba(255,255,255,0.1)',
-                                                    borderRadius: '8px'
-                                                }}
-                                            >
-                                                <span className="text-warning font-weight-bold" style={{ fontSize: '15px' }}>
-                                                    <i className="tim-icons icon-single-02 mr-1" />
-                                                    {match.teamName || '-'}
-                                                </span>
-                                            </div>
-
-                                            {/* Info grid */}
-                                            <div className="match-info-grid mt-2">
-
-                                                {/* Disciplína */}
-                                                <div className="info-row mb-1">
-                                                    <span className="info-label text-muted">
-                                                        <i className="tim-icons icon-trophy mr-1" />
-                                                        {t('discipline')}:
-                                                    </span>
-                                                    <Badge color="warning" style={{ fontSize: '11px' }}>
-                                                        {match.disciplineName || '-'}
-                                                    </Badge>
-                                                </div>
-
-                                                {/* Kategorie */}
-                                                <div className="info-row">
-                                                    <span className="info-label text-muted">
-                                                        <i className="tim-icons icon-badge mr-1" />
-                                                        {t('category')}:
-                                                    </span>
-                                                    <Badge color="info" style={{ fontSize: '11px' }}>
-                                                        {getCategoryLabel(match.category)}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                        </CardBody>
-
-                                        {/* Footer - stav zápasu */}
-                                        {isRematch && (
-                                            <div 
-                                                className="text-center py-2"
-                                                style={{ 
-                                                    background: 'rgba(251, 99, 64, 0.2)',
-                                                    borderTop: `2px solid ${stateColor}`
-                                                }}
-                                            >
-                                                <Badge 
-                                                    style={{ 
-                                                        background: stateColor,
-                                                        fontSize: '14px',
-                                                        padding: '8px 20px'
-                                                    }}
-                                                >
-                                                    <i className="tim-icons icon-refresh-02 mr-1" />
-                                                    {t('matchRematch')}
-                                                </Badge>
-                                            </div>
-                                        )}
-                                    </Card>
-                                </Col>
-                            );
+                            // Choose card type based on whether it's a two-robot match
+                            if (isTwoRobotMatch(match)) {
+                                return renderTwoRobotCard(match, stateColor, isRematch, idx);
+                            } else {
+                                return renderSingleRobotCard(match, stateColor, isRematch, idx);
+                            }
                         })}
                     </Row>
 
@@ -385,7 +589,7 @@ function MatchSchedule() {
                 </div>
             )}
 
-            {/* Legenda */}
+            {/* Legend */}
             <Row className="mt-4 mb-4">
                 <Col>
                     <div className="text-center">

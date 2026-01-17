@@ -1,369 +1,635 @@
-import React, { useEffect, useState } from "react";
+/**
+ * CompetitionManagement - Admin view for managing competitions/years
+ * Design unified with MatchManagement pattern
+ */
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardTitle,
-  Row,
-  Col,
-  Button,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  FormGroup,
-  Label,
-  Input
-} from "reactstrap";
+    Card,
+    CardHeader,
+    CardBody,
+    CardTitle,
+    Row,
+    Col,
+    Button,
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Form,
+    FormGroup,
+    Label,
+    Input,
+    Table,
+    Badge,
+    Spinner,
+    Alert,
+    InputGroup,
+    InputGroupText
+} from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
+import { ThemeContext, themes } from "contexts/ThemeContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
+import HoldToConfirmModal from "components/HoldToConfirmModal";
 
-/**
-* Renders the Competition Management component, which allows administrators and leaders to manage competitions.
-* This component fetches the list of competitions, provides functionality to create, edit, start, and remove competitions,
-* and displays the competition details in a card layout.
-*/
 function CompetitionManagement() {
-  const [competitions, setCompetitions] = useState([]);
-  const [modal, setModal] = useState(false);
-  const [modalEdit, setModalEdit] = useState(false);
-  const [selectedCompetitionId, setSelectedCompetitionId] = useState(null);
-  const [formData, setFormData] = useState({
-    year: '',
-    date: '',
-    startTime: '',
-    endTime: ''
-  });
+    const [competitions, setCompetitions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
+    // Modals
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showStartModal, setShowStartModal] = useState(false);
+    const [competitionToStart, setCompetitionToStart] = useState(null);
+    
+    // Form data
+    const [newCompetition, setNewCompetition] = useState({
+        year: '',
+        date: '',
+        startTime: '',
+        endTime: ''
+    });
+    const [editCompetition, setEditCompetition] = useState({
+        id: '',
+        year: '',
+        date: '',
+        startTime: '',
+        endTime: ''
+    });
 
-  const { token, tokenExpired } = useUser();
-  const toast = useToast();
-  const { confirm } = useConfirm();
+    // Filters & Pagination
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(15);
 
-  const navigate = useNavigate();
+    const { token, tokenExpired } = useUser();
+    const toast = useToast();
+    const { confirm } = useConfirm();
+    const navigate = useNavigate();
+    const { theme } = useContext(ThemeContext);
+    const isDark = theme === themes.dark;
 
-  const viewParticipants = (year) => {
-    navigate(`/admin/competition-detail/?year=${year}`);
-  };
-
-
-  const [formDataEdit, setFormDataEdit] = useState({
-    id: '',
-    year: '',
-    date: '',
-    startTime: '',
-    endTime: ''
-  });
-
-  const toggleModal = () => setModal(!modal);
-  const toggleModalEdit = () => setModalEdit(!modalEdit);
-
-
-
-  const handleEditSubmit = async () => {
-    if (token && validateFormEdit()) {
-      try {
-        const parsedData = {
-          year: parseInt(formDataEdit.year, 10),
-          date: formDataEdit.date,
-          startTime: formDataEdit.startTime + ":00",
-          endTime: formDataEdit.endTime + ":00"
-        };
-
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/edit?id=${formDataEdit.id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(parsedData)
-        });
-        if (tokenExpired(response.status)) { return; }
-
-        if (response.ok) {
-          const result = await response.json();
-          setCompetitions(competitions.map(comp => comp.id === formDataEdit.id ? { ...comp, ...parsedData } : comp));
-          toggleModalEdit();
-          window.location.reload();
-        } else {
-          const error = await response.json();
-          toast.error(t("error", { error: error.error, message: error.message || t("somethingWrong") }));
-        }
-      } catch (error) {
-        toast.error(t("compUpdateError", { message: error.message }));
-      }
-    } else {
-      toast.warning(t("compWrongFill"));
-    }
-  };
-
-
-
-
-  useEffect(() => {
-    const fetchCompetitions = async () => {
-      if (token) {
+    // Fetch competitions
+    const fetchCompetitions = useCallback(async () => {
+        if (!token) return;
+        setLoading(true);
         try {
-          const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/all`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (tokenExpired(response.status)) { return; }
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/all`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (tokenExpired(response.status)) return;
 
-          const result = await response.json();
-          if (response.ok) {
-            setCompetitions(result.data);
-          } else {
-            console.error(t("compFetchFail"));
-          }
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setCompetitions(data.data || []);
+            }
         } catch (error) {
-          console.error(t("compFetchError"), error);
+            console.error('Failed to fetch competitions:', error);
+        } finally {
+            setLoading(false);
         }
-      }
+    }, [token, tokenExpired]);
+
+    useEffect(() => {
+        fetchCompetitions();
+    }, [fetchCompetitions]);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterStatus]);
+
+    // Filter competitions
+    const filteredCompetitions = competitions.filter(comp => {
+        const matchesSearch = !searchQuery ||
+            comp.year?.toString().includes(searchQuery) ||
+            comp.date?.includes(searchQuery);
+
+        const matchesStatus = !filterStatus ||
+            (filterStatus === 'started' && comp.started) ||
+            (filterStatus === 'notStarted' && !comp.started);
+
+        return matchesSearch && matchesStatus;
+    });
+
+    // Create competition
+    const handleCreateCompetition = async () => {
+        if (!newCompetition.year || !newCompetition.date || !newCompetition.startTime || !newCompetition.endTime) {
+            toast.warning(t("compWrongFill") || 'Vyplňte všechna pole');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/create`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    year: parseInt(newCompetition.year, 10),
+                    date: newCompetition.date,
+                    startTime: newCompetition.startTime + ':00',
+                    endTime: newCompetition.endTime + ':00'
+                })
+            });
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(t("compCreated"));
+                setShowCreateModal(false);
+                setNewCompetition({ year: '', date: '', startTime: '', endTime: '' });
+                fetchCompetitions();
+            } else {
+                toast.error(data.data || data.message || t("compCreateFail"));
+            }
+        } catch (error) {
+            toast.error(error.message || t("compCreateError"));
+        }
     };
-    fetchCompetitions();
-  }, []);
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-  const handleInputChangeEdit = (e) => {
-    setFormDataEdit({ ...formDataEdit, [e.target.name]: e.target.value });
-  };
-
-  const startCompetition = async (id) => {
-    const confirmStart = await confirm({ message: t("compStartConfirm") });
-
-    if (confirmStart && token) {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/start?id=${id}`, {
-          method: 'PUT', // Check the API specification to confirm the HTTP method
-          headers: { 'Authorization': `Bearer ${token}` }
+    // Open edit modal
+    const handleOpenEditModal = (comp) => {
+        setEditCompetition({
+            id: comp.id,
+            year: comp.year?.toString() || '',
+            date: comp.date ? comp.date.split('T')[0] : '',
+            startTime: comp.startTime ? comp.startTime.substring(0, 5) : '',
+            endTime: comp.endTime ? comp.endTime.substring(0, 5) : ''
         });
-        if (tokenExpired(response.status)) { return; }
+        setShowEditModal(true);
+    };
 
-        if (response.ok) {
-          const updatedCompetitions = competitions.map(comp =>
-            comp.id === id ? { ...comp, started: true } : comp
-          );
-          setCompetitions(updatedCompetitions);
-          toast.success(t("compStarted"));
-        } else {
-          const error = await response.json();
-          toast.error(t("error", { error: error.error, message: error.message || t("serverError") }));
+    // Update competition
+    const handleUpdateCompetition = async () => {
+        if (!editCompetition.year || !editCompetition.date || !editCompetition.startTime || !editCompetition.endTime) {
+            toast.warning(t("compWrongFill") || 'Vyplňte všechna pole');
+            return;
         }
-      } catch (error) {
-        console.error('Error starting competition:', error);
-        toast.error(t("compStartError", { message: error.message }));
-      }
-    } else if (!token) {
-      toast.warning(t("mustLogin"));
-    }
-  };
 
-
-
-  const handleSubmit = async () => {
-    if (validateForm()) {
-      if (token) {
         try {
-          const parsedData = {
-            ...formData,
-            year: parseInt(formData.year, 10),
-            startTime: formData.startTime + ":00",
-            endTime: formData.endTime + ":00"
-          };
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/edit?id=${editCompetition.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    year: parseInt(editCompetition.year, 10),
+                    date: editCompetition.date,
+                    startTime: editCompetition.startTime + ':00',
+                    endTime: editCompetition.endTime + ':00'
+                })
+            });
+            if (tokenExpired(response.status)) return;
 
-          const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/create`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(parsedData)
-          });
-          if (tokenExpired(response.status)) { return; }
-
-          if (response.ok) {
-            const result = await response.json();
-            setCompetitions([...competitions, result.data]);
-            toggleModal();
-            window.location.reload();
-          } else {
-            const error = await response.json();
-            console.error('Failed to create competition:', error);
-            toast.error(t("error", { error: error.error, message: error.message }));
-          }
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(t("compUpdated") || "Ročník byl aktualizován");
+                setShowEditModal(false);
+                fetchCompetitions();
+            } else {
+                toast.error(data.data || data.message || t("compUpdateFail"));
+            }
         } catch (error) {
-          console.error('Error creating competition:', error);
-          toast.error(t("compCreateError", { message: error.message }));
+            toast.error(error.message || t("compUpdateError"));
         }
-      }
-    } else {
-      toast.warning(t("compWrongFill"));
-    }
-  };
+    };
 
-  const validateForm = () => {
-    return formData.year.trim() && formData.date.trim() && formData.startTime.trim() && formData.endTime.trim();
-  };
-  const validateFormEdit = () => {
-    return formDataEdit.year.trim() && formDataEdit.date.trim() && formDataEdit.startTime.trim() && formDataEdit.endTime.trim();
-  };
-  const handleRemoveCompetition = async (id) => {
-    if (token) {
+    // Delete competition
+    const handleDeleteCompetition = async (id) => {
+        if (!await confirm({ message: t("compRemoveConfirm") || "Opravdu chcete odstranit tento ročník?" })) {
+            return;
+        }
 
-      const confirmDelete = window.confirm(t("compRemoveConfirm"));
-      if (confirmDelete) {
         try {
-          const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/remove?id=${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (tokenExpired(response.status)) { return; }
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/remove?id=${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (tokenExpired(response.status)) return;
 
-          if (response.ok) {
-            setCompetitions(competitions.filter(comp => comp.id !== id));
-          } else {
-            console.error('Chyba při mazání soutěže');
-            toast.error(t("compRemoveFail"));
-          }
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(t("compRemoved") || "Ročník byl odstraněn");
+                fetchCompetitions();
+            } else {
+                toast.error(data.data || t("compRemoveFail"));
+            }
         } catch (error) {
-          console.error('Chyba při mazání soutěže:', error);
-          toast.error(t("compRemoveError", { message: error.message }));
+            toast.error(error.message || t("compRemoveError"));
         }
-      } else {
+    };
 
-        console.log("Odstranění zrušeno uživatelem.");
-      }
-    } else {
-      toast.warning(t("mustLogin"));
-    }
-  };
+    // Start competition - open confirmation modal
+    const handleStartCompetition = (comp) => {
+        setCompetitionToStart(comp);
+        setShowStartModal(true);
+    };
 
+    // Actually start the competition after hold confirmation
+    const executeStartCompetition = async () => {
+        if (!competitionToStart) return;
 
-  const rolesString = localStorage.getItem('roles');
-  const rolesArray = rolesString ? rolesString.split(', ') : [];
-  const isAdminOrLeader = rolesArray.some(role => ['ADMIN', 'LEADER'].includes(role));
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/start?id=${competitionToStart.id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (tokenExpired(response.status)) return;
 
-  return (
-    <div className="content">
-      <Button color="success" style={{ marginBottom: '10px' }} onClick={() => toggleModal()}>{t("compAdd")}</Button>
-      <Modal isOpen={modal} toggle={toggleModal}>
-        <ModalHeader toggle={toggleModal}>{t("compAddNew")}</ModalHeader>
-        <ModalBody>
-          <FormGroup>
-            <Label for="year">{t("year")}</Label>
-            <Input style={{ color: 'black' }} type="number" name="year" id="year" value={formData.year} onChange={handleInputChange} />
-          </FormGroup>
-          <FormGroup>
-            <Label for="date">{t("date")}</Label>
-            <Input style={{ color: 'black' }} type="date" name="date" id="date" value={formData.date} onChange={handleInputChange} />
-          </FormGroup>
-          <FormGroup>
-            <Label for="startTime">{t("start")}</Label>
-            <Input style={{ color: 'black' }} type="time" name="startTime" id="startTime" value={formData.startTime} onChange={handleInputChange} />
-          </FormGroup>
-          <FormGroup>
-            <Label for="endTime">{t("end")}</Label>
-            <Input style={{ color: 'black' }} type="time" name="endTime" id="endTime" value={formData.endTime} onChange={handleInputChange} />
-          </FormGroup>
-        </ModalBody>
-        <ModalFooter>
-          <Button style={{ margin: '10px' }} color="primary" onClick={handleSubmit}>{t("save")}</Button>
-          <Button style={{ margin: '10px' }} color="secondary" onClick={() => toggleModal()}>{t("cancel")}</Button>
-        </ModalFooter>
-      </Modal>
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(t("compStarted") || "Ročník byl zahájen");
+                fetchCompetitions();
+            } else {
+                toast.error(data.data || t("compStartFail"));
+            }
+        } catch (error) {
+            toast.error(error.message || t("compStartError"));
+        }
+        setCompetitionToStart(null);
+    };
 
-      {competitions.length > 0 ? (
-        <Row>
-          {competitions.map(competition => (
-            <Col key={competition.id} lg="6" md="12">
-              <Card>
-                <CardHeader className="bg-primary text-white d-flex justify-content-between align-items-center">
-                  <CardTitle tag="h4">{t("robogamesYear", { year: competition.year })}</CardTitle>
-                  {isAdminOrLeader && !competition.started && (
-                    <Button style={{ marginBottom: '15px' }} color="danger" size="sm" onClick={() => handleRemoveCompetition(competition.id)}>
-                      <i className="tim-icons icon-simple-remove" />
+    // Cancel competition start
+    const handleCancelStart = async (comp) => {
+        const confirmed = await confirm({ 
+            message: t("compCancelStartConfirm", { year: comp.year }) || `Opravdu chcete zrušit zahájení ročníku ${comp.year}?`,
+            confirmText: t("confirm") || "Potvrdit",
+            confirmColor: "warning"
+        });
+        
+        if (confirmed) {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/cancelStart?id=${comp.id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (tokenExpired(response.status)) return;
+
+                const data = await response.json();
+                if (response.ok && data.type !== 'ERROR') {
+                    toast.success(t("compStartCancelled") || "Zahájení ročníku bylo zrušeno");
+                    fetchCompetitions();
+                } else {
+                    toast.error(data.data || t("compCancelStartFail") || "Nepodařilo se zrušit zahájení");
+                }
+            } catch (error) {
+                toast.error(error.message || t("compCancelStartError") || "Chyba při rušení zahájení");
+            }
+        }
+    };
+
+    // View participants
+    const viewParticipants = (year) => {
+        navigate(`/admin/competition-detail/?year=${year}`);
+    };
+
+    const rolesString = localStorage.getItem('roles');
+    const rolesArray = rolesString ? rolesString.split(', ') : [];
+    const isAdminOrLeader = rolesArray.some(role => ['ADMIN', 'LEADER'].includes(role));
+
+    // Statistics
+    const startedCount = competitions.filter(c => c.started).length;
+    const notStartedCount = competitions.filter(c => !c.started).length;
+
+    return (
+        <div className="content">
+            <Row>
+                <Col xs="12">
+                    <Card>
+                        <CardHeader>
+                            <Row className="align-items-center">
+                                <Col>
+                                    <CardTitle tag="h4">
+                                        <i className="tim-icons icon-calendar-60 mr-2" />
+                                        {t('competitionManagement') || 'Správa ročníků'}
+                                    </CardTitle>
+                                </Col>
+                                {isAdminOrLeader && (
+                                    <Col xs="auto">
+                                        <Button color="success" onClick={() => setShowCreateModal(true)}>
+                                            <i className="tim-icons icon-simple-add mr-2" />
+                                            {t('compAdd') || 'Přidat ročník'}
+                                        </Button>
+                                    </Col>
+                                )}
+                            </Row>
+                        </CardHeader>
+                        <CardBody>
+                            {/* Statistics */}
+                            <Row className="mb-4">
+                                <Col md="4">
+                                    <div className="text-center p-3" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                                        <h3 className="mb-0">{competitions.length}</h3>
+                                        <small className="text-muted">{t('totalCompetitions') || 'Celkem ročníků'}</small>
+                                    </div>
+                                </Col>
+                                <Col md="4">
+                                    <div className="text-center p-3" style={{ background: 'rgba(0, 242, 195, 0.1)', borderRadius: '8px' }}>
+                                        <h3 className="mb-0 text-success">{startedCount}</h3>
+                                        <small className="text-muted">{t('started') || 'Zahájené'}</small>
+                                    </div>
+                                </Col>
+                                <Col md="4">
+                                    <div className="text-center p-3" style={{ background: 'rgba(255, 178, 43, 0.1)', borderRadius: '8px' }}>
+                                        <h3 className="mb-0 text-warning">{notStartedCount}</h3>
+                                        <small className="text-muted">{t('notStarted') || 'Nezahájené'}</small>
+                                    </div>
+                                </Col>
+                            </Row>
+
+                            {/* Filters */}
+                            <Row className="mb-4">
+                                <Col md="6">
+                                    <InputGroup>
+                                        <InputGroupText>
+                                            <i className="tim-icons icon-zoom-split" />
+                                        </InputGroupText>
+                                        <Input
+                                            placeholder={t('searchCompetition') || 'Hledat ročník...'}
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col md="6">
+                                    <Input
+                                        type="select"
+                                        value={filterStatus}
+                                        onChange={(e) => setFilterStatus(e.target.value)}
+                                    >
+                                        <option value="">{t('allStatuses') || 'Všechny stavy'}</option>
+                                        <option value="started">{t('started') || 'Zahájené'}</option>
+                                        <option value="notStarted">{t('notStarted') || 'Nezahájené'}</option>
+                                    </Input>
+                                </Col>
+                            </Row>
+
+                            {/* Competitions Table */}
+                            {loading ? (
+                                <div className="text-center py-5">
+                                    <Spinner color="primary" />
+                                </div>
+                            ) : filteredCompetitions.length === 0 ? (
+                                <Alert color="info">
+                                    <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                    {t('noComps') || 'Žádné ročníky nenalezeny'}
+                                </Alert>
+                            ) : (
+                                <>
+                                    <Table responsive hover className="table-management">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>{t('year') || 'Rok'}</th>
+                                                <th>{t('date') || 'Datum'}</th>
+                                                <th>{t('start') || 'Začátek'}</th>
+                                                <th>{t('end') || 'Konec'}</th>
+                                                <th>{t('status') || 'Stav'}</th>
+                                                <th style={{ textAlign: 'center' }}>{t('actions') || 'Akce'}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredCompetitions
+                                                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                                .map(comp => (
+                                                    <tr key={comp.id}>
+                                                        <td>
+                                                            #{comp.id}
+                                                        </td>
+                                                        <td>
+                                                            <strong style={{ fontSize: '1.1rem' }}>{comp.year}</strong>
+                                                        </td>
+                                                        <td>
+                                                            {comp.date ? new Date(comp.date).toLocaleDateString('cs-CZ') : '-'}
+                                                        </td>
+                                                        <td>
+                                                            <Badge color="info">{comp.startTime || '-'}</Badge>
+                                                        </td>
+                                                        <td>
+                                                            <Badge color="info">{comp.endTime || '-'}</Badge>
+                                                        </td>
+                                                        <td>
+                                                            <Badge color={comp.started ? 'success' : 'warning'}>
+                                                                {comp.started ? (t('started') || 'Zahájeno') : (t('notStarted') || 'Nezahájeno')}
+                                                            </Badge>
+                                                        </td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <Button
+                                                                color="secondary"
+                                                                size="sm"
+                                                                className="btn-icon"
+                                                                onClick={() => viewParticipants(comp.year)}
+                                                                title={t('showParticipants') || 'Zobrazit účastníky'}
+                                                            >
+                                                                <i className="tim-icons icon-single-02" />
+                                                            </Button>
+                                                            {isAdminOrLeader && !comp.started && (
+                                                                <>
+                                                                    <Button
+                                                                        color="success"
+                                                                        size="sm"
+                                                                        className="btn-icon ml-1"
+                                                                        onClick={() => handleStartCompetition(comp)}
+                                                                        title={t('begin') || 'Zahájit'}
+                                                                    >
+                                                                        <i className="tim-icons icon-triangle-right-17" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        color="primary"
+                                                                        size="sm"
+                                                                        className="btn-icon ml-1"
+                                                                        onClick={() => handleOpenEditModal(comp)}
+                                                                        title={t('edit') || 'Upravit'}
+                                                                    >
+                                                                        <i className="tim-icons icon-pencil" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        color="danger"
+                                                                        size="sm"
+                                                                        className="btn-icon ml-1"
+                                                                        onClick={() => handleDeleteCompetition(comp.id)}
+                                                                        title={t('delete') || 'Smazat'}
+                                                                    >
+                                                                        <i className="tim-icons icon-trash-simple" />
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                            {isAdminOrLeader && comp.started && (
+                                                                <Button
+                                                                    color="warning"
+                                                                    size="sm"
+                                                                    className="btn-icon ml-1"
+                                                                    onClick={() => handleCancelStart(comp)}
+                                                                    title={t('cancelStart') || 'Zrušit zahájení'}
+                                                                >
+                                                                    <i className="tim-icons icon-simple-remove" />
+                                                                </Button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </Table>
+
+                                    <TablePagination
+                                        currentPage={currentPage}
+                                        totalItems={filteredCompetitions.length}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={(page) => setCurrentPage(page)}
+                                        onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+                                    />
+                                </>
+                            )}
+                        </CardBody>
+                    </Card>
+                </Col>
+            </Row>
+
+            {/* Create Modal */}
+            <Modal isOpen={showCreateModal} toggle={() => setShowCreateModal(false)}>
+                <ModalHeader toggle={() => setShowCreateModal(false)}>
+                    {t('compAddNew') || 'Přidat nový ročník'}
+                </ModalHeader>
+                <ModalBody>
+                    <Form>
+                        <FormGroup>
+                            <Label>{t('year') || 'Rok'}</Label>
+                            <Input
+                                type="number"
+                                placeholder="2026"
+                                value={newCompetition.year}
+                                onChange={(e) => setNewCompetition({ ...newCompetition, year: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>{t('date') || 'Datum'}</Label>
+                            <Input
+                                type="date"
+                                value={newCompetition.date}
+                                onChange={(e) => setNewCompetition({ ...newCompetition, date: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>{t('start') || 'Začátek'}</Label>
+                            <Input
+                                type="time"
+                                value={newCompetition.startTime}
+                                onChange={(e) => setNewCompetition({ ...newCompetition, startTime: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>{t('end') || 'Konec'}</Label>
+                            <Input
+                                type="time"
+                                value={newCompetition.endTime}
+                                onChange={(e) => setNewCompetition({ ...newCompetition, endTime: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                    </Form>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowCreateModal(false)}>
+                        {t('cancel') || 'Zrušit'}
                     </Button>
-                  )}
-                </CardHeader>
-                <CardBody>
-                  <dl className="row">
-                    {/* <dt className="col-sm-3">{t("id_colon")}</dt>
-                    <dd className="col-sm-9">{competition.id}</dd> */}
-                    <dt className="col-sm-3">{t("date_colon")}</dt>
-                    <dd className="col-sm-9">{competition.date ? competition.date.split('T')[0] : 'N/A'}</dd>
-                    <dt className="col-sm-3">{t("start_colon")}</dt>
-                    <dd className="col-sm-9">{competition.startTime}</dd>
-                    <dt className="col-sm-3">{t("end_colon")}</dt>
-                    <dd className="col-sm-9">{competition.endTime}</dd>
-                    <dt className="col-sm-3">{t("started_colon")}</dt>
-                    <dd className="col-sm-9">{competition.started ? t("yes") : t("no")}</dd>
-                  </dl>
+                    <Button color="primary" onClick={handleCreateCompetition}>
+                        {t('create') || 'Vytvořit'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
 
-                  <hr />
-
-
-
-                  <div className="text-left">
-                    {isAdminOrLeader && !competition.started && (
-                      <Button color="success" size="sm" onClick={() => startCompetition(competition.id)}>{t("begin")}</Button>
-                    )}
-
-                    {isAdminOrLeader && !competition.started && (
-                      <Button color="info" size="sm" className="mr-2" onClick={() => toggleModalEdit()} >{t("edit")}</Button>
-
-                    )}
-                    <Modal isOpen={modalEdit} toggle={toggleModalEdit}>
-                      <ModalHeader toggle={toggleModalEdit}>{t("compEdit")}</ModalHeader>
-                      <ModalBody>
-                        {/* <FormGroup>
-                          <Label for="id">{t("id")}</Label>
-                          <Input style={{ color: 'black' }} type="number" name="id" id="id" value={formDataEdit.id} onChange={handleInputChangeEdit} />
-                        </FormGroup> */}
+            {/* Edit Modal */}
+            <Modal isOpen={showEditModal} toggle={() => setShowEditModal(false)}>
+                <ModalHeader toggle={() => setShowEditModal(false)}>
+                    {t('compEdit') || 'Upravit ročník'}
+                </ModalHeader>
+                <ModalBody>
+                    <Form>
                         <FormGroup>
-                          <Label for="year">{t("year")}</Label>
-                          <Input style={{ color: 'black' }} type="number" name="year" id="year" value={formDataEdit.year} onChange={handleInputChangeEdit} />
+                            <Label>{t('year') || 'Rok'}</Label>
+                            <Input
+                                type="number"
+                                value={editCompetition.year}
+                                onChange={(e) => setEditCompetition({ ...editCompetition, year: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
                         </FormGroup>
                         <FormGroup>
-                          <Label for="date">{t("date")}</Label>
-                          <Input style={{ color: 'black' }} type="date" name="date" id="date" value={formDataEdit.date} onChange={handleInputChangeEdit} />
+                            <Label>{t('date') || 'Datum'}</Label>
+                            <Input
+                                type="date"
+                                value={editCompetition.date}
+                                onChange={(e) => setEditCompetition({ ...editCompetition, date: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
                         </FormGroup>
                         <FormGroup>
-                          <Label for="startTime">{t("start")}</Label>
-                          <Input style={{ color: 'black' }} type="time" name="startTime" id="startTime" value={formDataEdit.startTime} onChange={handleInputChangeEdit} />
+                            <Label>{t('start') || 'Začátek'}</Label>
+                            <Input
+                                type="time"
+                                value={editCompetition.startTime}
+                                onChange={(e) => setEditCompetition({ ...editCompetition, startTime: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
                         </FormGroup>
                         <FormGroup>
-                          <Label for="endTime">{t("end")}</Label>
-                          <Input style={{ color: 'black' }} type="time" name="endTime" id="endTime" value={formDataEdit.endTime} onChange={handleInputChangeEdit} />
+                            <Label>{t('end') || 'Konec'}</Label>
+                            <Input
+                                type="time"
+                                value={editCompetition.endTime}
+                                onChange={(e) => setEditCompetition({ ...editCompetition, endTime: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
                         </FormGroup>
-                      </ModalBody>
-                      <ModalFooter>
-                        <Button style={{ margin: '10px' }} color="primary" onClick={handleEditSubmit}>{t("confirm")}</Button>
-                        <Button style={{ margin: '10px' }} color="secondary" onClick={toggleModalEdit}>{t("close")}</Button>
-                      </ModalFooter>
-                    </Modal>
+                    </Form>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowEditModal(false)}>
+                        {t('cancel') || 'Zrušit'}
+                    </Button>
+                    <Button color="primary" onClick={handleUpdateCompetition}>
+                        {t('confirm') || 'Uložit'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
 
-                    <Button color="secondary" size="sm" onClick={() => viewParticipants(competition.year)}>{t("showParticipants")}</Button>
+            {/* Hold to Confirm Modal for Starting Competition */}
+            <HoldToConfirmModal
+                isOpen={showStartModal}
+                toggle={() => {
+                    setShowStartModal(false);
+                    setCompetitionToStart(null);
+                }}
+                onConfirm={executeStartCompetition}
+                title={t("compStartTitle") || "Zahájit ročník soutěže"}
+                message={
+                    competitionToStart 
+                        ? (t("compStartMessageSimple", { year: competitionToStart.year }) || `Opravdu chcete zahájit ročník ${competitionToStart.year}?`)
+                        : ""
+                }
+                holdDuration={3000}
+                confirmText={t("holdToStart") || "Držte pro zahájení"}
+                icon="icon-triangle-right-17"
+                color="warning"
+            />
 
-                  </div>
-                </CardBody>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      ) : (
-        <Row>
-          <Col>
-            <h4>{t("noComps")}</h4>
-          </Col>
-        </Row>
-      )}
-    </div>
-  );
+            <style>{`
+                .table-management tbody tr:hover {
+                    background: rgba(255,255,255,0.05);
+                }
+            `}</style>
+        </div>
+    );
 }
 
 export default CompetitionManagement;

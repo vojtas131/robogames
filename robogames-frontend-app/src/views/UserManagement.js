@@ -16,6 +16,8 @@ import {
   FormFeedback,
   Label,
   Input,
+  InputGroup,
+  InputGroupText,
   Dropdown,
   DropdownToggle,
   DropdownMenu,
@@ -26,7 +28,7 @@ import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
-import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
+import TablePagination from "components/TablePagination";
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -46,8 +48,21 @@ function UserManagement() {
   });
   const [isAdminOrLeader, setIsAdminOrLeader] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [selectedSearchUser, setSelectedSearchUser] = useState(null);
   const [errors, setErrors] = useState({});
+  
+  // Search/Filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'surname', 'fullname', 'email'
+  const [filterRole, setFilterRole] = useState(''); // '' = all roles
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, searchType, filterRole]);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -204,12 +219,13 @@ function UserManagement() {
         });
         if (tokenExpired(response.status)) { return; }
 
-        if (response.ok) {
+        const result = await response.json();
+        if (response.ok && result.type !== 'ERROR') {
           toast.success(t("roleAddedRemoved", { action: action === 'add' ? t("added_lower") : t("removed_lower") }));
           setEditModal(false);
           window.location.reload();
         } else {
-          throw new Error(t("roleUpdateFail"));
+          throw new Error(result.data || t("roleUpdateFail"));
         }
       } catch (error) {
         toast.error(error.message);
@@ -228,11 +244,12 @@ function UserManagement() {
         });
         if (tokenExpired(response.status)) { return; }
 
-        if (response.ok) {
+        const result = await response.json();
+        if (response.ok && result.type !== 'ERROR') {
           toast.success(t("userRemoved"));
           window.location.reload();
         } else {
-          throw new Error(t("userRemoveFail"));
+          throw new Error(result.data || t("userRemoveFail"));
         }
       } catch (error) {
         toast.error(error.message);
@@ -395,15 +412,13 @@ function UserManagement() {
 
       if (tokenExpired(response.status)) return;
 
-      if (!response.ok) throw new Error(t("userUpdateFail"));
-
       const result = await response.json();
-      if (result.data === "success") {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("dataSaved"));
         setEditModal(false);
         window.location.reload();
       } else {
-        toast.error(t("userUpdateFail"));
+        toast.error(result.data || t("userUpdateFail"));
       }
     } catch (error) {
       console.error('Update selhal:', error);
@@ -417,7 +432,7 @@ function UserManagement() {
         <Col md="12">
           <Card>
             <CardHeader>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
                 <h4 className="card-title" style={{ margin: 0 }}>{t("manageUser")}</h4>
                 {isAdminOrLeader && (
                   <Button color="info" size="sm" onClick={() => setEmailExportModal(true)}>
@@ -427,77 +442,63 @@ function UserManagement() {
                 )}
               </div>
               {isAdminOrLeader && (
-                <div className="search-section" style={{ marginBottom: '20px' }}>
-                  <Label>{t("userSearch")}</Label>
-                  <UserSearchSelect
-                    onSelect={setSelectedSearchUser}
-                    selectedUser={selectedSearchUser}
-                    placeholder={t("searchUserPlaceholder")}
-                    showTeamInfo={true}
-                  />
-                </div>
-              )}
-              {selectedSearchUser && (
-                <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
-                  <h5>{t("selectedUser")}</h5>
-                  <Table responsive>
-                    <thead className="text-primary">
-                      <tr>
-                        <th>{t("name")}</th>
-                        <th>{t("surname")}</th>
-                        <th>{t("mail")}</th>
-                        <th>{t("birthDate")}</th>
-                        <th>{t("teamID")}</th>
-                        <th>{t("status")}</th>
-                        <th>{t("action")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={selectedSearchUser.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}}>
-                        <td>{selectedSearchUser.name}</td>
-                        <td>{selectedSearchUser.surname}</td>
-                        <td>{selectedSearchUser.email}</td>
-                        <td>{selectedSearchUser.birthDate}</td>
-                        <td>{selectedSearchUser.teamID}</td>
-                        <td>
-                          {selectedSearchUser.banned ? (
-                            <span style={{ color: '#f5365c', fontWeight: 'bold' }}>
-                              <i className="fa-solid fa-ban" style={{ marginRight: '5px' }}></i>
-                              {t("banned")}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#2dce89' }}>
-                              <i className="fa-solid fa-check" style={{ marginRight: '5px' }}></i>
-                              {t("active")}
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <Button color="primary" size="sm" onClick={() => handleEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
-                            {t("roleEdit")}
-                          </Button>
-                          <Button color="secondary" size="sm" onClick={() => handleUserEdit(selectedSearchUser)} style={{ marginRight: '5px' }}>
-                            <i className="fa-solid fa-pencil"></i>
-                          </Button>
-                          {!selectedSearchUser.banned && (
-                            <Button color="warning" size="sm" onClick={() => handleBanUser(selectedSearchUser.id)} style={{ marginRight: '5px' }} title={t("banUser")}>
-                              <i className="fa-solid fa-ban"></i>
-                            </Button>
-                          )}
-                          {selectedSearchUser.banned && (
-                            <Button color="success" size="sm" onClick={() => handleUnbanUser(selectedSearchUser.id)} style={{ marginRight: '5px' }} title={t("unbanUser")}>
-                              <i className="fa-solid fa-unlock"></i>
-                            </Button>
-                          )}
-                          <Button color="danger" size="sm" onClick={() => handleRemoveUser(selectedSearchUser.id)}>
-                            <i className="tim-icons icon-trash-simple"></i>
-                          </Button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                  <Button color="link" size="sm" onClick={() => setSelectedSearchUser(null)}>{t("clearSelection")}</Button>
-                </div>
+                <Row className="mb-2">
+                  <Col md="2">
+                    <Input
+                      type="select"
+                      value={searchType}
+                      onChange={(e) => setSearchType(e.target.value)}
+                    >
+                      <option value="all">{t('searchAll') || 'Vše'}</option>
+                      <option value="id">{t('searchById') || 'ID'}</option>
+                      <option value="name">{t('searchByName') || 'Jméno'}</option>
+                      <option value="surname">{t('searchBySurname') || 'Příjmení'}</option>
+                      <option value="fullname">{t('searchByFullname') || 'Jméno + Příjmení'}</option>
+                      <option value="email">{t('searchByEmail') || 'Email'}</option>
+                    </Input>
+                  </Col>
+                  <Col md="7">
+                    <InputGroup>
+                      <InputGroupText>
+                        <i className="tim-icons icon-zoom-split" />
+                      </InputGroupText>
+                      <Input
+                        placeholder={
+                          searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                          searchType === 'name' ? (t('enterName') || 'Zadejte jméno...') :
+                          searchType === 'surname' ? (t('enterSurname') || 'Zadejte příjmení...') :
+                          searchType === 'fullname' ? (t('enterFullname') || 'Zadejte jméno a příjmení...') :
+                          searchType === 'email' ? (t('enterEmail') || 'Zadejte email...') :
+                          (t('searchUserPlaceholder') || 'Hledat uživatele...')
+                        }
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      {searchQuery && (
+                        <InputGroupText 
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setSearchQuery('')}
+                          title={t('clearSearch') || 'Vymazat'}
+                        >
+                          <i className="tim-icons icon-simple-remove" />
+                        </InputGroupText>
+                      )}
+                    </InputGroup>
+                  </Col>
+                  <Col md="3">
+                    <Input
+                      type="select"
+                      value={filterRole}
+                      onChange={(e) => setFilterRole(e.target.value)}
+                      title={t('filterByRole') || 'Filtrovat podle role'}
+                    >
+                      <option value="">{t('allRoles') || 'Všechny role'}</option>
+                      {roles.map(role => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </Input>
+                  </Col>
+                </Row>
               )}
             </CardHeader>
 
@@ -505,8 +506,7 @@ function UserManagement() {
               <Table responsive>
                 <thead className="text-primary">
                   <tr>
-                    {/* <th>{t("id")}</th>
-                    <th>{t("uuid")}</th> */}
+                    <th>{t("id")}</th>
                     <th>{t("name")}</th>
                     <th>{t("surname")}</th>
                     <th>{t("mail")}</th>
@@ -518,21 +518,48 @@ function UserManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user, index) => (
+                  {users
+                    .filter(user => {
+                      // Filter by role first
+                      if (filterRole && !user.roles?.some(role => role.name === filterRole)) {
+                        return false;
+                      }
+                      
+                      const searchLower = searchQuery.toLowerCase();
+                      if (!searchQuery) return true;
+                      
+                      switch (searchType) {
+                        case 'id':
+                          return user.id.toString().includes(searchQuery);
+                        case 'name':
+                          return user.name?.toLowerCase().includes(searchLower);
+                        case 'surname':
+                          return user.surname?.toLowerCase().includes(searchLower);
+                        case 'fullname':
+                          return `${user.name} ${user.surname}`.toLowerCase().includes(searchLower);
+                        case 'email':
+                          return user.email?.toLowerCase().includes(searchLower);
+                        case 'all':
+                        default:
+                          return (
+                            user.id.toString().includes(searchQuery) ||
+                            user.name?.toLowerCase().includes(searchLower) ||
+                            user.surname?.toLowerCase().includes(searchLower) ||
+                            `${user.name} ${user.surname}`.toLowerCase().includes(searchLower) ||
+                            user.email?.toLowerCase().includes(searchLower)
+                          );
+                      }
+                    })
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((user, index) => (
                     <tr key={index} style={user.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}}>
-                      {/* <td>{user.id}</td>
-                      <td>{user.uuid}</td> */}
+                      <td>#{user.id}</td>
                       <td>{user.name}</td>
                       <td>{user.surname}</td>
                       <td>{user.email}</td>
                       <td>{user.birthDate}</td>
                       <td>
                         {user.roles.map(role => role.name).join(', ')}
-                        {isAdminOrLeader && (
-                          <Button color="primary" size="sm" onClick={() => handleEdit(user)} style={{ marginLeft: '10px' }}>
-                            {t("roleEdit")}
-                          </Button>
-                        )}
                       </td>
                       <td>{user.teamID}</td>
                       <td>
@@ -548,25 +575,60 @@ function UserManagement() {
                           </span>
                         )}
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'center' }}>
                         {isAdminOrLeader && (
-                          <Button color="secondary" size="sm" onClick={() => handleUserEdit(user)} style={{ marginLeft: '10px' }}>
-                            <i className="fa-solid fa-pencil"></i>
+                          <Button
+                            color="info"
+                            size="sm"
+                            className="btn-icon"
+                            onClick={() => handleEdit(user)}
+                            title={t("roleEdit")}
+                          >
+                            <i className="tim-icons icon-badge" />
+                          </Button>
+                        )}
+                        {isAdminOrLeader && (
+                          <Button
+                            color="primary"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleUserEdit(user)}
+                            title={t("edit")}
+                          >
+                            <i className="tim-icons icon-pencil" />
                           </Button>
                         )}
                         {isAdminOrLeader && !user.banned && (
-                          <Button color="warning" size="sm" onClick={() => handleBanUser(user.id)} style={{ marginLeft: '10px' }} title={t("banUser")}>
-                            <i className="fa-solid fa-ban"></i>
+                          <Button
+                            color="warning"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleBanUser(user.id)}
+                            title={t("banUser")}
+                          >
+                            <i className="tim-icons icon-lock-circle" />
                           </Button>
                         )}
                         {isAdminOrLeader && user.banned && (
-                          <Button color="success" size="sm" onClick={() => handleUnbanUser(user.id)} style={{ marginLeft: '10px' }} title={t("unbanUser")}>
-                            <i className="fa-solid fa-unlock"></i>
+                          <Button
+                            color="success"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleUnbanUser(user.id)}
+                            title={t("unbanUser")}
+                          >
+                            <i className="tim-icons icon-key-25" />
                           </Button>
                         )}
                         {isAdminOrLeader && (
-                          <Button color="danger" size="sm" onClick={() => handleRemoveUser(user.id)} style={{ marginLeft: '10px' }}>
-                            <i className="tim-icons icon-trash-simple"></i>
+                          <Button
+                            color="danger"
+                            size="sm"
+                            className="btn-icon ml-1"
+                            onClick={() => handleRemoveUser(user.id)}
+                            title={t("remove")}
+                          >
+                            <i className="tim-icons icon-trash-simple" />
                           </Button>
                         )}
                       </td>
@@ -574,6 +636,33 @@ function UserManagement() {
                   ))}
                 </tbody>
               </Table>
+              
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={users.filter(user => {
+                  const searchLower = searchQuery.toLowerCase();
+                  if (!searchQuery) return true;
+                  switch (searchType) {
+                    case 'id': return user.id.toString().includes(searchQuery);
+                    case 'name': return user.name?.toLowerCase().includes(searchLower);
+                    case 'surname': return user.surname?.toLowerCase().includes(searchLower);
+                    case 'fullname': return `${user.name} ${user.surname}`.toLowerCase().includes(searchLower);
+                    case 'email': return user.email?.toLowerCase().includes(searchLower);
+                    case 'role': return user.roles?.some(role => role.name?.toLowerCase().includes(searchLower));
+                    default: return (
+                      user.id.toString().includes(searchQuery) ||
+                      user.name?.toLowerCase().includes(searchLower) ||
+                      user.surname?.toLowerCase().includes(searchLower) ||
+                      `${user.name} ${user.surname}`.toLowerCase().includes(searchLower) ||
+                      user.email?.toLowerCase().includes(searchLower) ||
+                      user.roles?.some(role => role.name?.toLowerCase().includes(searchLower))
+                    );
+                  }
+                }).length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+                onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+              />
             </CardBody>
           </Card>
         </Col>

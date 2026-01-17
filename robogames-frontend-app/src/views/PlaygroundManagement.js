@@ -1,11 +1,8 @@
 /**
-* Renders the PlaygroundManagement component, which provides functionality for managing playgrounds.
-* 
-* The component fetches a list of playgrounds and disciplines from the server, and allows the user to
-* add new playgrounds. It also provides the ability to remove existing playgrounds.
-* 
-*/
-import React, { useState, useEffect, useContext } from 'react';
+ * PlaygroundManagement - Admin view for managing playgrounds
+ * Design unified with MatchManagement pattern
+ */
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
     Button,
     Card,
@@ -20,29 +17,34 @@ import {
     FormGroup,
     Label,
     Input,
-    Dropdown,
-    DropdownToggle,
-    DropdownMenu,
-    DropdownItem,
     Row,
-    Col
+    Col,
+    Table,
+    Badge,
+    Spinner,
+    Alert,
+    InputGroup,
+    InputGroupText
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { ThemeContext, themes } from "contexts/ThemeContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
 
 function PlaygroundManagement() {
     const [playgrounds, setPlaygrounds] = useState([]);
     const [disciplines, setDisciplines] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [modal, setModal] = useState(false);
-    const [modalEdit, setModalEdit] = useState(false);
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [dropdownEditOpen, setDropdownEditOpen] = useState(false);
-    const [playground, setPlayground] = useState({
+    
+    // Modals
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    
+    // Form data
+    const [newPlayground, setNewPlayground] = useState({
         name: '',
         number: '',
         disciplineID: ''
@@ -54,54 +56,198 @@ function PlaygroundManagement() {
         disciplineID: ''
     });
 
+    // Filters & Pagination
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'number', 'discipline'
+    const [filterDiscipline, setFilterDiscipline] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(15);
+
     const { token, tokenExpired } = useUser();
     const toast = useToast();
     const { confirm } = useConfirm();
     const { theme } = useContext(ThemeContext);
     const isDark = theme === themes.dark;
 
+    // Fetch playgrounds
+    const fetchPlaygrounds = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/all`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setPlaygrounds(data.data || []);
+            } else {
+                setError(data.message || t("pgFetchFail"));
+            }
+        } catch (error) {
+            setError(error.message || t("pgFetchError"));
+        } finally {
+            setLoading(false);
+        }
+    }, [token, tokenExpired]);
+
+    // Fetch disciplines
+    const fetchDisciplines = useCallback(async () => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/discipline/all`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setDisciplines(data.data || []);
+            }
+        } catch (error) {
+            console.error('Failed to fetch disciplines:', error);
+        }
+    }, [token, tokenExpired]);
+
     useEffect(() => {
         fetchPlaygrounds();
         fetchDisciplines();
-    }, []);
+    }, [fetchPlaygrounds, fetchDisciplines]);
 
-    const toggleModal = () => {
-        setModal(!modal);
-        if (modal) {
-            setPlayground({ name: '', number: '', disciplineID: '' });
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, searchType, filterDiscipline]);
+
+    // Filter playgrounds
+    const filteredPlaygrounds = playgrounds.filter(pg => {
+        const searchLower = searchQuery.toLowerCase();
+        
+        let matchesSearch = !searchQuery;
+        if (searchQuery) {
+            switch (searchType) {
+                case 'id':
+                    matchesSearch = pg.id?.toString().includes(searchQuery);
+                    break;
+                case 'name':
+                    matchesSearch = pg.name?.toLowerCase().includes(searchLower);
+                    break;
+                case 'number':
+                    matchesSearch = pg.number?.toString().includes(searchQuery);
+                    break;
+                case 'discipline':
+                    matchesSearch = pg.disciplineName?.toLowerCase().includes(searchLower);
+                    break;
+                case 'all':
+                default:
+                    matchesSearch = 
+                        pg.id?.toString().includes(searchQuery) ||
+                        pg.name?.toLowerCase().includes(searchLower) ||
+                        pg.number?.toString().includes(searchQuery) ||
+                        pg.disciplineName?.toLowerCase().includes(searchLower);
+                    break;
+            }
         }
-    };
 
-    const toggleModalEdit = (pg = null) => {
-        if (pg) {
-            setEditPlayground({
-                id: pg.id,
-                name: pg.name,
-                number: pg.number,
-                disciplineID: disciplines.find(d => d.name === pg.disciplineName)?.id || ''
-            });
-        }
-        setModalEdit(!modalEdit);
-    };
+        const matchesDiscipline = !filterDiscipline ||
+            pg.disciplineName === filterDiscipline;
 
-    const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-    const toggleDropdownEdit = () => setDropdownEditOpen(!dropdownEditOpen);
+        return matchesSearch && matchesDiscipline;
+    });
 
-    const handleInputChange = (e) => {
-        setPlayground({ ...playground, [e.target.name]: e.target.value });
-    };
+    // Get unique disciplines from playgrounds
+    const uniqueDisciplines = [...new Set(playgrounds.map(pg => pg.disciplineName).filter(Boolean))];
 
-    const handleEditInputChange = (e) => {
-        setEditPlayground({ ...editPlayground, [e.target.name]: e.target.value });
-    };
-
-    const handleRemovePlayground = async (playgroundId) => {
-        if (!playgroundId) {
-            toast.error(t("pgIdRequired"));
+    // Create playground
+    const handleCreatePlayground = async () => {
+        if (!newPlayground.name || !newPlayground.number || !newPlayground.disciplineID) {
+            toast.error(t("fillAllFields") || 'Vyplňte všechna pole');
             return;
         }
 
-        if (!await confirm({ message: t("pgRemoveCheck") })) {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    name: newPlayground.name,
+                    number: parseInt(newPlayground.number),
+                    disciplineID: newPlayground.disciplineID
+                })
+            });
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(t("pgCreated") || "Hřiště bylo vytvořeno");
+                setShowCreateModal(false);
+                setNewPlayground({ name: '', number: '', disciplineID: '' });
+                fetchPlaygrounds();
+            } else {
+                toast.error(data.message || t("pgCreateFail"));
+            }
+        } catch (error) {
+            toast.error(error.message || t("pgCreateError"));
+        }
+    };
+
+    // Open edit modal
+    const handleOpenEditModal = (pg) => {
+        setEditPlayground({
+            id: pg.id,
+            name: pg.name,
+            number: pg.number,
+            disciplineID: disciplines.find(d => d.name === pg.disciplineName)?.id || ''
+        });
+        setShowEditModal(true);
+    };
+
+    // Update playground
+    const handleUpdatePlayground = async () => {
+        if (!editPlayground.name || !editPlayground.number || !editPlayground.disciplineID) {
+            toast.error(t("fillAllFields") || 'Vyplňte všechna pole');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/edit?id=${editPlayground.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    name: editPlayground.name,
+                    number: parseInt(editPlayground.number),
+                    disciplineID: editPlayground.disciplineID
+                })
+            });
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(t("pgEdited") || "Hřiště bylo upraveno");
+                setShowEditModal(false);
+                fetchPlaygrounds();
+            } else {
+                toast.error(data.message || t("pgEditFail"));
+            }
+        } catch (error) {
+            toast.error(error.message || t("pgEditError"));
+        }
+    };
+
+    // Delete playground
+    const handleDeletePlayground = async (playgroundId) => {
+        if (!await confirm({ message: t("pgRemoveCheck") || "Opravdu chcete odstranit toto hřiště?" })) {
             return;
         }
 
@@ -113,339 +259,328 @@ function PlaygroundManagement() {
                     'Authorization': `Bearer ${token}`,
                 }
             });
-            if (tokenExpired(response.status)) { return; }
+            if (tokenExpired(response.status)) return;
 
             const data = await response.json();
             if (response.ok && data.type !== 'ERROR') {
-                toast.success(t("pgRemoved"));
+                toast.success(t("pgRemoved") || "Hřiště bylo odstraněno");
                 fetchPlaygrounds();
             } else {
-                toast.error(t("pgRemoveFail",{message: data.message || t("unknownError")}));
+                toast.error(data.message || t("pgRemoveFail"));
             }
         } catch (error) {
-            console.error('Error removing playground:', error); //
-            toast.error(t("pgRemoveError",{message: error.message || t("serverCommFail")}));
-        }
-    };
-
-    const fetchPlaygrounds = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/all`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-            if (tokenExpired(response.status)) { return; }
-
-            const data = await response.json();
-            if (response.ok && data.type === 'RESPONSE') {
-                setPlaygrounds(data.data);
-            } else {
-                setError(t("pgFechFail",{message: data.message || t("unknownError")}));
-            }
-        } catch (error) {
-            setError(t("pgFetchError",{message: error.message}));
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const fetchDisciplines = async () => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}api/discipline/all`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-            if (tokenExpired(response.status)) { return; }
-
-            const data = await response.json();
-            if (response.ok && data.type === 'RESPONSE') {
-                setDisciplines(data.data);
-            } else {
-                console.error('Failed to fetch disciplines:', data.message || 'Unknown error');
-            }
-        } catch (error) {
-            console.error('Error fetching disciplines:', error.message);
-        }
-    };
-
-
-    const handleSubmit = async () => {
-        if (!playground.name || !playground.number || !playground.disciplineID) {
-            toast.warning(t("fieldsRequired"));
-            return;
-        }
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(playground)
-            });
-            if (tokenExpired(response.status)) { return; }
-
-            if (response.ok) {
-                toast.success(t("pgAdded"));
-                toggleModal();
-                fetchPlaygrounds();
-            } else {
-                const data = await response.json();
-                toast.error(t("pgAddFail",{message: data.message}));
-            }
-        } catch (error) {
-            toast.error(t("pgAddError",{message: error.message}));
-        }
-    };
-
-    const handleEditSubmit = async () => {
-        if (!editPlayground.name || !editPlayground.number || !editPlayground.disciplineID) {
-            toast.warning(t("fieldsRequired"));
-            return;
-        }
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/edit?id=${editPlayground.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    name: editPlayground.name,
-                    number: editPlayground.number,
-                    disciplineID: editPlayground.disciplineID
-                })
-            });
-            if (tokenExpired(response.status)) { return; }
-
-            const data = await response.json();
-            if (response.ok && data.type !== 'ERROR') {
-                toast.success(t("pgEdited") || "Hřiště bylo upraveno");
-                setModalEdit(false);
-                fetchPlaygrounds();
-            } else {
-                toast.error(t("pgEditFail", {message: data.message}) || `Nepodařilo se upravit hřiště: ${data.message}`);
-            }
-        } catch (error) {
-            toast.error(t("pgEditError", {message: error.message}) || `Chyba při úpravě hřiště: ${error.message}`);
+            toast.error(error.message || t("pgRemoveError"));
         }
     };
 
     const roles = localStorage.getItem('roles');
-    const canAddPlayground = roles && (roles.includes('ADMIN') || roles.includes('LEADER') || roles.includes('ASSISTANT'));
+    const canManage = roles && (roles.includes('ADMIN') || roles.includes('LEADER') || roles.includes('ASSISTANT'));
 
-    // Seskupit hřiště podle disciplíny
-    const playgroundsByDiscipline = playgrounds.reduce((acc, pg) => {
-        const disciplineName = pg.disciplineName || 'Ostatní';
-        if (!acc[disciplineName]) {
-            acc[disciplineName] = [];
-        }
-        acc[disciplineName].push(pg);
-        return acc;
-    }, {});
-
-    // Barvy pro různé disciplíny
-    const disciplineColors = ['primary', 'info', 'success', 'warning', 'danger'];
-    const getDisciplineColor = (index) => disciplineColors[index % disciplineColors.length];
-
-    // Theme-aware colors
-    const cardBg = isDark ? '#27293d' : '#ffffff';
-    const textColor = isDark ? '#ffffff' : '#1d253b';
-    const mutedColor = isDark ? '#9a9a9a' : '#8898aa';
-    const badgeBg = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
-    const badgeText = isDark ? '#ffffff' : '#32325d';
+    // Discipline colors
+    const getDisciplineColor = (disciplineName) => {
+        const colors = ['primary', 'info', 'success', 'warning', 'danger'];
+        const index = disciplines.findIndex(d => d.name === disciplineName);
+        return colors[index % colors.length] || 'secondary';
+    };
 
     return (
         <div className="content">
-            {canAddPlayground && (
-                <Button color="success" style={{ marginBottom: '10px' }} onClick={toggleModal}>
-                    <i className="tim-icons icon-simple-add" style={{ marginRight: '8px' }} />
-                    {t("pgAdd")}
-                </Button>
-            )}
-
-            {/* Add Playground Modal */}
-            <Modal isOpen={modal} toggle={toggleModal}>
-                <ModalHeader toggle={toggleModal}>{t("pgAddNew")}</ModalHeader>
-                <ModalBody>
-                    <Form>
-                        <FormGroup>
-                            <Label for="name">{t("title")}</Label>
-                            <Input type="text" name="name" id="name" placeholder={t("enterPgTitle")} value={playground.name} onChange={handleInputChange} style={{ color: 'black' }} />
-                        </FormGroup>
-                        <FormGroup>
-                            <Label for="number">{t("number")}</Label>
-                            <Input type="number" name="number" id="number" placeholder={t("enterNum")} value={playground.number} onChange={handleInputChange} style={{ color: 'black' }} />
-                        </FormGroup>
-                        <FormGroup>
-                            <Label for="disciplineID">{t("discipline")}</Label>
-                            <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>
-                                <DropdownToggle caret>
-                                    {disciplines.find(d => d.id === playground.disciplineID)?.name || t("selectDisc")}
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    {disciplines.map((d) => (
-                                        <DropdownItem key={d.id} onClick={() => setPlayground({ ...playground, disciplineID: d.id })}>
-                                            {d.name}
-                                        </DropdownItem>
-                                    ))}
-                                </DropdownMenu>
-                            </Dropdown>
-                        </FormGroup>
-                    </Form>
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="primary" onClick={handleSubmit} style={{ margin: '10px' }}>{t("send")}</Button>
-                    <Button color="secondary" onClick={toggleModal} style={{ margin: '10px' }}>{t("cancel")}</Button>
-                </ModalFooter>
-            </Modal>
-
-            {/* Edit Playground Modal */}
-            <Modal isOpen={modalEdit} toggle={() => toggleModalEdit()}>
-                <ModalHeader toggle={() => toggleModalEdit()}>{t("pgEdit") || "Upravit hřiště"}</ModalHeader>
-                <ModalBody>
-                    <Form>
-                        <FormGroup>
-                            <Label for="editName">{t("title")}</Label>
-                            <Input type="text" name="name" id="editName" placeholder={t("enterPgTitle")} value={editPlayground.name} onChange={handleEditInputChange} style={{ color: 'black' }} />
-                        </FormGroup>
-                        <FormGroup>
-                            <Label for="editNumber">{t("number")}</Label>
-                            <Input type="number" name="number" id="editNumber" placeholder={t("enterNum")} value={editPlayground.number} onChange={handleEditInputChange} style={{ color: 'black' }} />
-                        </FormGroup>
-                        <FormGroup>
-                            <Label for="editDisciplineID">{t("discipline")}</Label>
-                            <Dropdown isOpen={dropdownEditOpen} toggle={toggleDropdownEdit}>
-                                <DropdownToggle caret>
-                                    {disciplines.find(d => d.id === editPlayground.disciplineID)?.name || t("selectDisc")}
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    {disciplines.map((d) => (
-                                        <DropdownItem key={d.id} onClick={() => setEditPlayground({ ...editPlayground, disciplineID: d.id })}>
-                                            {d.name}
-                                        </DropdownItem>
-                                    ))}
-                                </DropdownMenu>
-                            </Dropdown>
-                        </FormGroup>
-                    </Form>
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="primary" onClick={handleEditSubmit} style={{ margin: '10px' }}>{t("confirm")}</Button>
-                    <Button color="secondary" onClick={() => toggleModalEdit()} style={{ margin: '10px' }}>{t("cancel")}</Button>
-                </ModalFooter>
-            </Modal>
-
-            {isLoading ? (
-                <Row>
-                    <Col>
-                        <Card style={{ backgroundColor: cardBg }}>
-                            <CardBody className="text-center py-5">
-                                <i className="tim-icons icon-refresh-02 spin" style={{ fontSize: '2rem', color: textColor }} />
-                                <p className="mt-3" style={{ color: textColor }}>{t("loading") || "Načítání..."}</p>
-                            </CardBody>
-                        </Card>
-                    </Col>
-                </Row>
-            ) : error ? (
-                <Row>
-                    <Col>
-                        <Card style={{ backgroundColor: cardBg }}>
-                            <CardBody className="text-center py-5">
-                                <i className="tim-icons icon-alert-circle-exc text-danger" style={{ fontSize: '2rem' }} />
-                                <p className="mt-3 text-danger">{error}</p>
-                            </CardBody>
-                        </Card>
-                    </Col>
-                </Row>
-            ) : playgrounds.length > 0 ? (
-                <Row>
-                    {Object.entries(playgroundsByDiscipline).map(([disciplineName, disciplinePlaygrounds], disciplineIndex) => (
-                        disciplinePlaygrounds.map(pg => (
-                            <Col key={pg.id} lg="4" md="6" sm="12">
-                                <Card style={{ backgroundColor: cardBg }}>
-                                    <CardHeader 
-                                        className={`bg-${getDisciplineColor(disciplineIndex)} text-white d-flex justify-content-between align-items-center`}
-                                        style={{ padding: '15px 20px' }}
-                                    >
-                                        <CardTitle tag="h4" className="mb-0" style={{ fontSize: '1.1rem' }}>{pg.name}</CardTitle>
-                                        {canAddPlayground && (
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                <Button 
-                                                    color="link" 
-                                                    size="sm" 
-                                                    className="text-white p-0"
-                                                    onClick={() => toggleModalEdit(pg)}
-                                                    title={t("edit") || "Upravit"}
-                                                >
-                                                    <i className="tim-icons icon-pencil" />
-                                                </Button>
-                                                <Button 
-                                                    color="link" 
-                                                    size="sm" 
-                                                    className="text-white p-0"
-                                                    onClick={() => handleRemovePlayground(pg.id)}
-                                                    title={t("remove") || "Odstranit"}
-                                                >
-                                                    <i className="tim-icons icon-simple-remove" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </CardHeader>
-                                    <CardBody style={{ padding: '20px 25px' }}>
-                                        <dl className="row mb-0" style={{ color: textColor }}>
-                                            <dt className="col-sm-4" style={{ color: mutedColor }}>{t("number")}:</dt>
-                                            <dd className="col-sm-8">
-                                                <span style={{ 
-                                                    fontSize: '1rem', 
-                                                    padding: '6px 12px',
-                                                    backgroundColor: badgeBg,
-                                                    color: badgeText,
-                                                    borderRadius: '4px',
-                                                    fontWeight: 600
-                                                }}>
-                                                    #{pg.number}
-                                                </span>
-                                            </dd>
-                                            <dt className="col-sm-4 mt-2" style={{ color: mutedColor }}>{t("discipline")}:</dt>
-                                            <dd className="col-sm-8 mt-2">
-                                                <span className={`badge badge-${getDisciplineColor(disciplineIndex)}`} style={{ fontSize: '0.85rem', padding: '6px 10px' }}>
-                                                    {pg.disciplineName}
-                                                </span>
-                                            </dd>
-                                        </dl>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                        ))
-                    ))}
-                </Row>
-            ) : (
-                <Row>
-                    <Col>
-                        <Card style={{ backgroundColor: cardBg }}>
-                            <CardBody className="text-center py-5">
-                                <i className="tim-icons icon-square-pin" style={{ fontSize: '3rem', color: mutedColor }} />
-                                <h4 className="mt-3" style={{ color: textColor }}>{t("noPg") || "Žádná hřiště"}</h4>
-                                <p style={{ color: mutedColor }}>{t("noPgDesc") || "Zatím nebyla přidána žádná hřiště."}</p>
-                                {canAddPlayground && (
-                                    <Button color="primary" onClick={toggleModal}>
-                                        <i className="tim-icons icon-simple-add" style={{ marginRight: '8px' }} />
-                                        {t("pgAdd")}
-                                    </Button>
+            <Row>
+                <Col xs="12">
+                    <Card>
+                        <CardHeader>
+                            <Row className="align-items-center">
+                                <Col>
+                                    <CardTitle tag="h4">
+                                        <i className="tim-icons icon-square-pin mr-2" />
+                                        {t('playgroundManagement') || 'Správa hřišť'}
+                                    </CardTitle>
+                                </Col>
+                                {canManage && (
+                                    <Col xs="auto">
+                                        <Button color="success" onClick={() => setShowCreateModal(true)}>
+                                            <i className="tim-icons icon-simple-add mr-2" />
+                                            {t('pgAdd') || 'Přidat hřiště'}
+                                        </Button>
+                                    </Col>
                                 )}
-                            </CardBody>
-                        </Card>
-                    </Col>
-                </Row>
-            )}
+                            </Row>
+                        </CardHeader>
+                        <CardBody>
+                            {/* Statistics */}
+                            <Row className="mb-4">
+                                <Col md="4">
+                                    <div className="text-center p-3" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                                        <h3 className="mb-0">{playgrounds.length}</h3>
+                                        <small className="text-muted">{t('totalPlaygrounds') || 'Celkem hřišť'}</small>
+                                    </div>
+                                </Col>
+                                <Col md="4">
+                                    <div className="text-center p-3" style={{ background: 'rgba(29, 140, 248, 0.1)', borderRadius: '8px' }}>
+                                        <h3 className="mb-0 text-info">{uniqueDisciplines.length}</h3>
+                                        <small className="text-muted">{t('disciplines') || 'Disciplín'}</small>
+                                    </div>
+                                </Col>
+                                <Col md="4">
+                                    <div className="text-center p-3" style={{ background: 'rgba(0, 242, 195, 0.1)', borderRadius: '8px' }}>
+                                        <h3 className="mb-0 text-success">{filteredPlaygrounds.length}</h3>
+                                        <small className="text-muted">{t('filtered') || 'Filtrováno'}</small>
+                                    </div>
+                                </Col>
+                            </Row>
+
+                            {/* Filters */}
+                            <Row className="mb-4">
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={searchType}
+                                        onChange={(e) => setSearchType(e.target.value)}
+                                    >
+                                        <option value="all">{t('searchAll') || 'Vše'}</option>
+                                        <option value="id">{t('searchById') || 'ID'}</option>
+                                        <option value="name">{t('searchByName') || 'Název'}</option>
+                                        <option value="number">{t('searchByNumber') || 'Číslo'}</option>
+                                        <option value="discipline">{t('searchByDiscipline') || 'Disciplína'}</option>
+                                    </Input>
+                                </Col>
+                                <Col md="5">
+                                    <InputGroup>
+                                        <InputGroupText>
+                                            <i className="tim-icons icon-zoom-split" />
+                                        </InputGroupText>
+                                        <Input
+                                            placeholder={
+                                                searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                                                searchType === 'name' ? (t('enterName') || 'Zadejte název...') :
+                                                searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
+                                                searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
+                                                (t('searchPlayground') || 'Hledat hřiště...')
+                                            }
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                        {searchQuery && (
+                                            <InputGroupText 
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => setSearchQuery('')}
+                                                title={t('clearSearch') || 'Vymazat'}
+                                            >
+                                                <i className="tim-icons icon-simple-remove" />
+                                            </InputGroupText>
+                                        )}
+                                    </InputGroup>
+                                </Col>
+                                <Col md="5">
+                                    <Input
+                                        type="select"
+                                        value={filterDiscipline}
+                                        onChange={(e) => setFilterDiscipline(e.target.value)}
+                                    >
+                                        <option value="">{t('allDisciplines') || 'Všechny disciplíny'}</option>
+                                        {uniqueDisciplines.map(disc => (
+                                            <option key={disc} value={disc}>{disc}</option>
+                                        ))}
+                                    </Input>
+                                </Col>
+                            </Row>
+
+                            {/* Playgrounds Table */}
+                            {loading ? (
+                                <div className="text-center py-5">
+                                    <Spinner color="primary" />
+                                </div>
+                            ) : error ? (
+                                <Alert color="danger">
+                                    <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                    {error}
+                                </Alert>
+                            ) : filteredPlaygrounds.length === 0 ? (
+                                <Alert color="info">
+                                    <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                    {t('noPlaygroundsFound') || 'Žádná hřiště nenalezena'}
+                                </Alert>
+                            ) : (
+                                <>
+                                    <Table responsive hover className="table-management">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>{t('title') || 'Název'}</th>
+                                                <th>{t('number') || 'Číslo'}</th>
+                                                <th>{t('discipline') || 'Disciplína'}</th>
+                                                {canManage && <th style={{ textAlign: 'center' }}>{t('actions') || 'Akce'}</th>}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredPlaygrounds
+                                                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                                .map(pg => (
+                                                    <tr key={pg.id}>
+                                                        <td>
+                                                            #{pg.id}
+                                                        </td>
+                                                        <td>
+                                                            <strong>{pg.name}</strong>
+                                                        </td>
+                                                        <td>
+                                                            {pg.number}
+                                                        </td>
+                                                        <td>
+                                                            <Badge color={getDisciplineColor(pg.disciplineName)}>
+                                                                {pg.disciplineName || '-'}
+                                                            </Badge>
+                                                        </td>
+                                                        {canManage && (
+                                                            <td style={{ textAlign: 'center' }}>
+                                                                <Button
+                                                                    color="primary"
+                                                                    size="sm"
+                                                                    className="btn-icon"
+                                                                    onClick={() => handleOpenEditModal(pg)}
+                                                                    title={t('edit') || 'Upravit'}
+                                                                >
+                                                                    <i className="tim-icons icon-pencil" />
+                                                                </Button>
+                                                                <Button
+                                                                    color="danger"
+                                                                    size="sm"
+                                                                    className="btn-icon ml-1"
+                                                                    onClick={() => handleDeletePlayground(pg.id)}
+                                                                    title={t('delete') || 'Smazat'}
+                                                                >
+                                                                    <i className="tim-icons icon-trash-simple" />
+                                                                </Button>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </Table>
+
+                                    <TablePagination
+                                        currentPage={currentPage}
+                                        totalItems={filteredPlaygrounds.length}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={(page) => setCurrentPage(page)}
+                                        onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+                                    />
+                                </>
+                            )}
+                        </CardBody>
+                    </Card>
+                </Col>
+            </Row>
+
+            {/* Create Modal */}
+            <Modal isOpen={showCreateModal} toggle={() => setShowCreateModal(false)}>
+                <ModalHeader toggle={() => setShowCreateModal(false)}>
+                    {t('pgAddNew') || 'Přidat nové hřiště'}
+                </ModalHeader>
+                <ModalBody>
+                    <Form>
+                        <FormGroup>
+                            <Label>{t('title') || 'Název'}</Label>
+                            <Input
+                                type="text"
+                                placeholder={t('enterPgTitle') || 'Zadejte název hřiště'}
+                                value={newPlayground.name}
+                                onChange={(e) => setNewPlayground({ ...newPlayground, name: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>{t('number') || 'Číslo'}</Label>
+                            <Input
+                                type="number"
+                                placeholder={t('enterNum') || 'Zadejte číslo'}
+                                value={newPlayground.number}
+                                onChange={(e) => setNewPlayground({ ...newPlayground, number: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>{t('discipline') || 'Disciplína'}</Label>
+                            <Input
+                                type="select"
+                                value={newPlayground.disciplineID}
+                                onChange={(e) => setNewPlayground({ ...newPlayground, disciplineID: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            >
+                                <option value="">{t('selectDisc') || 'Vyberte disciplínu'}</option>
+                                {disciplines.map(d => (
+                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                ))}
+                            </Input>
+                        </FormGroup>
+                    </Form>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowCreateModal(false)}>
+                        {t('cancel') || 'Zrušit'}
+                    </Button>
+                    <Button color="primary" onClick={handleCreatePlayground}>
+                        {t('create') || 'Vytvořit'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
+
+            {/* Edit Modal */}
+            <Modal isOpen={showEditModal} toggle={() => setShowEditModal(false)}>
+                <ModalHeader toggle={() => setShowEditModal(false)}>
+                    {t('pgEdit') || 'Upravit hřiště'}
+                </ModalHeader>
+                <ModalBody>
+                    <Form>
+                        <FormGroup>
+                            <Label>{t('title') || 'Název'}</Label>
+                            <Input
+                                type="text"
+                                value={editPlayground.name}
+                                onChange={(e) => setEditPlayground({ ...editPlayground, name: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>{t('number') || 'Číslo'}</Label>
+                            <Input
+                                type="number"
+                                value={editPlayground.number}
+                                onChange={(e) => setEditPlayground({ ...editPlayground, number: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>{t('discipline') || 'Disciplína'}</Label>
+                            <Input
+                                type="select"
+                                value={editPlayground.disciplineID}
+                                onChange={(e) => setEditPlayground({ ...editPlayground, disciplineID: e.target.value })}
+                                style={{ color: isDark ? 'white' : 'black' }}
+                            >
+                                <option value="">{t('selectDisc') || 'Vyberte disciplínu'}</option>
+                                {disciplines.map(d => (
+                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                ))}
+                            </Input>
+                        </FormGroup>
+                    </Form>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowEditModal(false)}>
+                        {t('cancel') || 'Zrušit'}
+                    </Button>
+                    <Button color="primary" onClick={handleUpdatePlayground}>
+                        {t('confirm') || 'Uložit'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
+
+            <style>{`
+                .table-management tbody tr:hover {
+                    background: rgba(255,255,255,0.05);
+                }
+            `}</style>
         </div>
     );
 }

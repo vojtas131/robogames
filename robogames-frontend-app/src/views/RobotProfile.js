@@ -20,6 +20,7 @@ import {
 import { useUser } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { t } from "translations/translate";
+import TablePagination from "components/TablePagination";
 
 function RobotProfile() {
   const [searchParams] = useSearchParams();
@@ -30,8 +31,8 @@ function RobotProfile() {
 
   // Handle navigation back with preserved search params
   const handleGoBack = () => {
-    if (fromPage === 'confirmation' && savedSearch) {
-      navigate(`/admin/robot-confirmation?search=${encodeURIComponent(savedSearch)}`);
+    if (fromPage === 'management' && savedSearch) {
+      navigate(`/admin/robot-management?search=${encodeURIComponent(savedSearch)}`);
     } else {
       navigate(-1);
     }
@@ -43,8 +44,25 @@ function RobotProfile() {
   const [error, setError] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
 
+  // Pagination for matches table
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+
   const { token, tokenExpired } = useUser();
   const toast = useToast();
+
+  // Helper function to get phase label
+  const getPhaseLabel = (phase) => {
+    switch (phase) {
+      case 'GROUP_STAGE': return t('phaseGroupStage') || 'Skupinová fáze';
+      case 'PRELIMINARY': return t('phasePreliminary') || 'Předkolo';
+      case 'ROUND_OF_16': return t('phaseRoundOf16') || 'Osmifinále';
+      case 'QUARTERFINAL': return t('phaseQuarterfinal') || 'Čtvrtfinále';
+      case 'SEMIFINAL': return t('phaseSemifinal') || 'Semifinále';
+      case 'FINAL': return t('phaseFinal') || 'Finále';
+      default: return phase || '-';
+    }
+  };
 
   // Check user roles
   const roles = localStorage.getItem('roles') || '';
@@ -337,7 +355,7 @@ function RobotProfile() {
                   </CardTitle>
                   <h5 className="card-category">
                     {t("robotNum")}:
-                    <Badge color="info" className='ml-2'>#{profile.robotNumber}</Badge>
+                    <Badge color="info" className='ml-2'>{profile.robotNumber}</Badge>
                   </h5>
                 </Col>
                 {/*
@@ -525,47 +543,120 @@ function RobotProfile() {
             </CardHeader>
             <CardBody>
               {matches && matches.length > 0 ? (
+                <>
                 <Table responsive>
                   <thead className="text-primary">
                     <tr>
+                      <th>ID</th>
                       <th>{t("playground")}</th>
-                      <th>{t("group")}</th>
+                      <th>{t("opponent") || 'Soupeř'}</th>
                       <th>{t("score")}</th>
+                      <th>{t("phase") || 'Fáze'}</th>
+                      <th>{t("groupName") || 'Skupina'}</th>
                       <th>{t("status")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {matches.map((match, index) => (
-                      <tr key={index}>
-                        <td>
-                          {match.playgroundName} #{match.playgroundNumber}
-                        </td>
-                        <td>
-                          {match.groupId ? `${t("group")} ${match.groupId}` : '-'}
-                        </td>
-                        <td>
-                          <Badge color="info" style={{ fontSize: '13px' }}>
-                            {match.score}
-                          </Badge>
-                        </td>
-                        <td>
-                          <Badge 
-                            color={
-                              match.state === 'DONE' ? 'success' : 
-                              match.state === 'WAITING' ? 'warning' : 
-                              match.state === 'REMATCH' ? 'info' : 'secondary'
-                            }
-                          >
-                            {match.state === 'DONE' ? t("done") :
-                             match.state === 'WAITING' ? t("waiting") :
-                             match.state === 'REMATCH' ? t("rematch") :
-                             match.state}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
+                    {matches
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map((match, index) => {
+                      // Determine if this robot is robotA or robotB
+                      const isRobotA = match.robotAID?.toString() === robotId;
+                      const myScore = isRobotA ? match.scoreA : match.scoreB;
+                      const opponentScore = isRobotA ? match.scoreB : match.scoreA;
+                      const opponentName = isRobotA ? match.robotBName : match.robotAName;
+                      const opponentNumber = isRobotA ? match.robotBNumber : match.robotANumber;
+                      const opponentID = isRobotA ? match.robotBID : match.robotAID;
+                      const opponentTeam = isRobotA ? match.teamBName : match.teamAName;
+                      const isTwoRobotMatch = match.robotAID && match.robotBID;
+                      const isTimeScore = match.scoreTypeName === 'TIME';
+                      
+                      return (
+                        <tr key={index}>
+                          <td>
+                            <Badge color="secondary" style={{ fontSize: '12px' }}>
+                              #{match.id}
+                            </Badge>
+                          </td>
+                          <td>
+                            {match.playgroundName} <Badge color="info">{match.playgroundNumber}</Badge>
+                          </td>
+                          <td>
+                            {isTwoRobotMatch ? (
+                              <div>
+                                <a
+                                  href="#"
+                                  onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${opponentID}`); }}
+                                  style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                >
+                                  <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{opponentNumber}</span>{opponentName}
+                                </a>
+                                <br />
+                                <small className="text-muted">{opponentTeam}</small>
+                              </div>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
+                          </td>
+                          <td>
+                            {isTwoRobotMatch ? (
+                              <Badge color={myScore > opponentScore ? 'success' : myScore < opponentScore ? 'danger' : 'warning'} style={{ fontSize: '13px' }}>
+                                {myScore !== null ? myScore : '-'} : {opponentScore !== null ? opponentScore : '-'}
+                              </Badge>
+                            ) : (
+                              <Badge color="info" style={{ fontSize: '13px' }}>
+                                {myScore !== null ? myScore : '-'}
+                              </Badge>
+                            )}
+                          </td>
+                          <td>
+                            {match.phaseName ? (
+                              <Badge color="primary" style={{ fontSize: '11px' }}>
+                                {getPhaseLabel(match.phaseName)}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
+                          </td>
+                          <td>
+                            {match.group ? (
+                              <Badge color="secondary">
+                                {match.group}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
+                          </td>
+                          <td>
+                            <Badge 
+                              color={
+                                (match.state?.name || match.stateName) === 'DONE' ? 'success' : 
+                                (match.state?.name || match.stateName) === 'WAITING' ? 'warning' : 
+                                (match.state?.name || match.stateName) === 'REMATCH' ? 'info' : 'secondary'
+                              }
+                            >
+                              {(match.state?.name || match.stateName) === 'DONE' ? t("done") :
+                               (match.state?.name || match.stateName) === 'WAITING' ? t("waiting") :
+                               (match.state?.name || match.stateName) === 'REMATCH' ? t("rematch") :
+                               (match.state?.name || match.stateName)}
+                            </Badge>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </Table>
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={matches.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  onItemsPerPageChange={(items) => {
+                    setItemsPerPage(items);
+                    setCurrentPage(1);
+                  }}
+                />
+                </>
               ) : (
                 <p className="text-muted">{t("noMatches")}</p>
               )}

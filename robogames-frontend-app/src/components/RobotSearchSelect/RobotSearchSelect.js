@@ -10,27 +10,31 @@ import { ThemeContext, themes } from "contexts/ThemeContext";
 import { t } from "translations/translate";
 
 /**
- * TeamSearchSelect - A reusable component for searching and selecting teams
+ * RobotSearchSelect - A reusable component for searching and selecting robots
  * 
  * Props:
- * - teams: array - Array of team objects to search through
- * - onSelect: (team) => void - Callback when a team is selected
- * - selectedTeam: object | null - Currently selected team
+ * - robots: array - Array of robot objects to search through
+ * - onSelect: (robot) => void - Callback when a robot is selected
+ * - selectedRobot: object | null - Currently selected robot
  * - placeholder: string - Placeholder text for the input
- * - excludeTeamIds: number[] - Array of team IDs to exclude from results
+ * - excludeRobotIds: number[] - Array of robot IDs to exclude from results
  * - disabled: boolean - Whether the component is disabled
  * - clearOnSelect: boolean - Whether to clear input after selection
- * - showLeaderInfo: boolean - Whether to show leader information
+ * - showTeamInfo: boolean - Whether to show team information
+ * - showDisciplineInfo: boolean - Whether to show discipline and category info
+ * - showOnlyConfirmed: boolean - Whether to show only confirmed robots (default: false)
  */
-function TeamSearchSelect({
-  teams = [],
+function RobotSearchSelect({
+  robots = [],
   onSelect,
-  selectedTeam = null,
+  selectedRobot = null,
   placeholder = null,
-  excludeTeamIds = [],
+  excludeRobotIds = [],
   disabled = false,
   clearOnSelect = false,
-  showLeaderInfo = true,
+  showTeamInfo = true,
+  showDisciplineInfo = false,
+  showOnlyConfirmed = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
@@ -67,8 +71,12 @@ function TeamSearchSelect({
   // Perform search
   const performSearch = useCallback((term) => {
     if (term.length < 1) {
-      // Show all teams when focused but no search term
-      const filtered = teams.filter(team => !excludeTeamIds.includes(team.id));
+      // Show all robots when focused but no search term
+      const filtered = robots.filter(robot => {
+        if (excludeRobotIds.includes(robot.id)) return false;
+        if (showOnlyConfirmed && !robot.confirmed) return false;
+        return true;
+      });
       setResults(filtered.slice(0, 20));
       return;
     }
@@ -76,19 +84,21 @@ function TeamSearchSelect({
     setIsSearching(true);
     const searchLower = term.toLowerCase();
     
-    const filtered = teams.filter(team => {
-      if (excludeTeamIds.includes(team.id)) return false;
+    const filtered = robots.filter(robot => {
+      if (excludeRobotIds.includes(robot.id)) return false;
+      if (showOnlyConfirmed && !robot.confirmed) return false;
       
-      const matchesName = team.name?.toLowerCase().includes(searchLower);
-      const matchesId = team.id?.toString() === term;
-      const matchesLeader = team.leaderName?.toLowerCase().includes(searchLower);
+      const matchesName = robot.name?.toLowerCase().includes(searchLower);
+      const matchesId = robot.id?.toString() === term;
+      const matchesNumber = robot.number?.toString() === term;
+      const matchesTeam = robot.teamName?.toLowerCase().includes(searchLower);
       
-      return matchesName || matchesId || matchesLeader;
+      return matchesName || matchesId || matchesNumber || matchesTeam;
     });
     
     setResults(filtered.slice(0, 20));
     setIsSearching(false);
-  }, [teams, excludeTeamIds]);
+  }, [robots, excludeRobotIds, showOnlyConfirmed]);
 
   // Debounced search
   useEffect(() => {
@@ -107,15 +117,15 @@ function TeamSearchSelect({
     };
   }, [searchTerm, performSearch]);
 
-  const handleSelect = (team) => {
-    onSelect(team);
+  const handleSelect = (robot) => {
+    onSelect(robot);
     setShowResults(false);
     setIsFocused(false);
     
     if (clearOnSelect) {
       setSearchTerm('');
     } else {
-      setSearchTerm(team.name);
+      setSearchTerm(`[${robot.number}] ${robot.name}`);
     }
   };
 
@@ -125,7 +135,7 @@ function TeamSearchSelect({
     setShowResults(true);
     
     // Clear selection when typing
-    if (selectedTeam) {
+    if (selectedRobot) {
       onSelect(null);
     }
   };
@@ -133,7 +143,7 @@ function TeamSearchSelect({
   const handleFocus = () => {
     setIsFocused(true);
     setShowResults(true);
-    // Show all teams when focused
+    // Show all robots when focused
     performSearch(searchTerm);
   };
 
@@ -145,6 +155,14 @@ function TeamSearchSelect({
         setIsFocused(false);
       }
     }, 150);
+  };
+
+  const handleClear = () => {
+    setSearchTerm('');
+    onSelect(null);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   // Determine if we should show the dropdown
@@ -160,7 +178,7 @@ function TeamSearchSelect({
           onChange={handleInputChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder={placeholder || t("searchTeamPlaceholder")}
+          placeholder={placeholder || t("searchRobotPlaceholder") || "Hledat robota (ID, číslo, název, tým)..."}
           disabled={disabled}
           style={{ paddingRight: '35px' }}
         />
@@ -175,6 +193,24 @@ function TeamSearchSelect({
             }} 
           />
         )}
+        {selectedRobot && !isSearching && (
+          <span
+            onClick={handleClear}
+            style={{
+              position: 'absolute',
+              right: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              cursor: 'pointer',
+              color: secondaryTextColor,
+              fontSize: '18px',
+              fontWeight: 'bold'
+            }}
+            title={t("clear") || "Vymazat"}
+          >
+            ×
+          </span>
+        )}
       </div>
       
       {shouldShowDropdown && results.length > 0 && (
@@ -183,23 +219,23 @@ function TeamSearchSelect({
             position: 'absolute', 
             zIndex: 1050, 
             width: '100%',
-            maxHeight: '250px',
+            maxHeight: '300px',
             overflowY: 'auto',
             boxShadow: isDark ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.1)',
             backgroundColor: dropdownBg,
             border: `1px solid ${dropdownBorder}`
           }}
         >
-          {results.map(team => (
+          {results.map(robot => (
             <ListGroupItem
-              key={team.id}
+              key={robot.id}
               tag="button"
               type="button"
               action
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                handleSelect(team);
+                handleSelect(robot);
               }}
               style={{ 
                 cursor: 'pointer',
@@ -209,27 +245,43 @@ function TeamSearchSelect({
                 padding: '10px 15px',
                 textAlign: 'left'
               }}
-              className="team-search-item"
+              className="robot-search-item"
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <strong>{team.name}</strong>
-                  {showLeaderInfo && team.leaderName && (
+                  <Badge color="success" style={{ marginRight: '8px', fontSize: '12px' }}>
+                    {robot.number}
+                  </Badge>
+                  <strong>{robot.name}</strong>
+                  {showTeamInfo && robot.teamName && (
                     <>
                       <br />
-                      <small style={{ color: secondaryTextColor }}>{t("leader")}: {team.leaderName}</small>
+                      <small style={{ color: secondaryTextColor, marginLeft: '45px' }}>
+                        <i className="tim-icons icon-single-02" style={{ marginRight: '4px' }} />
+                        {robot.teamName}
+                      </small>
                     </>
                   )}
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <small style={{ color: secondaryTextColor }}>ID: {team.id}</small>
-                  {team.membersCount !== undefined && (
-                    <>
-                      <br />
-                      <Badge color="info" pill style={{ fontSize: '10px' }}>
-                        {team.membersCount} {t("membersShort")}
-                      </Badge>
-                    </>
+                  <small style={{ color: secondaryTextColor }}>ID: #{robot.id}</small>
+                  {showDisciplineInfo && (
+                    <div style={{ marginTop: '2px' }}>
+                      {robot.diciplineName && (
+                        <Badge color="info" pill style={{ fontSize: '9px', marginRight: '4px' }}>
+                          {robot.diciplineName}
+                        </Badge>
+                      )}
+                      {robot.category && (
+                        <Badge 
+                          color={robot.category === 'LOW_AGE_CATEGORY' ? 'warning' : 'primary'} 
+                          pill 
+                          style={{ fontSize: '9px' }}
+                        >
+                          {robot.category === 'LOW_AGE_CATEGORY' ? (t('youngCategory') || 'Mladší') : (t('adultCategory') || 'Starší')}
+                        </Badge>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -256,20 +308,20 @@ function TeamSearchSelect({
               textAlign: 'center'
             }}
           >
-            {t("noTeamsFound")}
+            {t("noRobotsFound") || "Žádní roboti nenalezeni"}
           </ListGroupItem>
         </ListGroup>
       )}
       
-      {/* Selected team display */}
-      {selectedTeam && !isFocused && (
+      {/* Selected robot display */}
+      {selectedRobot && !isFocused && (
         <div 
           style={{ 
             marginTop: '8px',
             padding: '8px 12px',
-            backgroundColor: 'rgba(30, 136, 229, 0.1)',
+            backgroundColor: 'rgba(45, 206, 137, 0.1)',
             borderRadius: '4px',
-            border: '1px solid rgba(30, 136, 229, 0.3)',
+            border: '1px solid rgba(45, 206, 137, 0.3)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -277,19 +329,22 @@ function TeamSearchSelect({
           }}
         >
           <div>
-            <strong>{selectedTeam.name}</strong>
-            {showLeaderInfo && selectedTeam.leaderName && (
+            <Badge color="success" style={{ marginRight: '8px' }}>{selectedRobot.number}</Badge>
+            <strong>{selectedRobot.name}</strong>
+            {showTeamInfo && selectedRobot.teamName && (
               <>
                 <br />
-                <small style={{ color: secondaryTextColor }}>{t("leader")}: {selectedTeam.leaderName}</small>
+                <small style={{ color: secondaryTextColor, marginLeft: '45px' }}>
+                  {selectedRobot.teamName}
+                </small>
               </>
             )}
           </div>
-          <Badge color="success" pill>{t("selected")}</Badge>
+          <Badge color="primary" pill>{t("selected") || "Vybráno"}</Badge>
         </div>
       )}
     </div>
   );
 }
 
-export default TeamSearchSelect;
+export default RobotSearchSelect;

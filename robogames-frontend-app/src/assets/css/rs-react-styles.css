@@ -1,0 +1,205 @@
+.rs-stats, .rs-groups-meta, .rs-groups-meta, .rs-table { display: none !important; }
+
+:root {
+  --rs-primary: #ef6000;
+  --rs-white: #ffffff;
+  --rs-bg: #f5f5f5;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--rs-bg);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+#rs-root {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.rs-title {
+  margin: 0 0 10px;
+  color: var(--rs-primary);
+}
+
+.rs-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+  margin-top: 58px;
+}
+
+.rs-card {
+  background: var(--rs-white);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.rs-card-left {
+  flex: 1;
+  min-width: 280px;
+  max-width: 380px;
+}
+
+.rs-card-right {
+  flex: 3;
+  min-width: 500px;
+}
+
+.rs-card-title {
+  margin: 0 0 8px;
+  color: #333333;
+}
+
+.rs-label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.rs-input {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  box-sizing: border-box;
+}
+
+.rs-button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px 12px;
+  background-color: var(--rs-primary);
+  color: var(--rs-white);
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.rs-button:hover {
+  filter: brightness(0.95);
+}
+
+.rs-stats {
+  padding: 10px 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  font-size: 0.9em;
+  border-left: 4px solid var(--rs-primary);
+  background-color: #fff4ec;
+}
+
+.rs-stats-info {
+  color: #4a2a16;
+}
+
+.rs-stats-ok {
+  background-color: #d4edda;
+  border-left-color: #28a745;
+  color: #155724;
+}
+
+.rs-stats-warn {
+  background-color: #fff8e1;
+  border-left-color: #ffb300;
+  color: #6a4a00;
+}
+
+.rs-stats-error {
+  background-color: #fde8e6;
+  border-left-color: #d93025;
+  color: #7a1c1c;
+}
+
+.rs-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.rs-tab {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--rs-primary);
+  background-color: var(--rs-white);
+  color: var(--rs-primary);
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.rs-tab-active {
+  background-color: var(--rs-primary);
+  color: var(--rs-white);
+}
+
+.rs-tab-note {
+  margin-left: 4px;
+  font-size: 0.8em;
+}
+
+.rs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.9em;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.rs-th {
+  background-color: var(--rs-primary);
+  color: var(--rs-white);
+  text-align: left;
+  padding: 8px 10px;
+}
+
+.rs-td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rs-row-even {
+  background-color: #ffffff;
+}
+
+.rs-row-odd {
+  background-color: #fff9f5;
+}
+
+.rs-groups-meta {
+  margin-bottom: 12px;
+  font-size: 0.9em;
+}
+
+.rs-groups-line {
+  margin-top: 2px;
+}
+
+.rs-groups-note {
+  margin-top: 6px;
+  font-style: italic;
+  color: #555555;
+}
+
+.rs-bracket-wrapper {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+  overflow-x: auto;
+}
+
+.rs-bracket-wrapper > div {
+  min-width: 300px;
+}

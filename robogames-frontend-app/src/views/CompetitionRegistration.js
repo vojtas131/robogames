@@ -421,20 +421,28 @@ function CompetitionRegistration() {
                     const competitionDate = new Date(competition.date);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
+                    
+                    // Check if registration is closed (day before competition at 12:00 or competition already started)
+                    const registrationEndDate = new Date(competitionDate);
+                    registrationEndDate.setDate(registrationEndDate.getDate() - 1);
+                    registrationEndDate.setHours(12, 0, 0, 0);
+                    const now = new Date();
+                    const isTimeExpired = now >= registrationEndDate;
+                    const isRegistrationClosed = competition.started || isTimeExpired;
 
                     return (
                       <Col lg="6" key={competition.id}>
                         <Card 
                           className="mb-4" 
                           style={{ 
-                            border: isRegistered ? '2px solid #28a745' : competition.started ? '2px solid #dc3545' : '1px solid rgba(255,255,255,0.1)',
+                            border: isRegistered ? '2px solid #28a745' : isRegistrationClosed ? '2px solid #dc3545' : '1px solid rgba(255,255,255,0.1)',
                             transition: 'transform 0.2s, box-shadow 0.2s'
                           }}
                         >
                           <CardHeader style={{ 
                             background: isRegistered 
                               ? 'linear-gradient(135deg, rgba(40,167,69,0.15) 0%, transparent 100%)'
-                              : competition.started 
+                              : isRegistrationClosed 
                                 ? 'linear-gradient(135deg, rgba(220,53,69,0.15) 0%, transparent 100%)'
                                 : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%)',
                             borderBottom: '1px solid rgba(255,255,255,0.1)'
@@ -452,10 +460,12 @@ function CompetitionRegistration() {
                                     <i className="tim-icons icon-check-2 mr-1" />
                                     {t("registered") || "Registrován"}
                                   </Badge>
-                                ) : competition.started ? (
+                                ) : isRegistrationClosed ? (
                                   <Badge color="danger" style={{ fontSize: '0.8rem', padding: '8px 12px' }}>
                                     <i className="tim-icons icon-lock-circle mr-1" />
-                                    {t("closed") || "Uzavřeno"}
+                                    {competition.started 
+                                      ? (t("competitionStarted") || "Soutěž zahájena")
+                                      : (t("registrationTimeEnded") || "Registrace uzavřena")}
                                   </Badge>
                                 ) : (
                                   <Badge color="info" style={{ fontSize: '0.8rem', padding: '8px 12px' }}>
@@ -538,10 +548,12 @@ function CompetitionRegistration() {
                               </Row>
                             </div>
 
-                            {competition.started ? (
+                            {isRegistrationClosed && !isRegistered ? (
                               <Alert color="danger" className="d-flex align-items-center mb-0">
                                 <i className="tim-icons icon-lock-circle mr-2" />
-                                {t("regImpossible")}
+                                {competition.started 
+                                  ? (t("competitionAlreadyStarted") || "Soutěž již byla zahájena")
+                                  : (t("registrationTimeEnded") || "Čas na registraci již vypršel")}
                               </Alert>
                             ) : isRegistered ? (
                               <>

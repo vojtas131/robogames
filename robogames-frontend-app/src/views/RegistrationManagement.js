@@ -16,6 +16,8 @@ import {
   FormGroup,
   Label,
   Input,
+  InputGroup,
+  InputGroupText,
   FormFeedback,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
@@ -25,6 +27,7 @@ import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import { validateName } from "./Register";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
+import TablePagination from "components/TablePagination";
 
 /**
  * Admin component for managing team registrations to competitions
@@ -60,7 +63,14 @@ function RegistrationManagement() {
     category: ''
   });
   const [errors, setErrors] = useState({});
+  
+  // Search/Filter
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'team', 'category', 'teacher'
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -317,11 +327,37 @@ function RegistrationManagement() {
     return category;
   };
 
-  const filteredRegistrations = registrations.filter(reg =>
-    reg.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.teacherName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.teacherSurname?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRegistrations = registrations.filter(reg => {
+    const searchLower = searchTerm.toLowerCase();
+    if (!searchTerm) return true;
+    
+    switch (searchType) {
+      case 'id':
+        return reg.id?.toString().includes(searchTerm);
+      case 'team':
+        return reg.teamName?.toLowerCase().includes(searchLower) ||
+               reg.teamID?.toString().includes(searchTerm);
+      case 'category':
+        return reg.category?.toLowerCase().includes(searchLower) ||
+               getCategoryDisplay(reg.category).toLowerCase().includes(searchLower);
+      case 'teacher':
+        return reg.teacherName?.toLowerCase().includes(searchLower) ||
+               reg.teacherSurname?.toLowerCase().includes(searchLower) ||
+               `${reg.teacherName} ${reg.teacherSurname}`.toLowerCase().includes(searchLower);
+      case 'all':
+      default:
+        return reg.id?.toString().includes(searchTerm) ||
+               reg.teamName?.toLowerCase().includes(searchLower) ||
+               reg.teacherName?.toLowerCase().includes(searchLower) ||
+               reg.teacherSurname?.toLowerCase().includes(searchLower) ||
+               getCategoryDisplay(reg.category).toLowerCase().includes(searchLower);
+    }
+  });
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, searchType]);
 
   return (
     <div className="content">
@@ -329,7 +365,7 @@ function RegistrationManagement() {
         <Col xs="12">
           <Card>
             <CardHeader>
-              <Row className="align-items-center">
+              <Row className="align-items-center mb-3">
                 <Col>
                   <CardTitle tag="h4">{t("registrationManagement")} {selectedYear && `(${selectedYear})`}</CardTitle>
                 </Col>
@@ -340,14 +376,47 @@ function RegistrationManagement() {
                   </Button>
                 </Col>
               </Row>
-              <Row className="mt-3">
-                <Col md="4">
+              <Row>
+                <Col md="3">
                   <Input
-                    type="text"
-                    placeholder={t("searchRegistration")}
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                  />
+                    type="select"
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}
+                  >
+                    <option value="all">{t('searchAll') || 'Vše'}</option>
+                    <option value="id">{t('searchById') || 'ID'}</option>
+                    <option value="team">{t('searchByTeamName') || 'Tým'}</option>
+                    <option value="category">{t('searchByCategory') || 'Kategorie'}</option>
+                    <option value="teacher">{t('searchByTeacher') || 'Učitel'}</option>
+                  </Input>
+                </Col>
+                <Col md="9">
+                  <InputGroup>
+                    <InputGroupText>
+                      <i className="tim-icons icon-zoom-split" />
+                    </InputGroupText>
+                    <Input
+                      type="text"
+                      placeholder={
+                        searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                        searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                        searchType === 'category' ? (t('enterCategory') || 'Zadejte kategorii...') :
+                        searchType === 'teacher' ? (t('enterTeacher') || 'Zadejte jméno učitele...') :
+                        (t('searchRegistration') || 'Hledat registraci...')
+                      }
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <InputGroupText 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSearchTerm('')}
+                        title={t('clearSearch') || 'Vymazat'}
+                      >
+                        <i className="tim-icons icon-simple-remove" />
+                      </InputGroupText>
+                    )}
+                  </InputGroup>
                 </Col>
               </Row>
             </CardHeader>
@@ -355,6 +424,7 @@ function RegistrationManagement() {
               {loading ? (
                 <p>{t("loading")}</p>
               ) : (
+                <>
                 <Table responsive>
                   <thead className="text-primary">
                     <tr>
@@ -368,9 +438,11 @@ function RegistrationManagement() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRegistrations.map((reg) => (
+                    {filteredRegistrations
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map((reg) => (
                       <tr key={reg.id}>
-                        <td>{reg.id}</td>
+                        <td>#{reg.id}</td>
                         <td>{reg.teamName} (ID: {reg.teamID})</td>
                         <td>{getCategoryDisplay(reg.category)}</td>
                         <td>{reg.teacherName || t("notProvided")}</td>
@@ -409,6 +481,17 @@ function RegistrationManagement() {
                     ))}
                   </tbody>
                 </Table>
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={filteredRegistrations.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  onItemsPerPageChange={(items) => {
+                    setItemsPerPage(items);
+                    setCurrentPage(1);
+                  }}
+                />
+                </>
               )}
               {!loading && filteredRegistrations.length === 0 && (
                 <p className="text-center">{t("noRegsFound")}</p>

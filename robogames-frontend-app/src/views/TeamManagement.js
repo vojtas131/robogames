@@ -16,6 +16,8 @@ import {
   FormGroup,
   Label,
   Input,
+  InputGroup,
+  InputGroupText,
   FormFeedback,
 } from "reactstrap";
 import { useUser } from "contexts/UserContext";
@@ -23,6 +25,7 @@ import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import UserSearchSelect from "components/UserSearchSelect/UserSearchSelect";
+import TablePagination from "components/TablePagination";
 
 /**
  * Admin component for managing teams - CRUD operations, user management within teams
@@ -42,7 +45,19 @@ function TeamManagement() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [errors, setErrors] = useState({});
+  
+  // Search/Filter
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'leader', 'member'
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, searchType]);
 
   const { token, tokenExpired } = useUser();
   const toast = useToast();
@@ -114,7 +129,7 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamCreated"));
         setCreateModal(false);
         setNewTeam({ name: '', leader: null });
@@ -151,7 +166,7 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      if (response.ok) {
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamEdited"));
         setEditModal(false);
         setErrors({});
@@ -175,11 +190,12 @@ function TeamManagement() {
       });
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamRemoved"));
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("teamRemoveFail"));
       }
     } catch (error) {
@@ -204,13 +220,13 @@ function TeamManagement() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("userAddedToTeam"));
         setAddUserModal(false);
         setSelectedUser(null);
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("userAddToTeamFail"));
       }
     } catch (error) {
@@ -232,11 +248,11 @@ function TeamManagement() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamUserRemoved"));
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("teamUserRemoveFail"));
       }
     } catch (error) {
@@ -258,11 +274,11 @@ function TeamManagement() {
       );
       if (tokenExpired(response.status)) return;
 
-      if (response.ok) {
+      const result = await response.json();
+      if (response.ok && result.type !== 'ERROR') {
         toast.success(t("leaderChanged"));
         fetchTeams();
       } else {
-        const result = await response.json();
         toast.error(result.data || t("leaderChangeFail"));
       }
     } catch (error) {
@@ -293,17 +309,37 @@ function TeamManagement() {
 
   const filteredTeams = teams.filter(team => {
     const searchLower = searchTerm.toLowerCase();
-    // Search by team name
-    if (team.name.toLowerCase().includes(searchLower)) return true;
-    // Search by leader name
-    if (team.leaderName.toLowerCase().includes(searchLower)) return true;
-    // Search by any member name
-    if (team.memberNames.some(member => 
-      `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
-      member.name.toLowerCase().includes(searchLower) ||
-      member.surname.toLowerCase().includes(searchLower)
-    )) return true;
-    return false;
+    if (!searchTerm) return true;
+    
+    switch (searchType) {
+      case 'id':
+        return team.id.toString().includes(searchTerm);
+      case 'name':
+        return team.name.toLowerCase().includes(searchLower);
+      case 'leader':
+        return team.leaderName.toLowerCase().includes(searchLower);
+      case 'member':
+        return team.memberNames.some(member => 
+          `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
+          member.name.toLowerCase().includes(searchLower) ||
+          member.surname.toLowerCase().includes(searchLower)
+        );
+      case 'all':
+      default:
+        // Search by team ID
+        if (team.id.toString().includes(searchTerm)) return true;
+        // Search by team name
+        if (team.name.toLowerCase().includes(searchLower)) return true;
+        // Search by leader name
+        if (team.leaderName.toLowerCase().includes(searchLower)) return true;
+        // Search by any member name
+        if (team.memberNames.some(member => 
+          `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
+          member.name.toLowerCase().includes(searchLower) ||
+          member.surname.toLowerCase().includes(searchLower)
+        )) return true;
+        return false;
+    }
   });
 
   if (loading) {
@@ -316,7 +352,7 @@ function TeamManagement() {
         <Col xs="12">
           <Card>
             <CardHeader>
-              <Row className="align-items-center">
+              <Row className="align-items-center mb-3">
                 <Col>
                   <CardTitle tag="h4">{t("teamManagement")}</CardTitle>
                 </Col>
@@ -327,13 +363,49 @@ function TeamManagement() {
                   </Button>
                 </Col>
               </Row>
-              <Input
-                type="text"
-                placeholder={t("searchTeam")}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{ width: '300px', marginTop: '15px' }}
-              />
+              <Row>
+                <Col md="3">
+                  <Input
+                    type="select"
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}
+                  >
+                    <option value="all">{t('searchAll') || 'Vše'}</option>
+                    <option value="id">{t('searchById') || 'ID'}</option>
+                    <option value="name">{t('searchByTeamName') || 'Název týmu'}</option>
+                    <option value="leader">{t('searchByLeader') || 'Vedoucí'}</option>
+                    <option value="member">{t('searchByMember') || 'Člen'}</option>
+                  </Input>
+                </Col>
+                <Col md="9">
+                  <InputGroup>
+                    <InputGroupText>
+                      <i className="tim-icons icon-zoom-split" />
+                    </InputGroupText>
+                    <Input
+                      type="text"
+                      placeholder={
+                        searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
+                        searchType === 'name' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                        searchType === 'leader' ? (t('enterLeaderName') || 'Zadejte jméno vedoucího...') :
+                        searchType === 'member' ? (t('enterMemberName') || 'Zadejte jméno člena...') :
+                        (t('searchTeamOrMember') || 'Hledat tým...')
+                      }
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <InputGroupText 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSearchTerm('')}
+                        title={t('clearSearch') || 'Vymazat'}
+                      >
+                        <i className="tim-icons icon-simple-remove" />
+                      </InputGroupText>
+                    )}
+                  </InputGroup>
+                </Col>
+              </Row>
             </CardHeader>
             <CardBody>
               <Table responsive>
@@ -347,9 +419,11 @@ function TeamManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTeams.map((team) => (
+                  {filteredTeams
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((team) => (
                     <tr key={team.id}>
-                      <td>{team.id}</td>
+                      <td>#{team.id}</td>
                       <td>{team.name}</td>
                       <td>{team.leaderName}</td>
                       <td>
@@ -360,9 +434,10 @@ function TeamManagement() {
                             {member.id !== team.leaderID && (
                               <>
                                 <Button
-                                  color="warning"
+                                  color="info"
                                   size="sm"
-                                  className="btn-icon btn-simple ml-1"
+                                  className="btn-icon ml-1"
+                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
                                   onClick={() => handleSetLeader(team.id, member.id)}
                                   title={t("setAsLeader")}
                                 >
@@ -371,7 +446,8 @@ function TeamManagement() {
                                 <Button
                                   color="danger"
                                   size="sm"
-                                  className="btn-icon btn-simple ml-1"
+                                  className="btn-icon ml-1"
+                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
                                   onClick={() => handleRemoveUserFromTeam(team.id, member.id)}
                                   title={t("removeFromTeam")}
                                 >
@@ -416,6 +492,15 @@ function TeamManagement() {
                   ))}
                 </tbody>
               </Table>
+              
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={filteredTeams.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+                onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+              />
+              
               {filteredTeams.length === 0 && (
                 <p className="text-center">{t("noTeamsFound")}</p>
               )}
@@ -477,7 +562,7 @@ function TeamManagement() {
               {errors.name && <FormFeedback>{errors.name}</FormFeedback>}
             </FormGroup>
             <FormGroup style={{ marginBottom: '20px' }}>
-              <Label>{t("newLeader")} ({t("optional")})</Label>
+              <Label>{t("newLeader")} ({t("optionalLabel")})</Label>
               <UserSearchSelect
                 onSelect={(user) => setEditTeam({ ...editTeam, leader: user })}
                 selectedUser={editTeam.leader}

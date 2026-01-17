@@ -17,7 +17,7 @@
 */
 import Dashboard from 'views/Dashboard.js';
 
-import TableList from 'views/TableList.js';
+import DisciplineList from 'views/DisciplineList.js';
 
 import UserProfile from 'views/UserProfile.js';
 // import Login from "views/Login.js";
@@ -30,9 +30,10 @@ import MyTeam from 'views/MyTeam';
 import CompetitionRegistration from 'views/CompetitionRegistration';
 import RobotRegistration from 'views/RobotRegistration';
 import PlaygroundManagement from 'views/PlaygroundManagement';
-import RobotConfirmation from 'views/RobotConfirmation';
+import RobotManagement from 'views/RobotManagement';
 import RobotProfile from 'views/RobotProfile';
 import MatchManagement from 'views/MatchManagement';
+import MatchScoreEntry from 'views/MatchScoreEntry';
 import PlaygroundDetail from 'views/PlaygroundDetail';
 import CompetitionResults from 'views/CompetitionResults';
 import Contact from 'views/Contact';
@@ -42,9 +43,22 @@ import TeamManagement from 'views/TeamManagement';
 import RegistrationManagement from 'views/RegistrationManagement';
 import MatchSchedule from 'views/MatchSchedule';
 import DiplomaTemplateManagement from 'views/DiplomaTemplateManagement';
+import MatchGroup from 'views/MatchGroup';
+import PlaygroundMatches from 'views/PlaygroundMatches';
+//import Generate from "views/Generate.js";
+import TournamentGenerator from 'views/TournamentGenerator.js';
+import TournamentView from 'views/TournamentView.js';
 import { t } from 'translations/translate';
 
 var routes = [
+	{
+		path: '/admin-dashboard',
+		name: t('adminMenu'),
+		rtlName: '',
+		icon: 'tim-icons icon-settings-gear-63',
+		component: <AdminDashboard />,
+		layout: '/admin',
+	},
 	{
 		path: '/dashboard',
 		name: t('home'),
@@ -70,18 +84,10 @@ var routes = [
 		layout: '/admin',
 	},
 	{
-		path: '/admin-dashboard',
-		name: t('adminMenu'),
-		rtlName: '',
-		icon: 'tim-icons icon-settings-gear-63',
-		component: <AdminDashboard />,
-		layout: '/admin',
-	},
-	{
 		path: '/match-management',
-		name: t('matchEval'),
+		name: t('matchManagement'),
 		rtlName: '',
-		icon: 'tim-icons icon-puzzle-10',
+		icon: 'tim-icons icon-controller',
 		component: <MatchManagement />,
 		layout: '/admin',
 	},
@@ -90,7 +96,7 @@ var routes = [
 		name: t('disc'),
 		rtlName: '',
 		icon: 'tim-icons icon-components',
-		component: <TableList />,
+		component: <DisciplineList />,
 		layout: '/admin',
 	},
 	{
@@ -125,33 +131,6 @@ var routes = [
 		component: <Contact />,
 		layout: '/admin',
 	},
-
-	// {
-	//   path: "/login",
-	//   name: t("login"),
-	//   rtlName: "",
-	//   icon: "tim-icons icon-single-02",
-	//   component: <Login />,
-	//   layout: "/robogames", // Set layout to an empty string or simply omit this line
-	// },
-
-	// {
-	//   path: "/register",
-	//   name: t("registration"),
-	//   rtlName: "",
-	//   icon: "tim-icons icon-single-02",
-	//   component: <Register />,
-	//   layout: "/robogames", // Set layout to an empty string or simply omit this line
-	// },
-	// {
-	//   path: "/register",
-	//   name: t("registration"),
-	//   rtlName: "",
-	//   icon: "tim-icons icon-single-02",
-	//   component: <Register />,
-	//   layout: "/robogames", // Set layout to an empty string or simply omit this line
-	// },
-
 	{
 		path: '/user-management',
 		name: t('manageUser'),
@@ -202,11 +181,11 @@ var routes = [
 		layout: '/admin',
 	},
 	{
-		path: '/robot-confirmation',
-		name: t('robotConf'),
+		path: '/robot-management',
+		name: t('robotManagement'),
 		rtlName: '',
-		icon: 'tim-icons icon-molecule-40',
-		component: <RobotConfirmation />,
+		icon: 'tim-icons icon-spaceship',
+		component: <RobotManagement />,
 		layout: '/admin',
 	},
 	{
@@ -242,9 +221,60 @@ var routes = [
 		layout: '/admin',
 	},
 	{
+		path: '/match-score/:matchId',
+		name: t('scoreEntry'),
+		rtlName: '',
+		icon: 'tim-icons icon-pencil',
+		component: <MatchScoreEntry />,
+		layout: '/admin',
+	},
+	{
+		path: '/match-group/:groupName',
+		name: t('matchGroupTitle'),
+		rtlName: '',
+		icon: 'tim-icons icon-components',
+		component: <MatchGroup />,
+		layout: '/admin',
+	},
+	{
+		path: '/playground-matches/:playgroundId',
+		name: t('playgroundMatches'),
+		rtlName: '',
+		icon: 'tim-icons icon-square-pin',
+		component: <PlaygroundMatches />,
+		layout: '/admin',
+		hidden: true,
+	},
+	{
 		path: '/auth/callback',
 		name: 'Auth Callback',
 		component: <AuthCallback />,
+		layout: '/admin',
+	},
+	//  {
+	//    path: "/generate",
+	//    name: t("generate"),
+	//    rtlName: "",
+	//    icon: "tim-icons icon-puzzle-10",
+	//    component: <Generate />,
+	//    layout: "/admin",
+	//    hidden: true,
+	//  },
+	{
+		path: '/tournament-generator',
+		name: t('tournamentGenerator'),
+		rtlName: '',
+		icon: 'tim-icons icon-trophy',
+		component: <TournamentGenerator />,
+		layout: '/admin',
+		hidden: true,
+	},
+	{
+		path: '/tournament-view',
+		name: t('tournamentView') || 'Turnaj',
+		rtlName: '',
+		icon: 'tim-icons icon-trophy',
+		component: <TournamentView />,
 		layout: '/admin',
 	},
 	{
