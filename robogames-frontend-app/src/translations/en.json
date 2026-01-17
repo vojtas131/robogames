@@ -1064,5 +1064,6 @@
 
 	"names": "Team names",
 	"generateDiplomas": "Generate selected diplomas",
-	"diplomaTemplate": "Manage diploma template"
+	"diplomaTemplate": "Manage diploma template",
+	"invalidJson": "Invalid JSON format"
 }

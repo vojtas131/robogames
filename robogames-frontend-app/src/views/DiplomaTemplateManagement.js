@@ -3,12 +3,17 @@ import { t } from 'translations/translate';
 import { useState, useEffect } from 'react';
 import { useUser } from 'contexts/UserContext';
 import { useToast } from 'contexts/ToastContext';
+import { PDFViewer } from '@react-pdf/renderer';
+import { PdfDocument } from 'components/Diploma/PdfDocument';
 
 const DiplomaTemplateManagement = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [value, setValue] = useState('');
+	const [debouncedValue, setDebouncedValue] = useState('');
 	const { token } = useUser();
 	const toast = useToast();
+
+	const placeholderRobot = { robot: { disciplineName: 'Sample Discipline', userNames: ['Test Test', 'Jaromír Pytlík'] }, place: 1 };
 
 	const fetchDiplomaTemplate = async () => {
 		setIsLoading(true);
@@ -32,6 +37,13 @@ const DiplomaTemplateManagement = () => {
 		}
 	};
 
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedValue(value);
+		}, 1000);
+		return () => clearTimeout(timer);
+	}, [value]);
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setIsLoading(true);
@@ -52,6 +64,16 @@ const DiplomaTemplateManagement = () => {
 			setIsLoading(false);
 		}
 	};
+
+	const parseJsonSafe = (str) => {
+		try {
+			return JSON.parse(str);
+		} catch (e) {
+			return null;
+		}
+	};
+
+	const valueJson = parseJsonSafe(debouncedValue);
 
 	useEffect(() => {
 		fetchDiplomaTemplate();
@@ -86,6 +108,17 @@ const DiplomaTemplateManagement = () => {
 							</Form>
 						</CardBody>
 					</Card>
+				</Col>
+			</Row>
+			<Row>
+				<Col md="12">
+					{valueJson ? (
+						<PDFViewer width="100%" height="1200px">
+							<PdfDocument diploms={[placeholderRobot]} propsStyles={valueJson || {}} />
+						</PDFViewer>
+					) : (
+						<p style={{ color: 'red' }}>{t('invalidJson')}</p>
+					)}
 				</Col>
 			</Row>
 		</div>

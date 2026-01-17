@@ -1064,5 +1064,6 @@
 
 	"names": "Jména",
 	"generateDiplomas": "Vygeneruj vybrané diplomy",
-	"diplomaTemplate": "Správa templatu pro diplomy"
+	"diplomaTemplate": "Správa templatu pro diplomy",
+	"invalidJson": "Neplatný JSON"
 }
