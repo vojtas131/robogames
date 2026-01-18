@@ -22,13 +22,13 @@ import RobotSearchSelect from "components/RobotSearchSelect";
 
 function PlaygroundMatches() {
     const { playgroundId } = useParams();
-    
+
     const { selectedYear } = useAdmin();
     const { token, tokenExpired } = useUser();
     const toast = useToast();
     const { theme } = useContext(ThemeContext);
     const navigate = useNavigate();
-    
+
     const isDark = theme === themes.dark;
 
     // State
@@ -40,7 +40,7 @@ function PlaygroundMatches() {
     const [loadingPlayground, setLoadingPlayground] = useState(false);
     const [loadingCurrentMatch, setLoadingCurrentMatch] = useState(false);
     const [skippingMatch, setSkippingMatch] = useState(false);
-    
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -87,7 +87,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setPlayground(data.data);
@@ -113,7 +113,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setMatches(data.data || []);
@@ -128,10 +128,10 @@ function PlaygroundMatches() {
     // Fetch robots for the selected year and discipline
     const fetchRobots = useCallback(async () => {
         if (!selectedYear || !playground?.disciplineID) {
-            console.log('fetchRobots skipped:', { selectedYear, disciplineID: playground?.disciplineID });
+            // console.log('fetchRobots skipped:', { selectedYear, disciplineID: playground?.disciplineID });
             return;
         }
-        console.log('fetchRobots called:', { selectedYear, disciplineID: playground?.disciplineID });
+        // console.log('fetchRobots called:', { selectedYear, disciplineID: playground?.disciplineID });
         try {
             const response = await fetch(
                 `${process.env.REACT_APP_API_URL}api/robot/allForYear?year=${selectedYear}`,
@@ -142,7 +142,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 // Filter robots by discipline
@@ -150,7 +150,7 @@ function PlaygroundMatches() {
                 const disciplineFiltered = allRobots.filter(
                     robot => robot.disciplineID === playground.disciplineID
                 );
-                console.log('Robots loaded:', { total: allRobots.length, filtered: disciplineFiltered.length, disciplineID: playground.disciplineID });
+                // console.log('Robots loaded:', { total: allRobots.length, filtered: disciplineFiltered.length, disciplineID: playground.disciplineID });
                 setRobots(disciplineFiltered);
             }
         } catch (error) {
@@ -172,7 +172,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setCurrentMatch(data.data);
@@ -202,7 +202,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 toast.success(t('matchSkipped') || 'Zápas byl přeskočen');
@@ -228,7 +228,7 @@ function PlaygroundMatches() {
     useEffect(() => {
         // Fetch robots when playground is loaded and selectedYear is available
         if (playground && selectedYear) {
-            console.log('Triggering fetchRobots:', { playground: playground.id, selectedYear });
+            // console.log('Triggering fetchRobots:', { playground: playground.id, selectedYear });
             fetchRobots();
         }
     }, [playground, selectedYear, fetchRobots]);
@@ -247,30 +247,30 @@ function PlaygroundMatches() {
         // Search based on selected search type
         const searchLower = searchQuery.toLowerCase();
         let matchesSearch = !searchQuery;
-        
+
         if (searchQuery) {
             switch (searchType) {
                 case 'id':
                     matchesSearch = match.id.toString().includes(searchQuery);
                     break;
                 case 'robotName':
-                    matchesSearch = 
+                    matchesSearch =
                         (match.robotAName?.toLowerCase().includes(searchLower)) ||
                         (match.robotBName?.toLowerCase().includes(searchLower));
                     break;
                 case 'robotNumber':
-                    matchesSearch = 
+                    matchesSearch =
                         (match.robotANumber?.toString().includes(searchQuery)) ||
                         (match.robotBNumber?.toString().includes(searchQuery));
                     break;
                 case 'teamName':
-                    matchesSearch = 
+                    matchesSearch =
                         (match.teamAName?.toLowerCase().includes(searchLower)) ||
                         (match.teamBName?.toLowerCase().includes(searchLower));
                     break;
                 case 'all':
                 default:
-                    matchesSearch = 
+                    matchesSearch =
                         (match.robotAName?.toLowerCase().includes(searchLower)) ||
                         (match.robotBName?.toLowerCase().includes(searchLower)) ||
                         (match.teamAName?.toLowerCase().includes(searchLower)) ||
@@ -289,7 +289,7 @@ function PlaygroundMatches() {
         const matchesState = !filterState || match.state?.name === filterState;
 
         // Filter by category
-        const matchesCategory = !filterCategory || 
+        const matchesCategory = !filterCategory ||
             match.categoryA === filterCategory ||
             match.categoryB === filterCategory;
 
@@ -317,7 +317,7 @@ function PlaygroundMatches() {
                 group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
-            
+
             if (selectedRobotA) {
                 requestBody.robotAID = selectedRobotA.id;
             }
@@ -339,15 +339,19 @@ function PlaygroundMatches() {
             const data = await response.json();
 
             if (response.ok && data.type === 'RESPONSE') {
-                toast.success(t('matchCreated') || 'Zápas byl vytvořen');
+                toast.success(t('matchCreated'));
                 setShowCreateModal(false);
                 resetCreateModal();
                 fetchMatches();
+            } else if (data.type === 'ERROR' && data.data.includes("has not started yet")) {
+                toast.error(t('compNotStarted'));
+            } else if (data.type === 'ERROR' && data.data === 'failure, robots must be from the same category') {
+                toast.error(t('matchCategoryMismatch'));
             } else {
-                toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+                toast.error(t('matchCreateFailed') + ': ' + data.data);
             }
         } catch (error) {
-            toast.error(t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+            toast.error(t('matchCreateFailed') + ': ' + error);
         }
     };
 
@@ -361,7 +365,7 @@ function PlaygroundMatches() {
                 group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
-            
+
             if (selectedRobotA) {
                 requestBody.robotAID = selectedRobotA.id;
             }
@@ -391,11 +395,15 @@ function PlaygroundMatches() {
                 if (matchId) {
                     navigate(`/admin/match-score/${matchId}?from=playground`);
                 }
+            } else if (data.type === 'ERROR' && data.data.includes("has not started yet")) {
+                toast.error(t('compNotStarted'));
+            } else if (data.type === 'ERROR' && data.data === 'failure, robots must be from the same category') {
+                toast.error(t('matchCategoryMismatch'));
             } else {
-                toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+                toast.error(t('matchCreateFailed') + ': ' + data.data);
             }
         } catch (error) {
-            toast.error(t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+            toast.error(t('matchCreateFailed') + ': ' + error);
         }
     };
 
@@ -449,6 +457,12 @@ function PlaygroundMatches() {
     // Get filtered robots (only confirmed)
     const filteredRobots = robots.filter(r => r.confirmed);
 
+    // Get filtered robots for create modal for robot B (filtered by robot A's category)
+    const getFilteredRobotsForCreateB = () => {
+        const categoryFilter = selectedRobotA?.category || null;
+        return categoryFilter ? filteredRobots.filter(robot => robot.category === categoryFilter) : filteredRobots;
+    };
+
     return (
         <div className="content">
             <Row>
@@ -457,8 +471,8 @@ function PlaygroundMatches() {
                         <CardHeader>
                             <Row className="align-items-center">
                                 <Col>
-                                    <Button 
-                                        color="link" 
+                                    <Button
+                                        color="link"
                                         className="p-0 mr-3"
                                         onClick={() => navigate('/admin/match-management?tab=3')}
                                     >
@@ -491,7 +505,7 @@ function PlaygroundMatches() {
                         </CardHeader>
                         <CardBody>
                             {/* Current Match Display */}
-                            <Card className="mb-4" style={{ 
+                            <Card className="mb-4" style={{
                                 background: currentMatch ? 'linear-gradient(135deg, rgba(239, 96, 0, 0.15) 0%, rgba(239, 96, 0, 0.05) 100%)' : 'rgba(255,255,255,0.02)',
                                 border: currentMatch ? '2px solid rgba(239, 96, 0, 0.5)' : '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: '12px'
@@ -514,8 +528,8 @@ function PlaygroundMatches() {
                                                         #{currentMatch.id}
                                                     </Badge>
                                                 </div>
-                                                <Button 
-                                                    color="warning" 
+                                                <Button
+                                                    color="warning"
                                                     size="sm"
                                                     className="py-1 px-2"
                                                     onClick={handleSkipCurrentMatch}
@@ -534,10 +548,10 @@ function PlaygroundMatches() {
                                             </div>
 
                                             {/* Main content: Robots vs layout */}
-                                            <div 
+                                            <div
                                                 className="d-flex flex-column flex-sm-row align-items-center justify-content-center py-2"
-                                                style={{ 
-                                                    background: 'rgba(0,0,0,0.15)', 
+                                                style={{
+                                                    background: 'rgba(0,0,0,0.15)',
                                                     borderRadius: '8px',
                                                     margin: '0 -0.5rem'
                                                 }}
@@ -547,7 +561,7 @@ function PlaygroundMatches() {
                                                     {currentMatch.robotAID ? (
                                                         <>
                                                             <div className="d-flex align-items-center justify-content-center">
-                                                                <Badge 
+                                                                <Badge
                                                                     className="mr-2"
                                                                     style={{ fontSize: '1.1rem', padding: '6px 12px', fontWeight: 'bold', backgroundColor: '#ef6000' }}
                                                                 >
@@ -565,9 +579,9 @@ function PlaygroundMatches() {
                                                 {/* VS separator */}
                                                 {currentMatch.robotBID && (
                                                     <div className="mx-2 my-2 my-sm-0">
-                                                        <span 
+                                                        <span
                                                             className="font-weight-bold"
-                                                            style={{ 
+                                                            style={{
                                                                 fontSize: '1.2rem',
                                                                 color: '#ef6000',
                                                                 textShadow: '0 0 10px rgba(239, 96, 0, 0.5)'
@@ -582,7 +596,7 @@ function PlaygroundMatches() {
                                                 {currentMatch.robotBID && (
                                                     <div className="text-center px-3 py-1">
                                                         <div className="d-flex align-items-center justify-content-center">
-                                                            <Badge 
+                                                            <Badge
                                                                 className="mr-2"
                                                                 style={{ fontSize: '1.1rem', padding: '6px 12px', fontWeight: 'bold', backgroundColor: '#ef6000' }}
                                                             >
@@ -612,8 +626,8 @@ function PlaygroundMatches() {
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <Button 
-                                                    color="success" 
+                                                <Button
+                                                    color="success"
                                                     size="sm"
                                                     className="mt-2 mt-sm-0"
                                                     onClick={() => goToScoreEntry(currentMatch.id)}
@@ -683,16 +697,16 @@ function PlaygroundMatches() {
                                         <Input
                                             placeholder={
                                                 searchType === 'id' ? (t('enterMatchId') || 'Zadejte ID...') :
-                                                searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
-                                                searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
-                                                searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
-                                                (t('searchMatchPlaceholder') || 'ID, robot, tým...')
+                                                    searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
+                                                        searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
+                                                            searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
+                                                                (t('searchMatchPlaceholder') || 'ID, robot, tým...')
                                             }
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
                                         {searchQuery && (
-                                            <InputGroupText 
+                                            <InputGroupText
                                                 style={{ cursor: 'pointer' }}
                                                 onClick={() => setSearchQuery('')}
                                                 title={t('clearSearch') || 'Vymazat'}
@@ -749,7 +763,7 @@ function PlaygroundMatches() {
                             ) : filteredMatches.length === 0 ? (
                                 <Alert color="info">
                                     <i className="tim-icons icon-alert-circle-exc mr-2" />
-                                    {matches.length === 0 
+                                    {matches.length === 0
                                         ? (t('noMatchesOnPlayground') || 'Na tomto hřišti nejsou žádné zápasy')
                                         : (t('noMatchesMatchingFilters') || 'Žádné zápasy neodpovídají filtrům')
                                     }
@@ -773,95 +787,95 @@ function PlaygroundMatches() {
                                         {filteredMatches
                                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                             .map(match => (
-                                            <tr key={match.id}>
-                                                <td>
-                                                    <span 
-                                                        style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
-                                                        onClick={() => goToScoreEntry(match.id)}
-                                                        title={t('clickToWriteScore') || 'Klikněte pro zápis skóre'}
-                                                    >
-                                                        #{match.id}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {match.categoryA ? (
-                                                        <Badge color={getCategoryColor(match.categoryA)}>
-                                                            {getCategoryDisplay(match.categoryA)}
+                                                <tr key={match.id}>
+                                                    <td>
+                                                        <span
+                                                            style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
+                                                            onClick={() => goToScoreEntry(match.id)}
+                                                            title={t('clickToWriteScore') || 'Klikněte pro zápis skóre'}
+                                                        >
+                                                            #{match.id}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {match.categoryA ? (
+                                                            <Badge color={getCategoryColor(match.categoryA)}>
+                                                                {getCategoryDisplay(match.categoryA)}
+                                                            </Badge>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {match.robotAID ? (
+                                                            <span>
+                                                                <a
+                                                                    href="#"
+                                                                    onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotAID}`); }}
+                                                                    style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                >
+                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotANumber}</span>{match.robotAName}
+                                                                </a>
+                                                                <br />
+                                                                <small className="text-muted">{match.teamAName}</small>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {match.robotBID ? (
+                                                            <span>
+                                                                <a
+                                                                    href="#"
+                                                                    onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotBID}`); }}
+                                                                    style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                >
+                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotBNumber}</span>{match.robotBName}
+                                                                </a>
+                                                                <br />
+                                                                <small className="text-muted">{match.teamBName}</small>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {match.scoreA !== null ? (
+                                                            <span>
+                                                                <strong>{match.scoreA}</strong>
+                                                                {match.robotBID && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <Badge color="primary">
+                                                            {getPhaseLabel(match.phaseName)}
                                                         </Badge>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {match.robotAID ? (
-                                                        <span>
-                                                            <a
-                                                                href="#"
-                                                                onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotAID}`); }}
-                                                                style={{ color: '#5e72e4', cursor: 'pointer' }}
-                                                            >
-                                                                <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotANumber}</span>{match.robotAName}
-                                                            </a>
-                                                            <br />
-                                                            <small className="text-muted">{match.teamAName}</small>
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {match.robotBID ? (
-                                                        <span>
-                                                            <a
-                                                                href="#"
-                                                                onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotBID}`); }}
-                                                                style={{ color: '#5e72e4', cursor: 'pointer' }}
-                                                            >
-                                                                <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotBNumber}</span>{match.robotBName}
-                                                            </a>
-                                                            <br />
-                                                            <small className="text-muted">{match.teamBName}</small>
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {match.scoreA !== null ? (
-                                                        <span>
-                                                            <strong>{match.scoreA}</strong>
-                                                            {match.robotBID && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <Badge color="primary">
-                                                        {getPhaseLabel(match.phaseName)}
-                                                    </Badge>
-                                                </td>
-                                                <td>
-                                                    {match.group ? (
-                                                        <Badge color="secondary">
-                                                            {match.group}
+                                                    </td>
+                                                    <td>
+                                                        {match.group ? (
+                                                            <Badge color="secondary">
+                                                                {match.group}
+                                                            </Badge>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <Badge color={getStateColor(match.state?.name)}>
+                                                            {match.state?.name || '-'}
                                                         </Badge>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <Badge color={getStateColor(match.state?.name)}>
-                                                        {match.state?.name || '-'}
-                                                    </Badge>
-                                                </td>
-                                                <td>
-                                                    <small className="text-muted">
-                                                        {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
-                                                    </small>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                    </td>
+                                                    <td>
+                                                        <small className="text-muted">
+                                                            {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
+                                                        </small>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </Table>
                             )}
@@ -932,6 +946,14 @@ function PlaygroundMatches() {
                             </Alert>
                         )}
 
+                        {selectedRobotA && (
+                            <Alert color={getCategoryColor(selectedRobotA.category)} className="mb-3">
+                                <i className="tim-icons icon-badge mr-2" />
+                                {t('selectedCategory') || 'Vybraná kategorie'}: <strong>{getCategoryDisplay(selectedRobotA.category)}</strong>
+                                {' '}({t('robotBMustBeSameCategory') || 'Robot B musí být ze stejné kategorie'})
+                            </Alert>
+                        )}
+
                         <Row>
                             <Col md="6">
                                 <FormGroup>
@@ -939,7 +961,13 @@ function PlaygroundMatches() {
                                     <RobotSearchSelect
                                         robots={filteredRobots}
                                         selectedRobot={selectedRobotA}
-                                        onSelect={setSelectedRobotA}
+                                        onSelect={(robot) => {
+                                            setSelectedRobotA(robot);
+                                            // Clear robot B if category doesn't match
+                                            if (robot && selectedRobotB && robot.category !== selectedRobotB.category) {
+                                                setSelectedRobotB(null);
+                                            }
+                                        }}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                         excludeRobotIds={selectedRobotB ? [selectedRobotB.id] : []}
                                         showDisciplineInfo={true}
@@ -951,7 +979,7 @@ function PlaygroundMatches() {
                                 <FormGroup>
                                     <Label>{t('robotB') || 'Robot B'} ({t('optional') || 'volitelné'})</Label>
                                     <RobotSearchSelect
-                                        robots={filteredRobots}
+                                        robots={getFilteredRobotsForCreateB()}
                                         selectedRobot={selectedRobotB}
                                         onSelect={setSelectedRobotB}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}

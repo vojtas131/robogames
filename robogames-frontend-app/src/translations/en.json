@@ -399,6 +399,8 @@
     "selectPlayground": "Select playground",
     "playgroundRequired": "Playground is\u00a0required",
     "matchCreated": "Match created",
+    "compNotStarted":"This competition year has not been started yet, matches cannot be created",
+    "matchCategoryMismatch":"Robots must be\u00a0from the\u00a0same age category",
     "matchCreateFailed": "Failed to\u00a0create match",
     "confirmDeleteMatch": "Are you sure you want to\u00a0delete this match?",
     "matchDeleted": "Match deleted",

@@ -399,6 +399,8 @@
     "selectPlayground":"Vyberte hřiště",
     "playgroundRequired":"Hřiště je povinné",
     "matchCreated":"Zápas byl vytvořen",
+    "compNotStarted":"Tento ročník soutěže ještě nebyl zahájen, není možné vytvářet zápasy",
+    "matchCategoryMismatch":"Roboti musí být ve\u00a0stejné věkové kategorii",
     "matchCreateFailed":"Nepodařilo se vytvořit zápas",
     "confirmDeleteMatch":"Opravdu chcete smazat tento zápas?",
     "matchDeleted":"Zápas byl smazán",
