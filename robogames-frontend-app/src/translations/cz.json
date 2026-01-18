@@ -513,6 +513,7 @@
     "confirmedRobotsCount":"Potvrzeno",
     "robotsEmptyTeam":"Roboti s\u00a0prázdným týmem",
     "teamHasNoMembers":"Tým nemá žádné\u00a0členy!",
+    "unconfirm":"Zrušit potvrzení",
     "warningEmptyTeam":"Pozor: Tým tohoto robota nemá žádné\u00a0členy!",
     "warningEmptyTeamDesc":"Robot patří týmu, který nemá žádné registrované členy. Kontaktujte administrátora.",
     "chooseYear":"Zvolte ročník",

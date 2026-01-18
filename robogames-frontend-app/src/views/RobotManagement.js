@@ -558,7 +558,7 @@ function RobotManagement() {
                       <th>{t("category")}</th>
                       <th>{t("team")}</th>
                       <th>{t("discipline")}</th>
-                      <th>{t("confirm")}</th>
+                      <th>{t("confirmedStatus")}</th>
                       <th style={{ textAlign: 'center' }}>{t("action")}</th>
                     </tr>
                   </thead>

@@ -513,6 +513,7 @@
     "confirmedRobotsCount": "Confirmed",
     "robotsEmptyTeam": "Robots with empty team",
     "teamHasNoMembers": "Team has no\u00a0members!",
+    "unconfirm":"Cancel confirmation",
     "warningEmptyTeam": "Warning: This robot's team has no\u00a0members!",
     "warningEmptyTeamDesc": "The robot belongs to\u00a0a team that has no\u00a0registered members. Contact the\u00a0administrator.",
     "chooseYear": "Select year",
