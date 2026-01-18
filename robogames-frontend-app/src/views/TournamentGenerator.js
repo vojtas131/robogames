@@ -26,18 +26,18 @@ import "../assets/css/rs-react-styles.css";
 const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDragStart, onDragOver, onDrop, draggedRobot }) => {
     const robots = group.robots || [];
     const matchCount = (robots.length * (robots.length - 1)) / 2;
-    
+
     return (
-        <Card 
-            className={`mb-4 ${isDark ? 'bg-dark' : ''}`} 
-            style={{ 
+        <Card
+            className={`mb-4 ${isDark ? 'bg-dark' : ''}`}
+            style={{
                 border: `2px solid ${isDark ? '#525f7f' : '#e9ecef'}`,
                 borderRadius: '12px'
             }}
             onDragOver={(e) => onDragOver && onDragOver(e, group.groupId)}
             onDrop={(e) => onDrop && onDrop(e, group.groupId)}
         >
-            <CardHeader style={{ 
+            <CardHeader style={{
                 background: isDark ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)' : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
                 borderRadius: '10px 10px 0 0',
                 padding: '12px 15px'
@@ -64,8 +64,8 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
                             value={group.playgroundId || ''}
                             onChange={(e) => onPlaygroundChange && onPlaygroundChange(group.groupId, parseInt(e.target.value))}
                             className={isDark ? 'bg-dark text-white' : ''}
-                            style={{ 
-                                borderRadius: '6px', 
+                            style={{
+                                borderRadius: '6px',
                                 width: 'auto',
                                 minWidth: '140px',
                                 fontSize: '0.85em'
@@ -82,14 +82,14 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
             </CardHeader>
             <CardBody className="p-3">
                 {robots.length > 0 ? (
-                    <div style={{ 
-                        display: 'flex', 
-                        flexWrap: 'wrap', 
+                    <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
                         gap: '8px',
                         minHeight: '50px'
                     }}>
                         {robots.map((robot) => (
-                            <div 
+                            <div
                                 key={robot.id}
                                 draggable
                                 onDragStart={(e) => onDragStart && onDragStart(e, robot, group.groupId)}
@@ -106,16 +106,16 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
                                     userSelect: 'none'
                                 }}
                             >
-                                <span style={{ 
+                                <span style={{
                                     color: isDark ? '#a0aec0' : '#8898aa',
                                     marginRight: '6px',
                                     fontWeight: '500'
                                 }}>
                                     N{robot.number}
                                 </span>
-                                <Link 
+                                <Link
                                     to={`/admin/robot-profile?id=${robot.id}`}
-                                    style={{ 
+                                    style={{
                                         fontWeight: '600',
                                         color: isDark ? '#5e72e4' : '#5e72e4',
                                         textDecoration: 'none'
@@ -128,8 +128,8 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
                         ))}
                     </div>
                 ) : (
-                    <div 
-                        style={{ 
+                    <div
+                        style={{
                             minHeight: '50px',
                             display: 'flex',
                             alignItems: 'center',
@@ -150,18 +150,18 @@ const RoundRobinTable = ({ group, isDark, playgrounds, onPlaygroundChange, onDra
 // Custom Seed component for react-brackets
 const TournamentSeed = ({ seed, breakpoint, isDark }) => {
     const isBye = seed.isBye;
-    
+
     const renderTeam = (team, teamIndex) => {
         if (!team || !team.name) {
             return t('waitingForWinner') || 'Čeká na vítěze';
         }
-        
+
         // If robot has ID, make it a link
         if (team.robotId) {
             return (
-                <Link 
+                <Link
                     to={`/admin/robot-profile?id=${team.robotId}`}
-                    style={{ 
+                    style={{
                         color: isDark ? '#5e72e4' : '#5e72e4',
                         textDecoration: 'none'
                     }}
@@ -172,19 +172,19 @@ const TournamentSeed = ({ seed, breakpoint, isDark }) => {
         }
         return team.name;
     };
-    
+
     return (
         <Seed mobileBreakpoint={breakpoint} style={{ fontSize: 12 }}>
             <SeedItem style={{
-                background: isBye 
+                background: isBye
                     ? (isDark ? 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)' : 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)')
-                    : (isDark 
+                    : (isDark
                         ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
                         : 'linear-gradient(135deg, #fff 0%, #f8f9fa 100%)'),
                 border: `1px solid ${isBye ? (isDark ? '#4a5568' : '#a0aec0') : (isDark ? '#3d3d5c' : '#e0e0e0')}`,
                 borderRadius: '8px',
-                boxShadow: isDark 
-                    ? '0 4px 15px rgba(0,0,0,0.3)' 
+                boxShadow: isDark
+                    ? '0 4px 15px rgba(0,0,0,0.3)'
                     : '0 4px 15px rgba(0,0,0,0.1)',
                 opacity: isBye ? 0.7 : 1
             }}>
@@ -219,12 +219,12 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
     }
 
     // Filter out the 3rd place round from main bracket (it will be shown separately)
-    const mainRounds = bracket.rounds.filter(round => 
+    const mainRounds = bracket.rounds.filter(round =>
         !round.name.includes('3. místo') && round.name !== 'O 3. místo'
     );
 
     // Find the 3rd place match
-    const thirdPlaceRound = bracket.rounds.find(round => 
+    const thirdPlaceRound = bracket.rounds.find(round =>
         round.name.includes('3. místo') || round.name === 'O 3. místo'
     );
 
@@ -235,15 +235,15 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
             id: match.tempId || `${roundIndex}-${matchIndex}`,
             isBye: match.isBye || false,
             teams: [
-                { 
-                    name: match.robotA 
-                        ? `#${match.robotA.number} ${match.robotA.name}` 
+                {
+                    name: match.robotA
+                        ? `#${match.robotA.number} ${match.robotA.name}`
                         : null,
                     robotId: match.robotA?.id || null
                 },
-                { 
-                    name: match.robotB 
-                        ? `#${match.robotB.number} ${match.robotB.name}` 
+                {
+                    name: match.robotB
+                        ? `#${match.robotB.number} ${match.robotB.name}`
                         : null,
                     robotId: match.robotB?.id || null
                 }
@@ -266,8 +266,8 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
                         value={bracket.playgroundId || ''}
                         onChange={(e) => onPlaygroundChange && onPlaygroundChange(parseInt(e.target.value))}
                         className={isDark ? 'bg-dark text-white' : ''}
-                        style={{ 
-                            borderRadius: '6px', 
+                        style={{
+                            borderRadius: '6px',
                             width: 'auto',
                             minWidth: '180px',
                             fontSize: '0.9em'
@@ -281,8 +281,8 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
                     </Input>
                 </div>
             )}
-            <div className="rs-bracket-wrapper" style={{ 
-                overflowX: 'auto', 
+            <div className="rs-bracket-wrapper" style={{
+                overflowX: 'auto',
                 padding: '20px',
                 background: isDark ? '#1e1e2f' : '#f8f9fa',
                 borderRadius: '8px'
@@ -296,17 +296,17 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
 
             {/* 3rd Place Match - shown separately below the bracket */}
             {thirdPlaceRound && thirdPlaceRound.matches && thirdPlaceRound.matches.length > 0 && (
-                <div style={{ 
+                <div style={{
                     marginTop: '20px',
                     padding: '15px',
-                    background: isDark 
-                        ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)' 
+                    background: isDark
+                        ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)'
                         : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
                     borderRadius: '8px',
                     border: `2px solid ${isDark ? '#cd7f32' : '#cd7f32'}` // Bronze color
                 }}>
-                    <h6 style={{ 
-                        color: '#cd7f32', 
+                    <h6 style={{
+                        color: '#cd7f32',
                         marginBottom: '10px',
                         display: 'flex',
                         alignItems: 'center',
@@ -316,20 +316,20 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
                         {t('thirdPlaceMatch') || 'Zápas o 3. místo'}
                     </h6>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <TournamentSeed 
+                        <TournamentSeed
                             seed={{
                                 id: thirdPlaceRound.matches[0].tempId || 'third-place',
                                 isBye: false,
                                 teams: [
-                                    { 
-                                        name: thirdPlaceRound.matches[0].robotA 
-                                            ? `#${thirdPlaceRound.matches[0].robotA.number} ${thirdPlaceRound.matches[0].robotA.name}` 
+                                    {
+                                        name: thirdPlaceRound.matches[0].robotA
+                                            ? `#${thirdPlaceRound.matches[0].robotA.number} ${thirdPlaceRound.matches[0].robotA.name}`
                                             : null,
                                         robotId: thirdPlaceRound.matches[0].robotA?.id || null
                                     },
-                                    { 
-                                        name: thirdPlaceRound.matches[0].robotB 
-                                            ? `#${thirdPlaceRound.matches[0].robotB.number} ${thirdPlaceRound.matches[0].robotB.name}` 
+                                    {
+                                        name: thirdPlaceRound.matches[0].robotB
+                                            ? `#${thirdPlaceRound.matches[0].robotB.number} ${thirdPlaceRound.matches[0].robotB.name}`
                                             : null,
                                         robotId: thirdPlaceRound.matches[0].robotB?.id || null
                                     }
@@ -339,7 +339,7 @@ const BracketVisualization = ({ bracket, isDark, playgrounds, onPlaygroundChange
                             breakpoint={0}
                         />
                     </div>
-                    <small style={{ 
+                    <small style={{
                         color: isDark ? '#a0aec0' : '#666',
                         display: 'block',
                         textAlign: 'center',
@@ -358,7 +358,7 @@ function TournamentGenerator() {
     const { token, tokenExpired } = useUser();
     const toast = useToast();
     const { theme } = useContext(ThemeContext);
-    
+
     const isDark = theme === themes.dark;
 
     // State
@@ -367,7 +367,7 @@ function TournamentGenerator() {
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [saving, setSaving] = useState(false);
-    
+
     // Form state
     const [selectedDiscipline, setSelectedDiscipline] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('HIGH_AGE_CATEGORY');
@@ -377,20 +377,20 @@ function TournamentGenerator() {
         advancingPerGroup: 2
     });
     const [playgrounds, setPlaygrounds] = useState([]);
-    
+
     // Preview state
     const [preview, setPreview] = useState(null);
     const [activeTab, setActiveTab] = useState('groups');
-    
+
     // Drag and drop state
     const [draggedRobot, setDraggedRobot] = useState(null);
     const [dragSourceGroup, setDragSourceGroup] = useState(null);
-    
+
     // Tournament exists check
     const [tournamentExists, setTournamentExists] = useState(false);
     const [tournamentStatus, setTournamentStatus] = useState(null);
     const [loadingStatus, setLoadingStatus] = useState(false);
-    
+
     // Modals
     const [showStartFinalModal, setShowStartFinalModal] = useState(false);
     const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
@@ -409,7 +409,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (data.type === 'RESPONSE') {
                 setPlaygrounds(data.data || []);
@@ -433,7 +433,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 // Filter only disciplines with TOURNAMENT mode
@@ -453,7 +453,7 @@ function TournamentGenerator() {
     // Fetch robot counts for selected discipline
     const fetchRobotCounts = useCallback(async () => {
         if (!selectedDiscipline || !selectedYear) return;
-        
+
         try {
             // Use allConfirmed endpoint which returns all confirmed robots for the year
             const response = await fetch(
@@ -465,20 +465,20 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 const robots = data.data || [];
                 const disciplineId = parseInt(selectedDiscipline);
-                
+
                 // Count robots by category (already confirmed from endpoint)
                 const counts = {
-                    LOW_AGE_CATEGORY: robots.filter(r => 
-                        r.disciplineID === disciplineId && 
+                    LOW_AGE_CATEGORY: robots.filter(r =>
+                        r.disciplineID === disciplineId &&
                         r.category === 'LOW_AGE_CATEGORY'
                     ).length,
-                    HIGH_AGE_CATEGORY: robots.filter(r => 
-                        r.disciplineID === disciplineId && 
+                    HIGH_AGE_CATEGORY: robots.filter(r =>
+                        r.disciplineID === disciplineId &&
                         r.category === 'HIGH_AGE_CATEGORY'
                     ).length
                 };
@@ -492,7 +492,7 @@ function TournamentGenerator() {
     // Fetch tournament status (groups standings, match progress)
     const fetchTournamentStatus = useCallback(async () => {
         if (!selectedDiscipline || !selectedYear) return;
-        
+
         setLoadingStatus(true);
         try {
             const response = await fetch(
@@ -504,7 +504,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setTournamentStatus(data.data);
@@ -519,7 +519,7 @@ function TournamentGenerator() {
     // Check if tournament already exists
     const checkTournamentExists = useCallback(async () => {
         if (!selectedDiscipline || !selectedYear) return;
-        
+
         try {
             const response = await fetch(
                 `${process.env.REACT_APP_API_URL}api/tournament/exists?disciplineId=${selectedDiscipline}&category=${selectedCategory}&year=${selectedYear}`,
@@ -530,7 +530,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setTournamentExists(data.data);
@@ -591,7 +591,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 // Backend already assigns playgrounds, but ensure matches have playgroundId set
@@ -618,6 +618,8 @@ function TournamentGenerator() {
                 }
                 setPreview(previewData);
                 toast.success(t('previewGenerated') || 'Náhled vygenerován');
+            } else if (data.type === 'ERROR' && data.data.includes('Not enough robots')) {
+                toast.error(t('notEnoughRobots') || 'Nedostatek robotů');
             } else {
                 toast.error(data.message || t('errorGenerating') || 'Chyba při generování');
             }
@@ -632,17 +634,17 @@ function TournamentGenerator() {
     // Handle playground change for a group
     const handlePlaygroundChange = (groupId, playgroundId) => {
         if (!preview) return;
-        
+
         setPreview(prev => ({
             ...prev,
-            groups: prev.groups.map(g => 
-                g.groupId === groupId 
-                    ? { 
-                        ...g, 
+            groups: prev.groups.map(g =>
+                g.groupId === groupId
+                    ? {
+                        ...g,
                         playgroundId,
                         // Update playgroundId for all matches in this group
                         matches: g.matches.map(m => ({ ...m, playgroundId }))
-                    } 
+                    }
                     : g
             )
         }));
@@ -651,7 +653,7 @@ function TournamentGenerator() {
     // Handle playground change for bracket
     const handleBracketPlaygroundChange = (playgroundId) => {
         if (!preview || !preview.bracket) return;
-        
+
         setPreview(prev => ({
             ...prev,
             bracket: {
@@ -680,16 +682,16 @@ function TournamentGenerator() {
 
     const handleDrop = (e, targetGroupId) => {
         e.preventDefault();
-        
+
         if (!draggedRobot || !dragSourceGroup || dragSourceGroup === targetGroupId) {
             setDraggedRobot(null);
             setDragSourceGroup(null);
             return;
         }
-        
+
         setPreview(prev => {
             if (!prev) return prev;
-            
+
             return {
                 ...prev,
                 groups: prev.groups.map(group => {
@@ -711,7 +713,7 @@ function TournamentGenerator() {
                 })
             };
         });
-        
+
         setDraggedRobot(null);
         setDragSourceGroup(null);
     };
@@ -722,7 +724,7 @@ function TournamentGenerator() {
 
         setSaving(true);
         setShowSaveConfirmModal(false);
-        
+
         try {
             const response = await fetch(
                 `${process.env.REACT_APP_API_URL}api/tournament/save`,
@@ -742,7 +744,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 toast.success(t('tournamentSaved') || 'Turnaj úspěšně uložen');
@@ -779,7 +781,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 toast.success(t('tournamentDeleted') || 'Turnaj smazán');
@@ -809,7 +811,7 @@ function TournamentGenerator() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 toast.success(t('finalStarted') || 'Finálový pavouk spuštěn');
@@ -856,10 +858,10 @@ function TournamentGenerator() {
     // Within each round, matches can be parallelized across playgrounds
     const getBracketPhaseTime = () => {
         if (!preview || !preview.bracket || !preview.bracket.rounds) return 0;
-        
+
         const pgCount = playgrounds.length || 1;
         let totalTime = 0;
-        
+
         preview.bracket.rounds.forEach(round => {
             // Count actual matches (excluding BYEs)
             const actualMatches = round.matches.filter(m => !m.isBye).length;
@@ -867,7 +869,7 @@ function TournamentGenerator() {
             const roundTime = Math.ceil(actualMatches / pgCount) * params.matchTimeMinutes;
             totalTime += roundTime;
         });
-        
+
         return totalTime;
     };
 
@@ -876,9 +878,9 @@ function TournamentGenerator() {
             <Row>
                 <Col md="12">
                     <Card className={isDark ? 'bg-dark' : ''} style={{ borderRadius: '12px' }}>
-                        <CardHeader style={{ 
-                            background: isDark 
-                                ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)' 
+                        <CardHeader style={{
+                            background: isDark
+                                ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
                                 : 'linear-gradient(135deg, #f8f9fa 0%, #fff 100%)',
                             borderRadius: '12px 12px 0 0'
                         }}>
@@ -888,6 +890,10 @@ function TournamentGenerator() {
                             </CardTitle>
                         </CardHeader>
                         <CardBody>
+                            <Alert color={'info'} style={{ borderRadius: '8px' }}>
+                                <i className="fas fa-info-circle mr-2"></i>
+                                {t('tournamentDisciplineInfo')}
+                            </Alert>
                             {/* Configuration Form - discipline and category selectors always visible */}
                             <Row>
                                 <Col md="6">
@@ -929,7 +935,7 @@ function TournamentGenerator() {
                                             style={{ borderRadius: '8px' }}
                                         >
                                             <option value="LOW_AGE_CATEGORY">
-                                                {t('pupils') || 'Žáci'} 
+                                                {t('pupils') || 'Žáci'}
                                                 {robotCounts.LOW_AGE_CATEGORY !== undefined && ` (${robotCounts.LOW_AGE_CATEGORY} ${t('robots') || 'robotů'})`}
                                             </option>
                                             <option value="HIGH_AGE_CATEGORY">
@@ -956,12 +962,12 @@ function TournamentGenerator() {
 
                             {/* Tournament exists warning with status info */}
                             {tournamentExists && (
-                                <Card className={isDark ? 'bg-dark' : ''} style={{ 
-                                    borderRadius: '12px', 
+                                <Card className={isDark ? 'bg-dark' : ''} style={{
+                                    borderRadius: '12px',
                                     border: `2px solid ${isDark ? '#ffd600' : '#ffc107'}`,
                                     marginBottom: '20px'
                                 }}>
-                                    <CardHeader style={{ 
+                                    <CardHeader style={{
                                         background: isDark ? 'linear-gradient(135deg, #2d2d44 0%, #1e1e2f 100%)' : 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
                                         borderRadius: '10px 10px 0 0'
                                     }}>
@@ -971,18 +977,18 @@ function TournamentGenerator() {
                                                 {t('tournamentExists') || 'Turnaj existuje'}
                                             </h5>
                                             <div>
-                                                <Button 
-                                                    color="danger" 
-                                                    size="sm" 
+                                                <Button
+                                                    color="danger"
+                                                    size="sm"
                                                     onClick={handleDeleteTournament}
                                                     style={{ borderRadius: '6px' }}
                                                 >
                                                     <i className="tim-icons icon-trash-simple mr-1" />
                                                     {t('deleteAllMatches') || 'Smazat'}
                                                 </Button>
-                                                <Button 
-                                                    color="success" 
-                                                    size="sm" 
+                                                <Button
+                                                    color="success"
+                                                    size="sm"
                                                     className="ml-2 ms-2"
                                                     onClick={() => setShowStartFinalModal(true)}
                                                     disabled={tournamentStatus?.finalStarted}
@@ -990,13 +996,13 @@ function TournamentGenerator() {
                                                     style={{ borderRadius: '6px' }}
                                                 >
                                                     <i className="tim-icons icon-triangle-right-17 mr-1" />
-                                                    {tournamentStatus?.finalStarted 
-                                                        ? (t('finalStartedLabel') || 'Finále spuštěno') 
+                                                    {tournamentStatus?.finalStarted
+                                                        ? (t('finalStartedLabel') || 'Finále spuštěno')
                                                         : (t('startFinal') || 'Spustit finále')}
                                                 </Button>
-                                                <Button 
-                                                    color="info" 
-                                                    size="sm" 
+                                                <Button
+                                                    color="info"
+                                                    size="sm"
                                                     className="ml-2 ms-2"
                                                     onClick={fetchTournamentStatus}
                                                     disabled={loadingStatus}
@@ -1040,7 +1046,7 @@ function TournamentGenerator() {
                                                             )}
                                                         </span>
                                                     </div>
-                                                    <Progress 
+                                                    <Progress
                                                         value={tournamentStatus.totalGroupMatches > 0 ? (tournamentStatus.completedGroupMatches / tournamentStatus.totalGroupMatches) * 100 : 0}
                                                         color={tournamentStatus.remainingGroupMatches === 0 ? 'success' : 'info'}
                                                         style={{ height: '10px', borderRadius: '5px' }}
@@ -1058,7 +1064,7 @@ function TournamentGenerator() {
                                                             {tournamentStatus.completedBracketMatches} / {tournamentStatus.totalBracketMatches} {t('matches') || 'zápasů'}
                                                         </span>
                                                     </div>
-                                                    <Progress 
+                                                    <Progress
                                                         value={tournamentStatus.totalBracketMatches > 0 ? (tournamentStatus.completedBracketMatches / tournamentStatus.totalBracketMatches) * 100 : 0}
                                                         color={tournamentStatus.remainingBracketMatches === 0 && tournamentStatus.totalBracketMatches > 0 ? 'success' : 'primary'}
                                                         style={{ height: '10px', borderRadius: '5px' }}
@@ -1076,11 +1082,11 @@ function TournamentGenerator() {
                                                 <Row>
                                                     {tournamentStatus.groups && tournamentStatus.groups.map((group, idx) => (
                                                         <Col md="6" lg="4" key={group.groupId}>
-                                                            <Card className={`mb-3 ${isDark ? 'bg-secondary' : ''}`} style={{ 
+                                                            <Card className={`mb-3 ${isDark ? 'bg-secondary' : ''}`} style={{
                                                                 borderRadius: '8px',
                                                                 border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
                                                             }}>
-                                                                <CardHeader className="py-2 px-3" style={{ 
+                                                                <CardHeader className="py-2 px-3" style={{
                                                                     background: isDark ? '#1e1e2f' : '#f8f9fa',
                                                                     borderRadius: '8px 8px 0 0'
                                                                 }}>
@@ -1092,7 +1098,7 @@ function TournamentGenerator() {
                                                                             {group.completedMatches}/{group.totalMatches} {t('matches') || 'zápasů'}
                                                                         </small>
                                                                     </div>
-                                                                    <Progress 
+                                                                    <Progress
                                                                         value={group.totalMatches > 0 ? (group.completedMatches / group.totalMatches) * 100 : 0}
                                                                         color={group.remainingMatches === 0 ? 'success' : 'info'}
                                                                         style={{ height: '4px', marginTop: '5px' }}
@@ -1112,10 +1118,10 @@ function TournamentGenerator() {
                                                                             </thead>
                                                                             <tbody>
                                                                                 {group.standings.map((standing, sIdx) => (
-                                                                                    <tr 
+                                                                                    <tr
                                                                                         key={standing.robotId}
-                                                                                        style={{ 
-                                                                                            background: standing.advancing 
+                                                                                        style={{
+                                                                                            background: standing.advancing
                                                                                                 ? (isDark ? 'rgba(45, 206, 137, 0.15)' : 'rgba(45, 206, 137, 0.1)')
                                                                                                 : 'transparent',
                                                                                             color: isDark ? '#fff' : '#32325d'
@@ -1123,14 +1129,14 @@ function TournamentGenerator() {
                                                                                     >
                                                                                         <td style={{ fontWeight: '600', textAlign: 'center' }}>
                                                                                             {standing.advancing ? (
-                                                                                                <span style={{ 
-                                                                                                    background: '#2dce89', 
-                                                                                                    color: '#fff', 
-                                                                                                    borderRadius: '50%', 
-                                                                                                    width: '20px', 
-                                                                                                    height: '20px', 
-                                                                                                    display: 'inline-flex', 
-                                                                                                    alignItems: 'center', 
+                                                                                                <span style={{
+                                                                                                    background: '#2dce89',
+                                                                                                    color: '#fff',
+                                                                                                    borderRadius: '50%',
+                                                                                                    width: '20px',
+                                                                                                    height: '20px',
+                                                                                                    display: 'inline-flex',
+                                                                                                    alignItems: 'center',
                                                                                                     justifyContent: 'center',
                                                                                                     fontSize: '0.75em'
                                                                                                 }}>
@@ -1139,9 +1145,9 @@ function TournamentGenerator() {
                                                                                             ) : standing.rank}
                                                                                         </td>
                                                                                         <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                                                            <Link 
+                                                                                            <Link
                                                                                                 to={`/admin/robot-profile?id=${standing.robotId}`}
-                                                                                                style={{ 
+                                                                                                style={{
                                                                                                     color: standing.advancing ? '#2dce89' : (isDark ? '#5e72e4' : '#5e72e4'),
                                                                                                     fontWeight: standing.advancing ? '700' : '500',
                                                                                                     textDecoration: 'none'
@@ -1202,7 +1208,7 @@ function TournamentGenerator() {
                                                     type="number"
                                                     min="1"
                                                     value={params.matchTimeMinutes}
-                                                    onChange={(e) => setParams({...params, matchTimeMinutes: parseInt(e.target.value) || 1})}
+                                                    onChange={(e) => setParams({ ...params, matchTimeMinutes: parseInt(e.target.value) || 1 })}
                                                     className={isDark ? 'bg-dark text-white' : ''}
                                                     style={{ borderRadius: '8px' }}
                                                 />
@@ -1218,7 +1224,7 @@ function TournamentGenerator() {
                                                     min="1"
                                                     max="16"
                                                     value={params.groupCount}
-                                                    onChange={(e) => setParams({...params, groupCount: parseInt(e.target.value) || 1})}
+                                                    onChange={(e) => setParams({ ...params, groupCount: parseInt(e.target.value) || 1 })}
                                                     className={isDark ? 'bg-dark text-white' : ''}
                                                     style={{ borderRadius: '8px' }}
                                                 />
@@ -1234,7 +1240,7 @@ function TournamentGenerator() {
                                                     min="1"
                                                     max="4"
                                                     value={params.advancingPerGroup}
-                                                    onChange={(e) => setParams({...params, advancingPerGroup: parseInt(e.target.value) || 1})}
+                                                    onChange={(e) => setParams({ ...params, advancingPerGroup: parseInt(e.target.value) || 1 })}
                                                     className={isDark ? 'bg-dark text-white' : ''}
                                                     style={{ borderRadius: '8px' }}
                                                 />
@@ -1243,11 +1249,11 @@ function TournamentGenerator() {
                                     </Row>
                                     <Row className="mt-2">
                                         <Col md="12" className="d-flex justify-content-center">
-                                            <Button 
-                                                color="primary" 
+                                            <Button
+                                                color="primary"
                                                 onClick={handleGeneratePreview}
                                                 disabled={generating || !selectedDiscipline || currentRobotCount === 0 || playgrounds.length === 0}
-                                                style={{ 
+                                                style={{
                                                     borderRadius: '8px',
                                                     padding: '12px 30px',
                                                     fontSize: '1rem',
@@ -1283,9 +1289,9 @@ function TournamentGenerator() {
                 <Row>
                     <Col md="12">
                         <Card className={isDark ? 'bg-dark' : ''} style={{ borderRadius: '12px' }}>
-                            <CardHeader style={{ 
-                                background: isDark 
-                                    ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)' 
+                            <CardHeader style={{
+                                background: isDark
+                                    ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
                                     : 'linear-gradient(135deg, #f8f9fa 0%, #fff 100%)',
                                 borderRadius: '12px 12px 0 0'
                             }}>
@@ -1343,7 +1349,7 @@ function TournamentGenerator() {
                                         <NavLink
                                             className={classnames({ active: activeTab === 'groups' })}
                                             onClick={() => setActiveTab('groups')}
-                                            style={{ 
+                                            style={{
                                                 cursor: 'pointer',
                                                 ...(activeTab === 'groups' && !isDark ? {
                                                     backgroundColor: '#5e72e4',
@@ -1361,7 +1367,7 @@ function TournamentGenerator() {
                                         <NavLink
                                             className={classnames({ active: activeTab === 'bracket' })}
                                             onClick={() => setActiveTab('bracket')}
-                                            style={{ 
+                                            style={{
                                                 cursor: 'pointer',
                                                 ...(activeTab === 'bracket' && !isDark ? {
                                                     backgroundColor: '#5e72e4',
@@ -1389,8 +1395,8 @@ function TournamentGenerator() {
                                         <Row>
                                             {preview.groups.map((group, idx) => (
                                                 <Col lg="6" xl="4" key={group.groupId}>
-                                                    <RoundRobinTable 
-                                                        group={group} 
+                                                    <RoundRobinTable
+                                                        group={group}
                                                         isDark={isDark}
                                                         playgrounds={playgrounds}
                                                         onPlaygroundChange={handlePlaygroundChange}
@@ -1406,8 +1412,8 @@ function TournamentGenerator() {
 
                                     {/* Tab 2: Bracket */}
                                     <TabPane tabId="bracket">
-                                        <BracketVisualization 
-                                            bracket={preview.bracket} 
+                                        <BracketVisualization
+                                            bracket={preview.bracket}
                                             isDark={isDark}
                                             playgrounds={playgrounds}
                                             onPlaygroundChange={handleBracketPlaygroundChange}
@@ -1419,12 +1425,12 @@ function TournamentGenerator() {
                                     </TabPane>
                                 </TabContent>
                             </CardBody>
-                            <CardFooter style={{ 
+                            <CardFooter style={{
                                 background: isDark ? '#1e1e2f' : '#f8f9fa',
                                 borderRadius: '0 0 12px 12px'
                             }}>
-                                <Button 
-                                    color="success" 
+                                <Button
+                                    color="success"
                                     size="lg"
                                     onClick={() => setShowSaveConfirmModal(true)}
                                     disabled={saving}
@@ -1436,8 +1442,8 @@ function TournamentGenerator() {
                                         <><i className="tim-icons icon-check-2 mr-1" /> {t('saveTournament') || 'Uložit turnaj'}</>
                                     )}
                                 </Button>
-                                <Button 
-                                    color="secondary" 
+                                <Button
+                                    color="secondary"
                                     className="ml-2 ms-2"
                                     onClick={() => setPreview(null)}
                                     style={{ borderRadius: '8px' }}
@@ -1453,7 +1459,7 @@ function TournamentGenerator() {
 
             {/* Save Confirmation Modal */}
             <Modal isOpen={showSaveConfirmModal} toggle={() => setShowSaveConfirmModal(false)}>
-                <ModalHeader toggle={() => setShowSaveConfirmModal(false)} style={{ 
+                <ModalHeader toggle={() => setShowSaveConfirmModal(false)} style={{
                     background: isDark ? '#1e1e2f' : '#f8f9fa',
                     color: isDark ? 'white' : '#32325d'
                 }}>
@@ -1465,9 +1471,9 @@ function TournamentGenerator() {
                         {t('confirmSaveTournamentDescription')}
                     </p>
                     {preview && (
-                        <div style={{ 
-                            background: isDark ? '#1e1e2f' : '#f8f9fa', 
-                            padding: '15px', 
+                        <div style={{
+                            background: isDark ? '#1e1e2f' : '#f8f9fa',
+                            padding: '15px',
                             borderRadius: '8px',
                             marginTop: '15px'
                         }}>
@@ -1499,7 +1505,7 @@ function TournamentGenerator() {
 
             {/* Start Final Modal */}
             <Modal isOpen={showStartFinalModal} toggle={() => setShowStartFinalModal(false)}>
-                <ModalHeader toggle={() => setShowStartFinalModal(false)} style={{ 
+                <ModalHeader toggle={() => setShowStartFinalModal(false)} style={{
                     background: isDark ? '#1e1e2f' : '#f8f9fa',
                     color: isDark ? 'white' : '#32325d'
                 }}>
@@ -1519,7 +1525,7 @@ function TournamentGenerator() {
                             min="1"
                             max="4"
                             value={params.advancingPerGroup}
-                            onChange={(e) => setParams({...params, advancingPerGroup: parseInt(e.target.value)})}
+                            onChange={(e) => setParams({ ...params, advancingPerGroup: parseInt(e.target.value) })}
                             className={isDark ? 'bg-dark text-white' : ''}
                             style={{ borderRadius: '8px' }}
                         />

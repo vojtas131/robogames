@@ -207,6 +207,8 @@ function PlaygroundMatches() {
             if (response.ok && data.type === 'RESPONSE') {
                 toast.success(t('matchSkipped') || 'Zápas byl přeskočen');
                 fetchCurrentMatch();
+            } else if (data.type === 'ERROR' && data.data.includes('queue is empty or has only one match')) {
+                toast.error(t('matchSkipQueueEmpty') || 'Nelze přeskočit zápas, fronta je prázdná nebo obsahuje pouze jeden zápas');
             } else {
                 toast.error(data.message || t('matchSkipFailed') || 'Nepodařilo se přeskočit zápas');
             }
@@ -657,19 +659,19 @@ function PlaygroundMatches() {
                                 <Col md="3">
                                     <div className="text-center p-3" style={{ background: 'rgba(29, 140, 248, 0.1)', borderRadius: '8px' }}>
                                         <h3 className="mb-0 text-success">{doneMatches}</h3>
-                                        <small className="text-muted">{t('done') || 'Hotové'}</small>
+                                        <small className="text-muted">{t('doneStatus') || 'Hotové'}</small>
                                     </div>
                                 </Col>
                                 <Col md="3">
                                     <div className="text-center p-3" style={{ background: 'rgba(255, 178, 43, 0.1)', borderRadius: '8px' }}>
                                         <h3 className="mb-0 text-warning">{waitingMatches}</h3>
-                                        <small className="text-muted">{t('waiting') || 'Čekající'}</small>
+                                        <small className="text-muted">{t('waitingStatus') || 'Čekající'}</small>
                                     </div>
                                 </Col>
                                 <Col md="3">
                                     <div className="text-center p-3" style={{ background: 'rgba(253, 93, 147, 0.1)', borderRadius: '8px' }}>
                                         <h3 className="mb-0 text-danger">{rematchMatches}</h3>
-                                        <small className="text-muted">{t('rematch') || 'Opakování'}</small>
+                                        <small className="text-muted">{t('rematchStatus') || 'Opakování'}</small>
                                     </div>
                                 </Col>
                             </Row>
