@@ -2,7 +2,7 @@
  * ProtectedRoute - Component that protects admin routes from unauthorized access
  * 
  * Redirects users without proper roles (only COMPETITOR or no role) to home page
- * Allowed roles: ADMIN, LEADER, REFEREE, ROBOT_OPERATOR
+ * Allowed roles: ADMIN, LEADER, REFEREE, ASSISTANT
  */
 import React from 'react';
 import { Navigate } from 'react-router-dom';
@@ -25,7 +25,7 @@ const ADMIN_ONLY_ROUTES = [
 ];
 
 // Roles that are allowed to access admin routes
-const ADMIN_ROLES = ['ADMIN', 'LEADER', 'REFEREE', 'ROBOT_OPERATOR'];
+const ADMIN_ROLES = ['ADMIN', 'LEADER', 'REFEREE', 'ASSISTANT'];
 
 /**
  * Check if user has admin access

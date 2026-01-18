@@ -24,32 +24,68 @@ function AdminDashboard() {
     navigate(path);
   };
 
+  const rolesString = localStorage.getItem('roles'); // Get the roles string from localStorage
+  const rolesArray = rolesString ? rolesString.split(', ') : []; // Split the roles string into an array or use an empty array if no roles exist
+
   // Definice admin karet s kategoriemi
   const adminSections = [
     {
       title: t("dataManagement"),
       cards: [
-        { path: '/admin/user-management', icon: 'icon-single-02', label: t("manageUser"), color: '#5e72e4' },
-        { path: '/admin/team-management', icon: 'icon-molecule-40', label: t("teamManagement"), color: '#2dce89' },
-        { path: '/admin/registration-management', icon: 'icon-paper', label: t("registrationManagement"), color: '#fb6340' },
-        { path: '/admin/robot-management', icon: 'icon-spaceship', label: t("robotManagement"), color: '#f5365c' },
+        {
+          path: '/admin/user-management', icon: 'icon-single-02', label: t("manageUser"), color: '#5e72e4',
+          roles: ['ADMIN']
+        },
+        {
+          path: '/admin/team-management', icon: 'icon-molecule-40', label: t("teamManagement"), color: '#2dce89',
+          roles: ['LEADER', 'ASSISTANT', 'ADMIN']
+        },
+        {
+          path: '/admin/registration-management', icon: 'icon-paper', label: t("registrationManagement"), color: '#fb6340',
+          roles: ['LEADER', 'ASSISTANT', 'ADMIN']
+        },
+        {
+          path: '/admin/robot-management', icon: 'icon-spaceship', label: t("robotManagement"), color: '#f5365c',
+          roles: ['LEADER', 'ASSISTANT', 'ADMIN']
+        },
       ]
     },
     {
       title: t("competitionManagementTitle"),
       cards: [
-        { path: '/admin/competition-management', icon: 'icon-trophy', label: t("manageComp"), color: '#ffd600' },
-        { path: '/admin/playground-management', icon: 'icon-app', label: t("managePg"), color: '#11cdef' },
-        { path: '/admin/match-management', icon: 'icon-controller', label: t("matchManagement") || "Správa zápasů", color: '#8965e0' },
+        {
+          path: '/admin/competition-management', icon: 'icon-trophy', label: t("manageComp"), color: '#ffd600',
+          roles: ['LEADER', 'ADMIN']
+        },
+        {
+          path: '/admin/playground-management', icon: 'icon-app', label: t("managePg"), color: '#11cdef',
+          roles: ['LEADER', 'ASSISTANT', 'ADMIN']
+        },
+        {
+          path: '/admin/match-management', icon: 'icon-controller', label: t("matchManagement") || "Správa zápasů", color: '#8965e0',
+          roles: ['LEADER', 'ADMIN']
+        },
       ]
     },
     {
       title: t("tools"),
       cards: [
-        { path: '/admin/tournament-generator', icon: 'icon-trophy', label: t("tournamentGenerator") || "Generování turnaje", color: '#fc5603', description: t("tournamentGeneratorDesc") || "Generování skupin a pavouka pro turnajové disciplíny" },
+        {
+          path: '/admin/tournament-generator', icon: 'icon-trophy', label: t("tournamentGenerator") || "Generování turnaje", color: '#fc5603', description: t("tournamentGeneratorDesc") || "Generování skupin a pavouka pro turnajové disciplíny",
+          roles: ['LEADER', 'ADMIN']
+        },
       ]
     }
   ];
+
+  const filteredAdminSections = adminSections
+    .map(section => ({
+      ...section,
+      cards: section.cards.filter(card =>
+        !card.roles || card.roles.some(role => rolesArray.includes(role))
+      )
+    }))
+    .filter(section => section.cards.length > 0); // remove sections without cards
 
   const cardStyle = {
     cursor: 'pointer',
@@ -62,16 +98,16 @@ function AdminDashboard() {
 
   const cardHoverStyle = (e, entering) => {
     e.currentTarget.style.transform = entering ? 'translateY(-5px)' : 'translateY(0)';
-    e.currentTarget.style.boxShadow = entering 
-      ? '0 15px 35px rgba(0,0,0,0.2)' 
+    e.currentTarget.style.boxShadow = entering
+      ? '0 15px 35px rgba(0,0,0,0.2)'
       : '0 5px 15px rgba(0,0,0,0.1)';
   };
 
   return (
     <div className="content">
-      {adminSections.map((section, sectionIdx) => (
+      {filteredAdminSections.map((section, sectionIdx) => (
         <div key={sectionIdx} className="mb-5">
-          <h4 className={`mb-4 ${isDark ? 'text-white' : 'text-dark'}`} style={{ 
+          <h4 className={`mb-4 ${isDark ? 'text-white' : 'text-dark'}`} style={{
             borderBottom: `2px solid ${isDark ? '#525f7f' : '#e9ecef'}`,
             paddingBottom: '10px',
             fontWeight: '600'
@@ -85,7 +121,7 @@ function AdminDashboard() {
                   onClick={() => handleNavigate(card.path)}
                   style={{
                     ...cardStyle,
-                    background: isDark 
+                    background: isDark
                       ? `linear-gradient(135deg, ${card.color}22 0%, ${card.color}44 100%)`
                       : `linear-gradient(135deg, ${card.color}15 0%, ${card.color}30 100%)`,
                     border: `1px solid ${card.color}55`,
@@ -108,8 +144,8 @@ function AdminDashboard() {
                     }}>
                       <i className={`tim-icons ${card.icon}`} style={{ fontSize: '24px', color: 'white' }} />
                     </div>
-                    <CardTitle tag="h5" style={{ 
-                      fontSize: '1.1em', 
+                    <CardTitle tag="h5" style={{
+                      fontSize: '1.1em',
                       fontWeight: '600',
                       color: isDark ? 'white' : '#32325d',
                       marginBottom: card.description ? '8px' : '0'
@@ -117,8 +153,8 @@ function AdminDashboard() {
                       {card.label}
                     </CardTitle>
                     {card.description && (
-                      <p style={{ 
-                        fontSize: '0.85em', 
+                      <p style={{
+                        fontSize: '0.85em',
                         color: isDark ? '#a0aec0' : '#8898aa',
                         margin: 0,
                         lineHeight: '1.4'

@@ -823,7 +823,7 @@ function TournamentView() {
     // Check if user has admin-level role (can see results even when hidden)
     const rolesString = localStorage.getItem('roles');
     const rolesArray = rolesString ? rolesString.split(', ') : [];
-    const hasAdminAccess = rolesArray.some(role => ['ADMIN', 'LEADER', 'REFEREE', 'ROBOT_OPERATOR'].includes(role));
+    const hasAdminAccess = rolesArray.some(role => ['ADMIN', 'LEADER', 'REFEREE', 'ASSISTANT'].includes(role));
     
     // User can see results if: showResults is true OR user has admin access
     const canSeeResults = currentCompetition?.showResults || hasAdminAccess;
