@@ -60,6 +60,14 @@ var routes = [
     layout: "/admin",
   },
   {
+    path: "/match-management",
+    name: t("matchManagement"),
+    rtlName: "",
+    icon: "tim-icons icon-controller",
+    component: <MatchManagement />,
+    layout: "/admin",
+  },
+  {
     path: "/dashboard",
     name: t("home"),
     rtlName: "",
@@ -81,14 +89,6 @@ var routes = [
     rtlName: "",
     icon: "tim-icons icon-molecule-40",
     component: <MyTeam />,
-    layout: "/admin",
-  },
-  {
-    path: "/match-management",
-    name: t("matchManagement"),
-    rtlName: "",
-    icon: "tim-icons icon-controller",
-    component: <MatchManagement />,
     layout: "/admin",
   },
   {
