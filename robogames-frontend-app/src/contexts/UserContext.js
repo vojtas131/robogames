@@ -7,7 +7,7 @@ const UserContext = createContext();
 export const useUser = () => useContext(UserContext);
 
 // Calculates user age
-const calculateAge = (_birthDate) => {
+export const calculateAge = (_birthDate) => {
   if (!_birthDate) { return null; }
 
   const today = new Date();
