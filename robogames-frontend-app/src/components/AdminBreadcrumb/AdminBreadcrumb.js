@@ -43,7 +43,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
   
   // Check if user is admin
   const roles = localStorage.getItem('roles') || '';
-  const isAdmin = roles.includes('ADMIN') || roles.includes('MAIN_REFEREE');
+  const isAdmin = roles.includes('ADMIN');
   
   // Responsive breakpoints
   const isMobile = windowWidth < 768;

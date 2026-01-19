@@ -146,8 +146,8 @@ function UserProfile() {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            name: userData.name,
-            surname: userData.surname,
+            name: userData.name.trim(),
+            surname: userData.surname.trim(),
             birthDate: userData.birthDate
           })
         });
@@ -177,7 +177,6 @@ function UserProfile() {
       case 'ADMIN': return 'danger';
       case 'LEADER': return 'warning';
       case 'REFEREE': return 'info';
-      case 'MAIN_REFEREE': return 'primary';
       case 'ASSISTANT': return 'success';
       case 'COMPETITOR': return 'secondary';
       default: return 'secondary';

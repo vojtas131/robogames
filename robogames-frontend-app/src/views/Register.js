@@ -77,11 +77,12 @@ export function validateBirth(birthDate) {
 };
 
 export function validateName(name) {
-  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-]+$/;
-  if (allowed.test(name)) {
-    if (name.length < process.env.REACT_APP_MIN_NAME_LENGTH) {
+  const allowed = /^[A-Za-zČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ '-]+$/;
+  const trimmed = name.trim();
+  if (allowed.test(trimmed)) {
+    if (trimmed.length < process.env.REACT_APP_MIN_NAME_LENGTH) {
       return "too short"
-    } else if (name.length > process.env.REACT_APP_MAX_NAME_LENGTH) {
+    } else if (trimmed.length > process.env.REACT_APP_MAX_NAME_LENGTH) {
       return "too long"
     } else {
       return true;
@@ -199,9 +200,9 @@ function Register() {
     if (!errors.name && !errors.surname && !errors.email && !errors.password && !errors.confirmPassword && !errors.birthDate && formData.password === formData.confirmPassword && formData.email && formData.password && formData.name && formData.surname && formData.birthDate) {
       const apiUrl = `${process.env.REACT_APP_API_URL}auth/register`;
       const data = {
-        name: formData.name,
-        surname: formData.surname,
-        email: formData.email,
+        name: formData.name.trim(),
+        surname: formData.surname.trim(),
+        email: formData.email.trim(),
         password: formData.password,
         birthDate: formData.birthDate
       };

@@ -67,7 +67,7 @@ function UserManagement() {
   const { token, tokenExpired } = useUser();
   const toast = useToast();
   const { confirm } = useConfirm();
-  const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER', 'MAIN_REFEREE'];
+  const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER'];
 
   // Překlad role na základě jejího jména
   const getRoleTranslation = (roleName) => {
@@ -415,8 +415,8 @@ function UserManagement() {
             'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({
-            name: currentUser.name,
-            surname: currentUser.surname,
+            name: currentUser.name.trim(),
+            surname: currentUser.surname.trim(),
             birthDate: currentUser.birthDate,
           }),
         }

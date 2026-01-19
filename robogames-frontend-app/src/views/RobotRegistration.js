@@ -242,7 +242,7 @@ function RobotRegistration() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: robotName })
+        body: JSON.stringify({ name: robotName.trim() })
       });
       if (tokenExpired(response.status)) { return; }
 
@@ -279,7 +279,7 @@ function RobotRegistration() {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${selectedYear}&id=${robotId}&name=${newName}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${selectedYear}&id=${robotId}&name=${newName.trim()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

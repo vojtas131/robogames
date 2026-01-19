@@ -34,7 +34,7 @@ function AdminDashboard() {
       cards: [
         {
           path: '/admin/user-management', icon: 'icon-single-02', label: t("manageUser"), color: '#5e72e4',
-          roles: ['ADMIN']
+          roles: ['ADMIN', 'LEADER']
         },
         {
           path: '/admin/team-management', icon: 'icon-molecule-40', label: t("teamManagement"), color: '#2dce89',
@@ -63,7 +63,7 @@ function AdminDashboard() {
         },
         {
           path: '/admin/match-management', icon: 'icon-controller', label: t("matchManagement") || "Správa zápasů", color: '#8965e0',
-          roles: ['LEADER', 'ADMIN']
+          roles: ['LEADER', 'ASSISTANT', 'ADMIN']
         },
       ]
     },
