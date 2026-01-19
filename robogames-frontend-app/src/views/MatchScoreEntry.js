@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Card, CardHeader, CardBody, CardTitle,
@@ -40,6 +40,13 @@ function MatchScoreEntry() {
     // Confirmation modal states
     const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
     const [confirmRematchOpen, setConfirmRematchOpen] = useState(false);
+
+    // Stopwatch states for TIME score type
+    const [stopwatchRunning, setStopwatchRunning] = useState(false);
+    const [stopwatchStartTime, setStopwatchStartTime] = useState(null);
+    const [stopwatchElapsed, setStopwatchElapsed] = useState(0);
+    const stopwatchIntervalRef = useRef(null);
+    const [activeStopwatch, setActiveStopwatch] = useState('A'); // 'A' or 'B' for which robot's timer
 
     // Fetch match details
     const fetchMatch = useCallback(async () => {
@@ -105,6 +112,92 @@ function MatchScoreEntry() {
     useEffect(() => {
         fetchMatch();
     }, [fetchMatch]);
+
+    // Stopwatch interval effect
+    useEffect(() => {
+        if (stopwatchRunning && stopwatchStartTime) {
+            stopwatchIntervalRef.current = setInterval(() => {
+                const elapsed = Date.now() - stopwatchStartTime;
+                setStopwatchElapsed(elapsed);
+                
+                // Update time fields in real-time
+                const totalMs = elapsed;
+                const mins = Math.floor(totalMs / 60000);
+                const secs = Math.floor((totalMs % 60000) / 1000);
+                const ms = totalMs % 1000;
+                
+                if (activeStopwatch === 'A') {
+                    setTimeAMinutes(mins.toString());
+                    setTimeASeconds(secs.toString());
+                    setTimeAMillis(ms.toString());
+                } else {
+                    setTimeBMinutes(mins.toString());
+                    setTimeBSeconds(secs.toString());
+                    setTimeBMillis(ms.toString());
+                }
+            }, 10); // Update every 10ms for smooth display
+        } else {
+            if (stopwatchIntervalRef.current) {
+                clearInterval(stopwatchIntervalRef.current);
+                stopwatchIntervalRef.current = null;
+            }
+        }
+        
+        return () => {
+            if (stopwatchIntervalRef.current) {
+                clearInterval(stopwatchIntervalRef.current);
+            }
+        };
+    }, [stopwatchRunning, stopwatchStartTime, activeStopwatch]);
+
+    // Keyboard handler for spacebar to start/stop stopwatch
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Only handle spacebar for TIME score type and when not in input field
+            if (e.code === 'Space' && match?.scoreTypeName === 'TIME') {
+                // Don't trigger if user is typing in an input
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                e.preventDefault();
+                toggleStopwatch();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [match?.scoreTypeName, stopwatchRunning, stopwatchStartTime, stopwatchElapsed, activeStopwatch]);
+
+    // Toggle stopwatch start/stop
+    const toggleStopwatch = () => {
+        if (stopwatchRunning) {
+            // Stop the stopwatch
+            setStopwatchRunning(false);
+        } else {
+            // Start the stopwatch
+            const now = Date.now();
+            // If there's already elapsed time, resume from there
+            const resumeFrom = stopwatchElapsed > 0 ? now - stopwatchElapsed : now;
+            setStopwatchStartTime(resumeFrom);
+            setStopwatchRunning(true);
+        }
+    };
+
+    // Reset stopwatch
+    const resetStopwatch = () => {
+        setStopwatchRunning(false);
+        setStopwatchStartTime(null);
+        setStopwatchElapsed(0);
+        if (activeStopwatch === 'A') {
+            setTimeAMinutes('0');
+            setTimeASeconds('0');
+            setTimeAMillis('0');
+        } else {
+            setTimeBMinutes('0');
+            setTimeBSeconds('0');
+            setTimeBMillis('0');
+        }
+    };
 
     // Convert time fields (mm:ss:ms) to total seconds (float)
     const timeToSeconds = (minutes, seconds, millis) => {
@@ -544,6 +637,81 @@ function MatchScoreEntry() {
                                         }
                                     </Alert>
 
+                                    {/* Stopwatch for TIME disciplines - Two Robots */}
+                                    {isTimeScore && (
+                                        <div style={{ 
+                                            background: 'rgba(255,255,255,0.05)', 
+                                            borderRadius: '8px', 
+                                            padding: '12px',
+                                            margin: '0 10px 10px 10px',
+                                            border: '1px solid rgba(255,255,255,0.1)'
+                                        }}>
+                                            <Row className="align-items-center">
+                                                <Col md="4" className="text-center mb-2 mb-md-0">
+                                                    <Label className="mb-2 d-block" style={{ fontSize: '12px' }}>
+                                                        <i className="tim-icons icon-time-alarm mr-1" />
+                                                        {t('stopwatchFor') || 'Stopky pro'}:
+                                                    </Label>
+                                                    <div className="btn-group">
+                                                        <Button 
+                                                            size="sm"
+                                                            color={activeStopwatch === 'A' ? 'success' : 'secondary'}
+                                                            onClick={() => !stopwatchRunning && setActiveStopwatch('A')}
+                                                            disabled={stopwatchRunning}
+                                                            style={{ minWidth: '60px' }}
+                                                        >
+                                                            {match.robotAName?.substring(0, 8) || 'A'}
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm"
+                                                            color={activeStopwatch === 'B' ? 'primary' : 'secondary'}
+                                                            onClick={() => !stopwatchRunning && setActiveStopwatch('B')}
+                                                            disabled={stopwatchRunning}
+                                                            style={{ minWidth: '60px' }}
+                                                        >
+                                                            {match.robotBName?.substring(0, 8) || 'B'}
+                                                        </Button>
+                                                    </div>
+                                                </Col>
+                                                <Col md="4" className="text-center mb-2 mb-md-0">
+                                                    <div style={{ 
+                                                        fontSize: '28px', 
+                                                        fontWeight: 'bold', 
+                                                        fontFamily: 'monospace',
+                                                        color: stopwatchRunning ? '#2dce89' : 'inherit'
+                                                    }}>
+                                                        {String(Math.floor(stopwatchElapsed / 60000)).padStart(2, '0')}:
+                                                        {String(Math.floor((stopwatchElapsed % 60000) / 1000)).padStart(2, '0')}.
+                                                        {String(stopwatchElapsed % 1000).padStart(3, '0')}
+                                                    </div>
+                                                    <small className="text-muted" style={{ fontSize: '10px' }}>
+                                                        {t('pressSpaceToToggle') || 'Stiskni mezerník pro start/stop'}
+                                                    </small>
+                                                </Col>
+                                                <Col md="4" className="text-center">
+                                                    <Button 
+                                                        size="sm"
+                                                        color={stopwatchRunning ? 'danger' : 'success'}
+                                                        onClick={toggleStopwatch}
+                                                        className="mr-2"
+                                                        style={{ minWidth: '80px' }}
+                                                    >
+                                                        <i className={`tim-icons ${stopwatchRunning ? 'icon-button-pause' : 'icon-triangle-right-17'} mr-1`} />
+                                                        {stopwatchRunning ? (t('stop') || 'Stop') : (t('start') || 'Start')}
+                                                    </Button>
+                                                    <Button 
+                                                        size="sm"
+                                                        color="warning"
+                                                        onClick={resetStopwatch}
+                                                        disabled={stopwatchRunning}
+                                                    >
+                                                        <i className="tim-icons icon-refresh-02" />
+                                                    </Button>
+                                                </Col>
+                                            </Row>
+                                        </div>
+                                    )}
+
                                     {/* Score Entry Form - Two Robots */}
                                     <div style={{ 
                                         background: 'rgba(255,255,255,0.03)', 
@@ -604,7 +772,7 @@ function MatchScoreEntry() {
                                                             <Input
                                                                 type="number"
                                                                 id="scoreA"
-                                                                step="1"
+                                                                step="any"
                                                                 min="0"
                                                                 value={scoreA}
                                                                 onChange={(e) => setScoreA(e.target.value)}
@@ -669,7 +837,7 @@ function MatchScoreEntry() {
                                                             <Input
                                                                 type="number"
                                                                 id="scoreB"
-                                                                step="1"
+                                                                step="any"
                                                                 min="0"
                                                                 value={scoreB}
                                                                 onChange={(e) => setScoreB(e.target.value)}
@@ -707,6 +875,58 @@ function MatchScoreEntry() {
                                             </div>
                                         </Col>
                                     </Row>
+
+                                    {/* Stopwatch for TIME disciplines - Single Robot */}
+                                    {isTimeScore && (
+                                        <div style={{ 
+                                            background: 'rgba(255,255,255,0.05)', 
+                                            borderRadius: '8px', 
+                                            padding: '12px',
+                                            margin: '0 10px 10px 10px',
+                                            border: '1px solid rgba(255,255,255,0.1)'
+                                        }}>
+                                            <Row className="align-items-center justify-content-center">
+                                                <Col md="6" className="text-center mb-2">
+                                                    <div style={{ 
+                                                        fontSize: '32px', 
+                                                        fontWeight: 'bold', 
+                                                        fontFamily: 'monospace',
+                                                        color: stopwatchRunning ? '#2dce89' : 'inherit'
+                                                    }}>
+                                                        {String(Math.floor(stopwatchElapsed / 60000)).padStart(2, '0')}:
+                                                        {String(Math.floor((stopwatchElapsed % 60000) / 1000)).padStart(2, '0')}.
+                                                        {String(stopwatchElapsed % 1000).padStart(3, '0')}
+                                                    </div>
+                                                    <small className="text-muted" style={{ fontSize: '10px' }}>
+                                                        {t('pressSpaceToToggle') || 'Stiskni mezerník pro start/stop'}
+                                                    </small>
+                                                </Col>
+                                            </Row>
+                                            <Row className="justify-content-center">
+                                                <Col className="text-center">
+                                                    <Button 
+                                                        size="sm"
+                                                        color={stopwatchRunning ? 'danger' : 'success'}
+                                                        onClick={toggleStopwatch}
+                                                        className="mr-2"
+                                                        style={{ minWidth: '100px' }}
+                                                    >
+                                                        <i className={`tim-icons ${stopwatchRunning ? 'icon-button-pause' : 'icon-triangle-right-17'} mr-1`} />
+                                                        {stopwatchRunning ? (t('stop') || 'Stop') : (t('start') || 'Start')}
+                                                    </Button>
+                                                    <Button 
+                                                        size="sm"
+                                                        color="warning"
+                                                        onClick={resetStopwatch}
+                                                        disabled={stopwatchRunning}
+                                                    >
+                                                        <i className="tim-icons icon-refresh-02 mr-1" />
+                                                        Reset
+                                                    </Button>
+                                                </Col>
+                                            </Row>
+                                        </div>
+                                    )}
 
                                     {/* Score Entry Form - Single Robot */}
                                     <div style={{ 
@@ -771,7 +991,7 @@ function MatchScoreEntry() {
                                                             <Input
                                                                 type="number"
                                                                 id="scoreA"
-                                                                step="1"
+                                                                step="any"
                                                                 min="0"
                                                                 value={scoreA}
                                                                 onChange={(e) => setScoreA(e.target.value)}

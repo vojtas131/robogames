@@ -395,6 +395,16 @@ function TournamentGenerator() {
     const [showStartFinalModal, setShowStartFinalModal] = useState(false);
     const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
 
+    // Main tab state (tournament vs non-tournament)
+    const [mainTab, setMainTab] = useState('tournament');
+
+    // Non-tournament disciplines state
+    const [nonTournamentStatus, setNonTournamentStatus] = useState([]);
+    const [loadingNonTournament, setLoadingNonTournament] = useState(false);
+    const [generatingNonTournament, setGeneratingNonTournament] = useState(false);
+    const [showGenerationSummary, setShowGenerationSummary] = useState(false);
+    const [generationResult, setGenerationResult] = useState(null);
+
     // Fetch playgrounds for selected discipline
     const fetchPlaygrounds = useCallback(async (disciplineId) => {
         if (!disciplineId) {
@@ -558,6 +568,136 @@ function TournamentGenerator() {
         checkTournamentExists();
         fetchRobotCounts();
     }, [checkTournamentExists, fetchRobotCounts]);
+
+    // Fetch non-tournament disciplines status
+    const fetchNonTournamentStatus = useCallback(async () => {
+        if (!selectedYear) return;
+
+        setLoadingNonTournament(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/nontournament/status?year=${selectedYear}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setNonTournamentStatus(data.data || []);
+            }
+        } catch (error) {
+            console.error('Failed to fetch non-tournament status:', error);
+        } finally {
+            setLoadingNonTournament(false);
+        }
+    }, [selectedYear, token, tokenExpired]);
+
+    // Fetch non-tournament status when switching to that tab
+    useEffect(() => {
+        if (mainTab === 'nontournament') {
+            fetchNonTournamentStatus();
+        }
+    }, [mainTab, fetchNonTournamentStatus]);
+
+    // Generate all non-tournament matches
+    const handleGenerateAllNonTournament = async () => {
+        setGeneratingNonTournament(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/nontournament/generateAll?year=${selectedYear}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                setGenerationResult(data.data);
+                setShowGenerationSummary(true);
+                toast.success(t('matchesGenerated') || 'Zápasy vygenerovány');
+                fetchNonTournamentStatus();
+            } else {
+                toast.error(data.message || t('errorGenerating') || 'Chyba při generování');
+            }
+        } catch (error) {
+            console.error('Failed to generate non-tournament matches:', error);
+            toast.error(t('errorGenerating') || 'Chyba při generování');
+        } finally {
+            setGeneratingNonTournament(false);
+        }
+    };
+
+    // Delete non-tournament matches for a discipline/category
+    const handleDeleteNonTournamentMatches = async (disciplineId, category) => {
+        if (!window.confirm(t('confirmDeleteNonTournament') || 'Opravdu chcete smazat všechny zápasy pro tuto disciplínu a kategorii?')) {
+            return;
+        }
+
+        setLoadingNonTournament(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/nontournament/delete?disciplineId=${disciplineId}&category=${category}&year=${selectedYear}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                toast.success(t('nonTournamentDeleted') || 'Zápasy smazány');
+                fetchNonTournamentStatus();
+            } else {
+                toast.error(data.message || t('errorDeleting') || 'Chyba při mazání');
+            }
+        } catch (error) {
+            console.error('Failed to delete non-tournament matches:', error);
+            toast.error(t('errorDeleting') || 'Chyba při mazání');
+        } finally {
+            setLoadingNonTournament(false);
+        }
+    };
+
+    // Generate matches for a single discipline/category
+    const handleGenerateSingleNonTournament = async (disciplineId, category) => {
+        setLoadingNonTournament(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/nontournament/generate?disciplineId=${disciplineId}&category=${category}&year=${selectedYear}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type === 'RESPONSE') {
+                toast.success(t('matchesGenerated') || 'Zápasy vygenerovány');
+                fetchNonTournamentStatus();
+            } else {
+                toast.error(data.message || t('errorGenerating') || 'Chyba při generování');
+            }
+        } catch (error) {
+            console.error('Failed to generate matches:', error);
+            toast.error(t('errorGenerating') || 'Chyba při generování');
+        } finally {
+            setLoadingNonTournament(false);
+        }
+    };
 
     // Generate preview
     const handleGeneratePreview = async () => {
@@ -888,8 +1028,49 @@ function TournamentGenerator() {
                                 <i className="tim-icons icon-trophy mr-2" style={{ color: '#000' }} />
                                 {t('tournamentGenerator') || 'Generátor turnajů'}
                             </CardTitle>
+                            {/* Main Tab Navigation */}
+                            <Nav tabs style={{ marginTop: '15px', borderBottom: 'none' }}>
+                                <NavItem>
+                                    <NavLink
+                                        className={classnames({ active: mainTab === 'tournament' })}
+                                        onClick={() => setMainTab('tournament')}
+                                        style={{
+                                            cursor: 'pointer',
+                                            borderRadius: '8px 8px 0 0',
+                                            background: mainTab === 'tournament' ? (isDark ? '#ff8e1cb6' : '#ff8d1c') : 'transparent',
+                                            color: mainTab === 'tournament' ? '#fff' : (isDark ? '#a0aec0' : '#525f7f'),
+                                            border: 'none',
+                                            fontWeight: '600'
+                                        }}
+                                    >
+                                        <i className="tim-icons icon-trophy mr-1" />
+                                        {t('tournamentDisciplines') || 'Turnajové disciplíny'}
+                                    </NavLink>
+                                </NavItem>
+                                <NavItem>
+                                    <NavLink
+                                        className={classnames({ active: mainTab === 'nontournament' })}
+                                        onClick={() => setMainTab('nontournament')}
+                                        style={{
+                                            cursor: 'pointer',
+                                            borderRadius: '8px 8px 0 0',
+                                            background: mainTab === 'nontournament' ? (isDark ? '#ff8e1cb6' : '#ff8d1c') : 'transparent',
+                                            color: mainTab === 'nontournament' ? '#fff' : (isDark ? '#a0aec0' : '#525f7f'),
+                                            border: 'none',
+                                            fontWeight: '600',
+                                            marginLeft: '5px'
+                                        }}
+                                    >
+                                        <i className="tim-icons icon-chart-bar-32 mr-1" />
+                                        {t('nonTournamentDisciplines') || 'Neturnajové disciplíny'}
+                                    </NavLink>
+                                </NavItem>
+                            </Nav>
                         </CardHeader>
                         <CardBody>
+                            <TabContent activeTab={mainTab}>
+                                {/* Tournament Disciplines Tab */}
+                                <TabPane tabId="tournament">
                             <Alert color={'info'} style={{ borderRadius: '8px' }}>
                                 <i className="fas fa-info-circle mr-2"></i>
                                 {t('tournamentDisciplineInfo')}
@@ -1279,10 +1460,296 @@ function TournamentGenerator() {
                                     )}
                                 </>
                             )}
+                                </TabPane>
+
+                                {/* Non-Tournament Disciplines Tab */}
+                                <TabPane tabId="nontournament">
+                                    <Alert color="info" style={{ borderRadius: '8px' }}>
+                                        <i className="fas fa-info-circle mr-2"></i>
+                                        {t('nonTournamentInfo') || 'Neturnajové disciplíny (např. stopař, jízda robotů) nevyžadují generování turnaje. Pro každého robota je vytvořen jeden zápas ve stavu čekající, kam se zapisuje jeho skóre/čas.'}
+                                    </Alert>
+
+                                    {loadingNonTournament && nonTournamentStatus.length === 0 ? (
+                                        <div className="text-center py-4">
+                                            <Spinner color="primary" />
+                                            <div className="mt-2" style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                {t('loading') || 'Načítání...'}
+                                            </div>
+                                        </div>
+                                    ) : nonTournamentStatus.length === 0 ? (
+                                        <Alert color="warning" style={{ borderRadius: '8px' }}>
+                                            <i className="tim-icons icon-alert-circle-exc mr-2" />
+                                            {t('noNonTournamentDisciplines') || 'Nejsou žádné neturnajové disciplíny'}
+                                        </Alert>
+                                    ) : (
+                                        <>
+                                            {/* Generate All Button */}
+                                            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                                                <h5 style={{ color: isDark ? 'white' : '#32325d', fontWeight: '600', margin: 0 }}>
+                                                    <i className="tim-icons icon-bullet-list-67 mr-2" />
+                                                    {t('nonTournamentStatus') || 'Stav neturnajových disciplín'}
+                                                </h5>
+                                                <Button
+                                                    color="success"
+                                                    onClick={handleGenerateAllNonTournament}
+                                                    disabled={generatingNonTournament || loadingNonTournament}
+                                                    style={{ borderRadius: '8px' }}
+                                                >
+                                                    {generatingNonTournament ? (
+                                                        <><Spinner size="sm" /> {t('generatingMatches') || 'Generuji zápasy...'}</>
+                                                    ) : (
+                                                        <><i className="tim-icons icon-spaceship mr-1" /> {t('generateAllNonTournament') || 'Vygenerovat zápasy pro všechny'}</>
+                                                    )}
+                                                </Button>
+                                            </div>
+
+                                            {/* Disciplines List */}
+                                            {nonTournamentStatus.map((discipline) => (
+                                                <Card
+                                                    key={discipline.disciplineId}
+                                                    className={`mb-3 ${isDark ? 'bg-secondary' : ''}`}
+                                                    style={{
+                                                        borderRadius: '12px',
+                                                        border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
+                                                    }}
+                                                >
+                                                    <CardHeader className="py-3 px-4" style={{
+                                                        background: isDark ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)' : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                                                        borderRadius: '12px 12px 0 0'
+                                                    }}>
+                                                        <h5 className="mb-0" style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                            <i className="tim-icons icon-controller mr-2" />
+                                                            {discipline.disciplineName}
+                                                        </h5>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <Row>
+                                                            {/* LOW_AGE_CATEGORY */}
+                                                            <Col md="6">
+                                                                <Card className={isDark ? 'bg-dark' : ''} style={{
+                                                                    borderRadius: '8px',
+                                                                    border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
+                                                                    marginBottom: '0'
+                                                                }}>
+                                                                    <CardBody className="py-3 px-3">
+                                                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                                                            <span style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                                                {t('pupils') || 'Žáci'}
+                                                                            </span>
+                                                                            <Badge color={discipline.LOW_AGE_CATEGORY?.robotCount > 0 ? 'info' : 'secondary'}>
+                                                                                {discipline.LOW_AGE_CATEGORY?.robotCount || 0} {t('robots') || 'robotů'}
+                                                                            </Badge>
+                                                                        </div>
+                                                                        
+                                                                        {discipline.LOW_AGE_CATEGORY?.matchesExist ? (
+                                                                            <>
+                                                                                <div className="d-flex justify-content-between mb-2">
+                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                        {t('matchProgress') || 'Průběh'}
+                                                                                    </small>
+                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                        {discipline.LOW_AGE_CATEGORY.completedMatches}/{discipline.LOW_AGE_CATEGORY.totalMatches}
+                                                                                    </small>
+                                                                                </div>
+                                                                                <Progress
+                                                                                    value={discipline.LOW_AGE_CATEGORY.progress}
+                                                                                    color={discipline.LOW_AGE_CATEGORY.progress === 100 ? 'success' : 'info'}
+                                                                                    style={{ height: '8px', borderRadius: '4px', marginBottom: '10px' }}
+                                                                                />
+                                                                                <Button
+                                                                                    color="danger"
+                                                                                    size="sm"
+                                                                                    outline
+                                                                                    onClick={() => handleDeleteNonTournamentMatches(discipline.disciplineId, 'LOW_AGE_CATEGORY')}
+                                                                                    style={{ borderRadius: '6px' }}
+                                                                                    disabled={loadingNonTournament}
+                                                                                >
+                                                                                    <i className="tim-icons icon-trash-simple mr-1" />
+                                                                                    {t('deleteNonTournamentMatches') || 'Smazat zápasy'}
+                                                                                </Button>
+                                                                            </>
+                                                                        ) : discipline.LOW_AGE_CATEGORY?.robotCount > 0 ? (
+                                                                            <Button
+                                                                                color="success"
+                                                                                size="sm"
+                                                                                onClick={() => handleGenerateSingleNonTournament(discipline.disciplineId, 'LOW_AGE_CATEGORY')}
+                                                                                style={{ borderRadius: '6px' }}
+                                                                                disabled={loadingNonTournament}
+                                                                            >
+                                                                                <i className="tim-icons icon-spaceship mr-1" />
+                                                                                {t('generateSingleDiscipline') || 'Vygenerovat'}
+                                                                            </Button>
+                                                                        ) : (
+                                                                            <small style={{ color: isDark ? '#666' : '#aaa' }}>
+                                                                                {t('noRobotsRegistered') || 'Žádní roboti'}
+                                                                            </small>
+                                                                        )}
+                                                                    </CardBody>
+                                                                </Card>
+                                                            </Col>
+
+                                                            {/* HIGH_AGE_CATEGORY */}
+                                                            <Col md="6">
+                                                                <Card className={isDark ? 'bg-dark' : ''} style={{
+                                                                    borderRadius: '8px',
+                                                                    border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
+                                                                    marginBottom: '0'
+                                                                }}>
+                                                                    <CardBody className="py-3 px-3">
+                                                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                                                            <span style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                                                {t('students') || 'Studenti a\u00a0dospělí'}
+                                                                            </span>
+                                                                            <Badge color={discipline.HIGH_AGE_CATEGORY?.robotCount > 0 ? 'info' : 'secondary'}>
+                                                                                {discipline.HIGH_AGE_CATEGORY?.robotCount || 0} {t('robots') || 'robotů'}
+                                                                            </Badge>
+                                                                        </div>
+                                                                        
+                                                                        {discipline.HIGH_AGE_CATEGORY?.matchesExist ? (
+                                                                            <>
+                                                                                <div className="d-flex justify-content-between mb-2">
+                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                        {t('matchProgress') || 'Průběh'}
+                                                                                    </small>
+                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                        {discipline.HIGH_AGE_CATEGORY.completedMatches}/{discipline.HIGH_AGE_CATEGORY.totalMatches}
+                                                                                    </small>
+                                                                                </div>
+                                                                                <Progress
+                                                                                    value={discipline.HIGH_AGE_CATEGORY.progress}
+                                                                                    color={discipline.HIGH_AGE_CATEGORY.progress === 100 ? 'success' : 'info'}
+                                                                                    style={{ height: '8px', borderRadius: '4px', marginBottom: '10px' }}
+                                                                                />
+                                                                                <Button
+                                                                                    color="danger"
+                                                                                    size="sm"
+                                                                                    outline
+                                                                                    onClick={() => handleDeleteNonTournamentMatches(discipline.disciplineId, 'HIGH_AGE_CATEGORY')}
+                                                                                    style={{ borderRadius: '6px' }}
+                                                                                    disabled={loadingNonTournament}
+                                                                                >
+                                                                                    <i className="tim-icons icon-trash-simple mr-1" />
+                                                                                    {t('deleteNonTournamentMatches') || 'Smazat zápasy'}
+                                                                                </Button>
+                                                                            </>
+                                                                        ) : discipline.HIGH_AGE_CATEGORY?.robotCount > 0 ? (
+                                                                            <Button
+                                                                                color="success"
+                                                                                size="sm"
+                                                                                onClick={() => handleGenerateSingleNonTournament(discipline.disciplineId, 'HIGH_AGE_CATEGORY')}
+                                                                                style={{ borderRadius: '6px' }}
+                                                                                disabled={loadingNonTournament}
+                                                                            >
+                                                                                <i className="tim-icons icon-spaceship mr-1" />
+                                                                                {t('generateSingleDiscipline') || 'Vygenerovat'}
+                                                                            </Button>
+                                                                        ) : (
+                                                                            <small style={{ color: isDark ? '#666' : '#aaa' }}>
+                                                                                {t('noRobotsRegistered') || 'Žádní roboti'}
+                                                                            </small>
+                                                                        )}
+                                                                    </CardBody>
+                                                                </Card>
+                                                            </Col>
+                                                        </Row>
+                                                    </CardBody>
+                                                </Card>
+                                            ))}
+                                        </>
+                                    )}
+                                </TabPane>
+                            </TabContent>
                         </CardBody>
                     </Card>
                 </Col>
             </Row>
+
+            {/* Generation Summary Modal */}
+            <Modal isOpen={showGenerationSummary} toggle={() => setShowGenerationSummary(false)} size="lg">
+                <ModalHeader toggle={() => setShowGenerationSummary(false)} style={{
+                    background: isDark ? '#1e1e2f' : '#f8f9fa',
+                    color: isDark ? 'white' : '#32325d'
+                }}>
+                    <i className="tim-icons icon-check-2 mr-2" style={{ color: '#2dce89' }} />
+                    {t('generationSummary') || 'Souhrn generování'}
+                </ModalHeader>
+                <ModalBody style={{ background: isDark ? '#2d2d44' : '#fff' }}>
+                    {generationResult && (
+                        <>
+                            <div className="mb-3">
+                                <Badge color="success" style={{ fontSize: '1em', padding: '10px 15px' }}>
+                                    {t('totalCreated') || 'Celkem vytvořeno zápasů'}: {generationResult.totalMatchesCreated}
+                                </Badge>
+                            </div>
+
+                            {generationResult.generated?.length > 0 && (
+                                <div className="mb-3">
+                                    <h6 style={{ color: '#2dce89', fontWeight: '600' }}>
+                                        <i className="tim-icons icon-check-2 mr-1" />
+                                        {t('generated') || 'Vygenerováno'} ({generationResult.generated.length})
+                                    </h6>
+                                    <Table size="sm" className={isDark ? 'text-white' : ''}>
+                                        <tbody>
+                                            {generationResult.generated.map((item, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{item.disciplineName}</td>
+                                                    <td>{item.category === 'LOW_AGE_CATEGORY' ? t('pupils') : t('students')}</td>
+                                                    <td><Badge color="success">{item.matchesCreated} {t('matches')}</Badge></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            )}
+
+                            {generationResult.skipped?.length > 0 && (
+                                <div className="mb-3">
+                                    <h6 style={{ color: '#ffc107', fontWeight: '600' }}>
+                                        <i className="tim-icons icon-minimal-right mr-1" />
+                                        {t('skipped') || 'Přeskočeno'} ({generationResult.skipped.length})
+                                    </h6>
+                                    <Table size="sm" className={isDark ? 'text-white' : ''}>
+                                        <tbody>
+                                            {generationResult.skipped.map((item, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{item.disciplineName}</td>
+                                                    <td>{item.category === 'LOW_AGE_CATEGORY' ? t('pupils') : t('students')}</td>
+                                                    <td><small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>{item.reason}</small></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            )}
+
+                            {generationResult.errors?.length > 0 && (
+                                <div className="mb-3">
+                                    <h6 style={{ color: '#f5365c', fontWeight: '600' }}>
+                                        <i className="tim-icons icon-alert-circle-exc mr-1" />
+                                        {t('errors') || 'Chyby'} ({generationResult.errors.length})
+                                    </h6>
+                                    <Table size="sm" className={isDark ? 'text-white' : ''}>
+                                        <tbody>
+                                            {generationResult.errors.map((item, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{item.disciplineName}</td>
+                                                    <td>{item.category === 'LOW_AGE_CATEGORY' ? t('pupils') : t('students')}</td>
+                                                    <td><small style={{ color: '#f5365c' }}>{item.error || item.reason}</small></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </ModalBody>
+                <ModalFooter style={{ background: isDark ? '#2d2d44' : '#fff' }}>
+                    <Button color="primary" onClick={() => setShowGenerationSummary(false)} style={{ borderRadius: '8px' }}>
+                        {t('close') || 'Zavřít'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
 
             {/* Preview Section */}
             {preview && (
