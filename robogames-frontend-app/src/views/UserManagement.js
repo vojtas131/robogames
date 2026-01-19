@@ -67,7 +67,19 @@ function UserManagement() {
   const { token, tokenExpired } = useUser();
   const toast = useToast();
   const { confirm } = useConfirm();
-  const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER'];
+  const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER', 'MAIN_REFEREE'];
+
+  // Překlad role na základě jejího jména
+  const getRoleTranslation = (roleName) => {
+    switch (roleName) {
+      case 'ADMIN': return t('adminRole');
+      case 'LEADER': return t('leaderRole');
+      case 'REFEREE': return t('refereeRole');
+      case 'ASSISTANT': return t('assistantRole');
+      case 'COMPETITOR': return t('competitorRole');
+      default: return roleName;
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -494,7 +506,7 @@ function UserManagement() {
                     >
                       <option value="">{t('allRoles') || 'Všechny role'}</option>
                       {roles.map(role => (
-                        <option key={role} value={role}>{role}</option>
+                        <option key={role} value={role}>{getRoleTranslation(role)}</option>
                       ))}
                     </Input>
                   </Col>
@@ -559,7 +571,7 @@ function UserManagement() {
                       <td>{user.email}</td>
                       <td>{user.birthDate}</td>
                       <td>
-                        {user.roles.map(role => role.name).join(', ')}
+                        {user.roles.map(role => getRoleTranslation(role.name)).join(', ')}
                       </td>
                       <td>{user.teamID}</td>
                       <td>
@@ -717,7 +729,7 @@ function UserManagement() {
             <DropdownMenu>
               {roles.map(role => (
                 <DropdownItem key={role} onClick={() => setNewRole(role)}>
-                  {role}
+                  {getRoleTranslation(role)}
                 </DropdownItem>
               ))}
             </DropdownMenu>

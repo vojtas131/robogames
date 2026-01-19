@@ -184,6 +184,18 @@ function UserProfile() {
     }
   };
 
+  // Translate role names
+  const getRoleTranslation = (roleName) => {
+    switch (roleName) {
+      case 'ADMIN': return t('adminRole');
+      case 'LEADER': return t('leaderRole');
+      case 'REFEREE': return t('refereeRole');
+      case 'ASSISTANT': return t('assistantRole');
+      case 'COMPETITOR': return t('competitorRole');
+      default: return roleName;
+    }
+  };
+
   // Formátování data narození
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -235,7 +247,7 @@ function UserProfile() {
                     className="mr-1"
                     style={{ fontSize: '0.75rem', padding: '5px 10px' }}
                   >
-                    {role.name}
+                    {getRoleTranslation(role.name)}
                   </Badge>
                 ))}
               </div>

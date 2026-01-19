@@ -1081,5 +1081,11 @@
     "accessDenied": "Access Denied",
     "robotProfileAccessDenied": "Robot profile is only accessible to team members and organizers.",
     "tournamentExistsHint": "A tournament already exists for this discipline and category.",
-    "allStandings": "All Standings"
+    "allStandings": "All Standings",
+
+    "adminRole":"Admin",
+    "leaderRole":"Leader",
+    "assistantRole":"Assistant",
+    "refereeRole":"Referee",
+    "competitorRole":"Competitor"
 }

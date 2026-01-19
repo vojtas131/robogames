@@ -1081,5 +1081,11 @@
     "accessDenied": "Přístup odepřen",
     "robotProfileAccessDenied": "Profil robota je přístupný pouze pro členy týmu a organizátory.",
     "tournamentExistsHint": "Pro tuto disciplínu a kategorii již existuje turnaj.",
-    "allStandings": "Všechna pořadí"
+    "allStandings": "Všechna pořadí",
+
+    "adminRole":"Admin",
+    "leaderRole":"Vedoucí",
+    "assistantRole":"Asistent",
+    "refereeRole":"Rozhodčí",
+    "competitorRole":"Soutěžící"
 }
