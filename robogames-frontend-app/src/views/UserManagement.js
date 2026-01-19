@@ -23,10 +23,9 @@ import {
   DropdownMenu,
   DropdownItem
 } from "reactstrap";
-import { useUser } from "contexts/UserContext";
+import { useUser, validateName, validateBirth } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
-import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 import TablePagination from "components/TablePagination";
 
@@ -128,96 +127,6 @@ function UserManagement() {
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
-
-  // const handleAddUser = async () => {
-  //   let newErrors = { ...errors };
-
-  //   var nameCheck = validateName(newUser.name);
-  //   if (!nameCheck) {
-  //     newErrors.name = t("invalidName");
-  //   } else if (nameCheck === "too short") {
-  //     newErrors.name = t("shortName");
-  //   } else if (nameCheck === "too long") {
-  //     newErrors.name = t("longName");
-  //   } else {
-  //     delete newErrors.name;
-  //   }
-
-  //   var surnameCheck = validateName(newUser.surname);
-  //   if (!surnameCheck) {
-  //     newErrors.surname = t("invalidSurname");
-  //   } else if (surnameCheck === "too short") {
-  //     newErrors.surname = t("shortSurname");
-  //   } else if (surnameCheck === "too long") {
-  //     newErrors.surname = t("longSurname");
-  //   } else {
-  //     delete newErrors.surname;
-  //   }
-
-  //   var emailCheck = validateEmail(newUser.email);
-  //   if (!emailCheck) {
-  //     newErrors.email = t("mailInvalid");
-  //   } else if (emailCheck === "too short") {
-  //     newErrors.email = t("shortMail");
-  //   } else if (emailCheck === "too long") {
-  //     newErrors.email = t("longMail");
-  //   } else {
-  //     delete newErrors.email;
-  //   }
-
-  //   if (newUser.password.length < 8) {
-  //     newErrors.password = t("shortPassword");
-  //   } else if (newUser.password.length > 30) {
-  //     newErrors.password = t("longPassword");
-  //   } else {
-  //     delete newErrors.password;
-  //   }
-
-  //   const birthCheck = validateBirth(newUser.birthDate);
-  //   if (!birthCheck) {
-  //     newErrors.birthDate = t("invalidAge");
-  //   } else if (birthCheck === 'younger') {
-  //     newErrors.birthDate = t("tooYoung", { age: minAge });
-  //   } else if (birthCheck === 'older') {
-  //     newErrors.birthDate = t("tooOld", { age: maxAge });
-  //   } else {
-  //     delete newErrors.birthDate;
-  //   }
-
-  //   setErrors(newErrors);
-
-  //   if (!errors.name && !errors.surname && !errors.email && !errors.password && !errors.birthDate && newUser.email && newUser.password && newUser.name && newUser.surname && newUser.birthDate) {
-  //     if (!Object.values(newUser).every(value => value)) {
-  //       alert(t("fillAll"));
-  //       return;
-  //     }
-
-  //     try {
-  //       const response = await fetch(`${process.env.REACT_APP_API_URL}api/user/add`, {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           'Authorization': `Bearer ${token}`
-  //         },
-  //         body: JSON.stringify(newUser)
-  //       });
-  //       if (tokenExpired(response.status)) { return; }
-
-  //       if (response.ok) {
-  //         alert(t("userCreated"));
-  //         setAddModal(false);
-  //         window.location.reload();
-  //       } else {
-  //         const result = await response.json();
-  //         throw new Error(result.message || t("userCreateFail"));
-  //       }
-  //     } catch (error) {
-  //       alert(error.message);
-  //     }
-  //   } else {
-  //     alert(t("regMistakes"));
-  //   }
-  // };
 
   const submitRoleChange = async (action) => {
     if (newRole && currentUser) {

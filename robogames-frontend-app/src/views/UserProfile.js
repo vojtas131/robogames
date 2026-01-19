@@ -14,9 +14,8 @@ import {
   Col,
   Badge,
 } from "reactstrap";
-import { useUser } from "contexts/UserContext";
+import { useUser, calculateAge, validateName, validateBirth } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
-import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 
 function UserProfile() {
@@ -200,19 +199,6 @@ function UserProfile() {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('cs-CZ');
-  };
-
-  // Výpočet věku
-  const calculateAge = (birthDate) => {
-    if (!birthDate) return null;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
   };
 
   return (

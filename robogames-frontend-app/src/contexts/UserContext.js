@@ -6,6 +6,96 @@ const UserContext = createContext();
 
 export const useUser = () => useContext(UserContext);
 
+// Calculates user age
+const calculateAge = (_birthDate) => {
+  if (!_birthDate) { return null; }
+
+  const today = new Date();
+  const birthDate = new Date(_birthDate);
+
+  // is not a number or is a future date
+  if (isNaN(birthDate) || birthDate > today) { return null; }
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+
+  // birthday in this year
+  const birthday = new Date(
+    today.getFullYear(),
+    birthDate.getMonth(),
+    birthDate.getDate()
+  );
+
+  // if did not have birthday this year yet
+  if (today < birthday) {
+    age--;
+  }
+
+  return age;
+};
+
+// Validates date of birth
+export function validateBirth(birthDate) {
+  const age = calculateAge(birthDate);
+  if (age === null) {
+    console.log('Invalid age.');
+    return false;
+  } else {
+    if (age < process.env.REACT_APP_MIN_AGE) {
+      console.log('You have to be at least ', process.env.REACT_APP_MIN_AGE, ' years old.')
+      return "younger";
+    } else if (age > process.env.REACT_APP_MAX_AGE) {
+      console.log('You cannot be older than ', process.env.REACT_APP_MAX_AGE, ' years.')
+      return "older";
+    } else {
+      return true;
+    }
+  }
+};
+
+// Validates user name
+export function validateName(name) {
+  const allowed = /^[A-Za-zČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ '-]+$/;
+  const trimmed = name.trim();
+  if (allowed.test(trimmed)) {
+    if (trimmed.length < process.env.REACT_APP_MIN_NAME_LENGTH) {
+      return "too short"
+    } else if (trimmed.length > process.env.REACT_APP_MAX_NAME_LENGTH) {
+      return "too long"
+    } else {
+      return true;
+    }
+  } else { return false; }
+}
+
+// Validates robot or team title
+export function validateTitle(title) {
+  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ '-.:,/?!+]+$/;
+  const trimmed = title.trim();
+  if (allowed.test(trimmed)) {
+    if (trimmed.length < process.env.REACT_APP_TITLE_MIN_LENGTH) {
+      return "too short"
+    } else if (trimmed.length > process.env.REACT_APP_TITLE_MAX_LENGTH) {
+      return "too long"
+    } else {
+      return true;
+    }
+  } else { return false; }
+}
+
+// Validates email format
+export function validateEmail(email) {
+  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (re.test(String(email).toLowerCase())) {
+    if (email.length < process.env.REACT_APP_MIN_EMAIL_LENGTH) {
+      return "too short"
+    } else if (email.length > process.env.REACT_APP_MAX_EMAIL_LENGTH) {
+      return "too long"
+    } else {
+      return true;
+    }
+  } else { return false; }
+}
+
 // Error kody z backendu pro token autentizaci
 const AUTH_ERROR_CODES = {
   // problemy s token - 401 - (MUSI odhlasit)
@@ -117,12 +207,12 @@ export const UserProvider = ({ children }) => {
       } else {
         console.log("Unauthorized (401) - logging out");
       }
-      
+
       // Pri 401 backend uz odhlasil uzivatele z Keycloaku
       logout(true);
       return true;
     }
-    
+
     // 403 = Forbidden - pouze pokud je errorCode NO_ROLE nebo USER_BANNED
     // Jine 403 chyby (napr. "nemas opravneni na tuto akci") NEOHLASUJEME!
     if (status === 403) {
@@ -144,7 +234,7 @@ export const UserProvider = ({ children }) => {
       console.log("Forbidden (403) - user lacks permission, NOT logging out");
       return false;
     }
-    
+
     // Vsechny ostatni status kody (400, 404, 500, atd.) - NEJSOU problem s tokenem
     // Tyto chyby musi zpracovat komponenta sama (zobrazit error message, atd.)
     return false;

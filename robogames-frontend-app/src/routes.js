@@ -20,8 +20,6 @@ import Dashboard from "views/Dashboard.js";
 import DisciplineList from "views/DisciplineList.js";
 
 import UserProfile from "views/UserProfile.js";
-// import Login from "views/Login.js";
-// import Register from "views/Register.js";
 import UserManagement from "views/UserManagement";
 import AdminDashboard from "views/AdminDashboard";
 import CompetitionManagement from "views/CompetitionManagement";

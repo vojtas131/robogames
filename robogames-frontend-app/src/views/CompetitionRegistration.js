@@ -27,11 +27,10 @@ import {
   Alert,
   Badge,
 } from 'reactstrap';
-import { useUser } from "contexts/UserContext";
+import { useUser, validateName, validateEmail } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
-import { validateName, validateEmail } from "./Register";
 
 function CompetitionRegistration() {
   const [competitions, setCompetitions] = useState([]);

@@ -22,24 +22,10 @@ import {
   InputGroupText,
   Spinner
 } from 'reactstrap';
-import { useUser } from "contexts/UserContext";
+import { useUser, validateTitle } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
-
-export function validateTitle(title) {
-  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ '-.:,/?!+]+$/;
-  const trimmed = title.trim();
-  if (allowed.test(trimmed)) {
-    if (trimmed.length < process.env.REACT_APP_TITLE_MIN_LENGTH) {
-      return "too short"
-    } else if (trimmed.length > process.env.REACT_APP_TITLE_MAX_LENGTH) {
-      return "too long"
-    } else {
-      return true;
-    }
-  } else { return false; }
-}
 
 function MyTeam() {
   const navigate = useNavigate();

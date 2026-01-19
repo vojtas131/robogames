@@ -20,12 +20,11 @@ import {
   InputGroupText,
   FormFeedback,
 } from "reactstrap";
-import { useUser } from "contexts/UserContext";
+import { useUser, validateName } from "contexts/UserContext";
 import { useAdmin } from "contexts/AdminContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
-import { validateName } from "./Register";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
 import TablePagination from "components/TablePagination";
 
