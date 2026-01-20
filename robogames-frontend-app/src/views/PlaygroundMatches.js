@@ -689,7 +689,7 @@ function PlaygroundMatches() {
                                         onChange={(e) => setSearchType(e.target.value)}
                                     >
                                         <option value="all">{t('searchAll') || 'Hledat vše'}</option>
-                                        <option value="id">{t('searchById') || 'ID zápasu'}</option>
+                                        <option value="id">{t('searchMatchById') || 'ID zápasu'}</option>
                                         <option value="robotName">{t('searchByRobotName') || 'Jméno robota'}</option>
                                         <option value="robotNumber">{t('searchByRobotNumber') || 'Číslo robota'}</option>
                                         <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>

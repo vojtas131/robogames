@@ -462,7 +462,7 @@ function RegistrationManagement() {
                     onChange={(e) => setSearchType(e.target.value)}
                   >
                     <option value="all">{t('searchAll') || 'Vše'}</option>
-                    <option value="id">{t('searchById') || 'ID'}</option>
+                    <option value="id">{t('searchRegById') || 'ID'}</option>
                     <option value="team">{t('searchByTeamName') || 'Tým'}</option>
                     <option value="category">{t('searchByCategory') || 'Kategorie'}</option>
                     <option value="teacher">{t('searchByTeacher') || 'Učitel'}</option>

@@ -338,7 +338,7 @@ function PlaygroundManagement() {
                                         onChange={(e) => setSearchType(e.target.value)}
                                     >
                                         <option value="all">{t('searchAll') || 'Vše'}</option>
-                                        <option value="id">{t('searchById') || 'ID'}</option>
+                                        <option value="id">{t('searchPgById') || 'ID'}</option>
                                         <option value="name">{t('searchByName') || 'Název'}</option>
                                         <option value="number">{t('searchByNumber') || 'Číslo'}</option>
                                         <option value="discipline">{t('searchByDiscipline') || 'Disciplína'}</option>

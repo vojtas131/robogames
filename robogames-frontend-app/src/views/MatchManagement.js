@@ -518,6 +518,15 @@ function MatchManagement() {
         }
     };
 
+    const getStateLabel = (state) => {
+        switch (state) {
+            case 'WAITING': return t('waitingStatus') || 'Čekající';
+            case 'DONE': return t('doneStatus') || 'Ukončený';
+            case 'REMATCH': return t('rematchStatus') || 'Opakování';
+            default: return state || '-';
+        }
+    };
+
     const getPhaseLabel = (phase) => {
         switch (phase) {
             case 'GROUP_STAGE': return t('phaseGroupStage') || 'Skupinová fáze';
@@ -697,7 +706,7 @@ function MatchManagement() {
                                                 onChange={(e) => setSearchType(e.target.value)}
                                             >
                                                 <option value="all">{t('searchAll') || 'Vše'}</option>
-                                                <option value="id">{t('searchById') || 'ID zápasu'}</option>
+                                                <option value="id">{t('searchMatchById') || 'ID zápasu'}</option>
                                                 <option value="robotName">{t('searchByRobotName') || 'Jméno robota'}</option>
                                                 <option value="robotNumber">{t('searchByRobotNumber') || 'Číslo robota'}</option>
                                                 <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>
@@ -710,7 +719,7 @@ function MatchManagement() {
                                                 </InputGroupText>
                                                 <Input
                                                     placeholder={
-                                                        searchType === 'id' ? (t('enterMatchId') || 'Zadejte ID...') :
+                                                        searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
                                                             searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
                                                                 searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
                                                                     searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
@@ -872,7 +881,7 @@ function MatchManagement() {
                                                             </td>
                                                             <td>
                                                                 <Badge color={getStateColor(match.state?.name)} style={{ fontSize: '11px' }}>
-                                                                    {match.state?.name || '-'}
+                                                                    {getStateLabel(match.state?.name)}
                                                                 </Badge>
                                                             </td>
                                                             <td style={{ minWidth: '120px' }}>

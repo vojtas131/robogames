@@ -481,7 +481,7 @@ function TeamManagement() {
                     onChange={(e) => setSearchType(e.target.value)}
                   >
                     <option value="all">{t('searchAll') || 'Vše'}</option>
-                    <option value="id">{t('searchById') || 'ID'}</option>
+                    <option value="id">{t('searchTeamById') || 'ID'}</option>
                     <option value="name">{t('searchByTeamName') || 'Název týmu'}</option>
                     <option value="leader">{t('searchByLeader') || 'Vedoucí'}</option>
                     <option value="member">{t('searchByMember') || 'Člen'}</option>

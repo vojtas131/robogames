@@ -409,7 +409,7 @@ function UserManagement() {
                       onChange={(e) => setSearchType(e.target.value)}
                     >
                       <option value="all">{t('searchAll') || 'Vše'}</option>
-                      <option value="id">{t('searchById') || 'ID'}</option>
+                      <option value="id">{t('searchUserById') || 'ID'}</option>
                       <option value="name">{t('searchByName') || 'Jméno'}</option>
                       <option value="surname">{t('searchBySurname') || 'Příjmení'}</option>
                       <option value="fullname">{t('searchByFullname') || 'Jméno + Příjmení'}</option>
