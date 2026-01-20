@@ -779,14 +779,12 @@ function PlaygroundMatches() {
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>{t('category') || 'Kategorie'}</th>
                                             <th>{t('robotA') || 'Robot A'}</th>
                                             <th>{t('robotB') || 'Robot B'}</th>
                                             <th>{t('score') || 'Skóre'}</th>
-                                            <th>{t('phase') || 'Fáze'}</th>
-                                            <th>{t('groupName') || 'Skupina'}</th>
-                                            <th>{t('note') || 'Pozn.'}</th>
                                             <th>{t('state') || 'Stav'}</th>
+                                            <th>{t('info') || 'Info'}</th>
+                                            <th>{t('note') || 'Pozn.'}</th>
                                             <th>{t('lastUpdate') || 'Poslední změna'}</th>
                                         </tr>
                                     </thead>
@@ -803,15 +801,6 @@ function PlaygroundMatches() {
                                                         >
                                                             #{match.id}
                                                         </span>
-                                                    </td>
-                                                    <td>
-                                                        {match.categoryA ? (
-                                                            <Badge color={getCategoryColor(match.categoryA)}>
-                                                                {getCategoryDisplay(match.categoryA)}
-                                                            </Badge>
-                                                        ) : (
-                                                            <span className="text-muted">-</span>
-                                                        )}
                                                     </td>
                                                     <td>
                                                         {match.robotAID ? (
@@ -858,18 +847,67 @@ function PlaygroundMatches() {
                                                         )}
                                                     </td>
                                                     <td>
-                                                        <Badge color="primary">
-                                                            {getPhaseLabel(match.phaseName)}
+                                                        <Badge color={getStateColor(match.state?.name)} style={{ fontSize: '11px' }}>
+                                                            {match.state?.name || '-'}
                                                         </Badge>
                                                     </td>
-                                                    <td>
-                                                        {match.group ? (
-                                                            <Badge color="secondary">
-                                                                {match.group}
+                                                    <td style={{ minWidth: '120px' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '3px' }}>
+                                                            {match.categoryA && (
+                                                                <Badge 
+                                                                    style={{ 
+                                                                        fontSize: '10px', 
+                                                                        display: 'block',
+                                                                        width: '100%',
+                                                                        textAlign: 'left',
+                                                                        padding: '4px 8px',
+                                                                        backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                        color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                    }}
+                                                                    title={t('ageCategory') || 'Věková kategorie'}
+                                                                >
+                                                                    <i className="tim-icons icon-single-02" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                    {getCategoryDisplay(match.categoryA)}
+                                                                </Badge>
+                                                            )}
+                                                            <Badge 
+                                                                style={{ 
+                                                                    fontSize: '10px', 
+                                                                    display: 'block',
+                                                                    width: '100%',
+                                                                    textAlign: 'left',
+                                                                    padding: '4px 8px',
+                                                                    marginLeft: 0,
+                                                                    backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                    color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                }}
+                                                                title={t('tournamentPhase') || 'Fáze turnaje'}
+                                                            >
+                                                                <i className="tim-icons icon-trophy" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                {getPhaseLabel(match.phaseName)}
                                                             </Badge>
-                                                        ) : (
-                                                            <span className="text-muted">-</span>
-                                                        )}
+                                                            {match.group && (
+                                                                <Badge 
+                                                                    style={{ 
+                                                                        fontSize: '10px', 
+                                                                        display: 'block',
+                                                                        width: '100%',
+                                                                        textAlign: 'left',
+                                                                        padding: '4px 8px',
+                                                                        marginLeft: 0,
+                                                                        backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                        color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                    }}
+                                                                    title={t('groupName') || 'Název skupiny'}
+                                                                >
+                                                                    <i className="tim-icons icon-bullet-list-67" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                    {match.group}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="text-center">
                                                         {match.refereeNote ? (
@@ -888,11 +926,6 @@ function PlaygroundMatches() {
                                                         ) : (
                                                             <span className="text-muted">-</span>
                                                         )}
-                                                    </td>
-                                                    <td>
-                                                        <Badge color={getStateColor(match.state?.name)}>
-                                                            {match.state?.name || '-'}
-                                                        </Badge>
                                                     </td>
                                                     <td>
                                                         <small className="text-muted">

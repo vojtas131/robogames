@@ -1133,5 +1133,7 @@
     "totalMembers": "Total Members",
     "avgMembersPerTeam": "Average Members Per Team",
     "noBracketData": "No data available for this bracket",
-    "bracketPlayground": "Bracket Playground"
+    "bracketPlayground": "Bracket Playground",
+    "ageCategory": "Age Category",
+    "tournamentPhase": "Tournament Phase"
 }
