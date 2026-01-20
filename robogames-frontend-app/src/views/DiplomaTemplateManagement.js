@@ -20,7 +20,7 @@ const DiplomaTemplateManagement = () => {
 		try {
 			const response = await fetch(`${process.env.REACT_APP_API_URL}api/diploma/template`, {
 				headers: {
-					Authorization: `Bearer ${token}`,
+					'Authorization': `Bearer ${token}`,
 				},
 			});
 			const data = await response.json();
@@ -52,7 +52,7 @@ const DiplomaTemplateManagement = () => {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`,
+					'Authorization': `Bearer ${token}`,
 				},
 				body: JSON.stringify({ value }),
 			});
