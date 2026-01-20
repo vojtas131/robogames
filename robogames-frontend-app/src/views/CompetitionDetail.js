@@ -30,7 +30,7 @@ function CompetitionDetail() {
   const year = query.get('year');
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { tokenExpired } = useUser();
+  const { token, tokenExpired } = useUser();
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,7 +40,9 @@ function CompetitionDetail() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/allRegistrations?year=${year}`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}api/competition/allRegistrations?year=${year}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (tokenExpired(response.status)) { return; }
 
         const data = await response.json();
@@ -56,7 +58,7 @@ function CompetitionDetail() {
       }
     };
     fetchData();
-  }, [year]);
+  }, [year, token, tokenExpired]);
 
   // Statistics
   const totalTeams = registrations.length;

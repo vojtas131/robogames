@@ -34,6 +34,7 @@ import Footer from "components/Footer/Footer.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 import FixedPlugin from "components/FixedPlugin/FixedPlugin.js";
 import AdminBreadcrumb from "components/AdminBreadcrumb/AdminBreadcrumb.js";
+import ProtectedRoute, { isAdminRoute } from "components/ProtectedRoute/ProtectedRoute.js";
 
 import routes from "routes.js";
 
@@ -90,8 +91,15 @@ function Admin(props) {
     const getRoutes = (routes) => {
         return routes.map((prop, key) => {
             if (prop.layout === "/admin") {
+                // Wrap admin routes with ProtectedRoute
+                const element = isAdminRoute(prop.path) ? (
+                    <ProtectedRoute path={prop.path}>
+                        {prop.component}
+                    </ProtectedRoute>
+                ) : prop.component;
+                
                 return (
-                    <Route path={prop.path} element={prop.component} key={key} exact />
+                    <Route path={prop.path} element={element} key={key} exact />
                 );
             } else {
                 return null;

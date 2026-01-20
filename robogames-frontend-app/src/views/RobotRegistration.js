@@ -25,12 +25,11 @@ import {
   CardFooter,
   Badge
 } from 'reactstrap';
-import { useUser } from "contexts/UserContext";
+import { useUser, validateTitle } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { useAdmin } from "contexts/AdminContext";
 import { t } from "translations/translate";
-import { validateTitle } from "./MyTeam";
 
 function RobotRegistration() {
   const navigate = useNavigate();
@@ -242,7 +241,7 @@ function RobotRegistration() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: robotName })
+        body: JSON.stringify({ name: robotName.trim() })
       });
       if (tokenExpired(response.status)) { return; }
 
@@ -279,7 +278,7 @@ function RobotRegistration() {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${selectedYear}&id=${robotId}&name=${newName}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/rename?year=${selectedYear}&id=${robotId}&name=${newName.trim()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

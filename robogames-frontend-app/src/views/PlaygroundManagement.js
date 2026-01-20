@@ -38,11 +38,11 @@ function PlaygroundManagement() {
     const [disciplines, setDisciplines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
+
     // Modals
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    
+
     // Form data
     const [newPlayground, setNewPlayground] = useState({
         name: '',
@@ -127,7 +127,7 @@ function PlaygroundManagement() {
     // Filter playgrounds
     const filteredPlaygrounds = playgrounds.filter(pg => {
         const searchLower = searchQuery.toLowerCase();
-        
+
         let matchesSearch = !searchQuery;
         if (searchQuery) {
             switch (searchType) {
@@ -145,7 +145,7 @@ function PlaygroundManagement() {
                     break;
                 case 'all':
                 default:
-                    matchesSearch = 
+                    matchesSearch =
                         pg.id?.toString().includes(searchQuery) ||
                         pg.name?.toLowerCase().includes(searchLower) ||
                         pg.number?.toString().includes(searchQuery) ||
@@ -187,15 +187,15 @@ function PlaygroundManagement() {
 
             const data = await response.json();
             if (response.ok && data.type !== 'ERROR') {
-                toast.success(t("pgCreated") || "Hřiště bylo vytvořeno");
+                toast.success(t("pgAdded") || "Hřiště bylo vytvořeno");
                 setShowCreateModal(false);
                 setNewPlayground({ name: '', number: '', disciplineID: '' });
                 fetchPlaygrounds();
             } else {
-                toast.error(data.message || t("pgCreateFail"));
+                toast.error(data.message || t("pgAddFail"));
             }
         } catch (error) {
-            toast.error(error.message || t("pgCreateError"));
+            toast.error(error.message || t("pgAddError"));
         }
     };
 
@@ -352,16 +352,16 @@ function PlaygroundManagement() {
                                         <Input
                                             placeholder={
                                                 searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
-                                                searchType === 'name' ? (t('enterName') || 'Zadejte název...') :
-                                                searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
-                                                searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
-                                                (t('searchPlayground') || 'Hledat hřiště...')
+                                                    searchType === 'name' ? (t('enterName') || 'Zadejte název...') :
+                                                        searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
+                                                            searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
+                                                                (t('searchPlayground') || 'Hledat hřiště...')
                                             }
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
                                         {searchQuery && (
-                                            <InputGroupText 
+                                            <InputGroupText
                                                 style={{ cursor: 'pointer' }}
                                                 onClick={() => setSearchQuery('')}
                                                 title={t('clearSearch') || 'Vymazat'}

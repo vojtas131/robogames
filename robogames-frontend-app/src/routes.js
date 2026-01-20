@@ -48,7 +48,6 @@ import TournamentGenerator from "views/TournamentGenerator.js";
 import TournamentView from "views/TournamentView.js";
 import { t } from "translations/translate";
 
-
 var routes = [
   {
     path: "/admin-dashboard",
@@ -100,20 +99,20 @@ var routes = [
   },
   {
     path: "/tournament-view",
-    name: t("result"), 
+    name: t("result"),
     rtlName: "",
     icon: "tim-icons icon-trophy",
     component: <TournamentView />,
     layout: "/admin",
   },
-//  {
-//    path: "/competition-results",
-//    name: t("result"),
-//    rtlName: "",
-//    icon: "tim-icons icon-book-bookmark",
-//    component: <CompetitionResults />,
-//    layout: "/admin",
-//  },
+  //  {
+  //    path: "/competition-results",
+  //    name: t("result"),
+  //    rtlName: "",
+  //    icon: "tim-icons icon-book-bookmark",
+  //    component: <CompetitionResults />,
+  //    layout: "/admin",
+  //  },
   {
     path: "/match-schedule",
     name: t("matchSchedule"),
@@ -258,18 +257,18 @@ var routes = [
     component: <AuthCallback />,
     layout: "/admin",
   },
-//  {
-//    path: "/generate",
-//    name: t("generate"), 
-//    rtlName: "",
-//    icon: "tim-icons icon-puzzle-10",
-//    component: <Generate />,
-//    layout: "/admin",
-//    hidden: true,
-//  },
+  //  {
+  //    path: "/generate",
+  //    name: t("generate"),
+  //    rtlName: "",
+  //    icon: "tim-icons icon-puzzle-10",
+  //    component: <Generate />,
+  //    layout: "/admin",
+  //    hidden: true,
+  //  },
   {
     path: "/tournament-generator",
-    name: t("tournamentGenerator"), 
+    name: t("tournamentGenerator"),
     rtlName: "",
     icon: "tim-icons icon-trophy",
     component: <TournamentGenerator />,
@@ -277,11 +276,10 @@ var routes = [
     hidden: true,
   },
   {
-  	path: '/diploma-template',
-  	name: t('diplomaTemplate'),
-  	rtlName: '',
-  	component: <DiplomaTemplateManagement />,
-  	layout: '/admin',
+    path: "/diploma-template",
+    name: t("diplomaTemplate"),
+    rtlName: "",
+    component: <DiplomaTemplateManagement />,
+    layout: "/admin",
   },
-
 ];

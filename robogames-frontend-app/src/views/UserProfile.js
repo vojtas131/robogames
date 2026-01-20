@@ -14,9 +14,8 @@ import {
   Col,
   Badge,
 } from "reactstrap";
-import { useUser } from "contexts/UserContext";
+import { useUser, calculateAge, validateName, validateBirth } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
-import { validateName, validateBirth } from "./Register";
 import { t } from "translations/translate";
 
 function UserProfile() {
@@ -146,8 +145,8 @@ function UserProfile() {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            name: userData.name,
-            surname: userData.surname,
+            name: userData.name.trim(),
+            surname: userData.surname.trim(),
             birthDate: userData.birthDate
           })
         });
@@ -177,10 +176,21 @@ function UserProfile() {
       case 'ADMIN': return 'danger';
       case 'LEADER': return 'warning';
       case 'REFEREE': return 'info';
-      case 'MAIN_REFEREE': return 'primary';
       case 'ASSISTANT': return 'success';
       case 'COMPETITOR': return 'secondary';
       default: return 'secondary';
+    }
+  };
+
+  // Translate role names
+  const getRoleTranslation = (roleName) => {
+    switch (roleName) {
+      case 'ADMIN': return t('adminRole');
+      case 'LEADER': return t('leaderRole');
+      case 'REFEREE': return t('refereeRole');
+      case 'ASSISTANT': return t('assistantRole');
+      case 'COMPETITOR': return t('competitorRole');
+      default: return roleName;
     }
   };
 
@@ -189,19 +199,6 @@ function UserProfile() {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('cs-CZ');
-  };
-
-  // Výpočet věku
-  const calculateAge = (birthDate) => {
-    if (!birthDate) return null;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
   };
 
   return (
@@ -235,7 +232,7 @@ function UserProfile() {
                     className="mr-1"
                     style={{ fontSize: '0.75rem', padding: '5px 10px' }}
                   >
-                    {role.name}
+                    {getRoleTranslation(role.name)}
                   </Badge>
                 ))}
               </div>

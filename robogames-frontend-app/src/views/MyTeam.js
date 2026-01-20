@@ -22,23 +22,10 @@ import {
   InputGroupText,
   Spinner
 } from 'reactstrap';
-import { useUser } from "contexts/UserContext";
+import { useUser, validateTitle } from "contexts/UserContext";
 import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
-
-export function validateTitle(title) {
-  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ\s'-.:,/?!+]+$/;
-  if (allowed.test(title)) {
-    if (title.length < process.env.REACT_APP_TITLE_MIN_LENGTH) {
-      return "too short"
-    } else if (title.length > process.env.REACT_APP_TITLE_MAX_LENGTH) {
-      return "too long"
-    } else {
-      return true;
-    }
-  } else { return false; }
-}
 
 function MyTeam() {
   const navigate = useNavigate();
@@ -238,7 +225,7 @@ function MyTeam() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ name: newTeamName })
+        body: JSON.stringify({ name: newTeamName.trim() })
       });
       if (tokenExpired(response.status)) { return; }
 
@@ -279,7 +266,7 @@ function MyTeam() {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/rename?name=${newTeamName}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}api/team/rename?name=${newTeamName.trim()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

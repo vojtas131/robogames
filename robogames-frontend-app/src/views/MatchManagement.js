@@ -26,7 +26,7 @@ function MatchManagement() {
     const { theme } = useContext(ThemeContext);
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    
+
     const isDark = theme === themes.dark;
 
     // State
@@ -38,7 +38,7 @@ function MatchManagement() {
     const [loading, setLoading] = useState(false);
     const [loadingGroups, setLoadingGroups] = useState(false);
     const [loadingPlaygrounds, setLoadingPlaygrounds] = useState(false);
-    
+
     // Active tab - read from URL params
     const tabFromUrl = searchParams.get('tab');
     const [activeTab, setActiveTab] = useState(tabFromUrl || '1');
@@ -49,14 +49,23 @@ function MatchManagement() {
         setSearchParams({ tab });
     };
 
-    // Search/Filter
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'robotName', 'robotNumber', 'teamName'
-    const [filterPlayground, setFilterPlayground] = useState('');
-    const [filterPhase, setFilterPhase] = useState('');
-    const [filterState, setFilterState] = useState('');
-    const [filterCategory, setFilterCategory] = useState('');
-    
+    // Search/Filter - load from localStorage
+    const STORAGE_KEY = 'matchManagement_filters';
+    const savedFilters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const [searchQuery, setSearchQuery] = useState(savedFilters.searchQuery || '');
+    const [searchType, setSearchType] = useState(savedFilters.searchType || 'all'); // 'all', 'id', 'robotName', 'robotNumber', 'teamName'
+    const [filterPlayground, setFilterPlayground] = useState(savedFilters.filterPlayground || '');
+    const [filterPhase, setFilterPhase] = useState(savedFilters.filterPhase || '');
+    const [filterState, setFilterState] = useState(savedFilters.filterState || '');
+    const [filterCategory, setFilterCategory] = useState(savedFilters.filterCategory || '');
+
+    // Save filters to localStorage when they change
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            searchQuery, searchType, filterPlayground, filterPhase, filterState, filterCategory
+        }));
+    }, [searchQuery, searchType, filterPlayground, filterPhase, filterState, filterCategory]);
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -80,6 +89,10 @@ function MatchManagement() {
     const [editRobotA, setEditRobotA] = useState(null);
     const [editRobotB, setEditRobotB] = useState(null);
 
+    // Referee Note Modal
+    const [showNoteModal, setShowNoteModal] = useState(false);
+    const [selectedNote, setSelectedNote] = useState({ matchId: null, note: '' });
+
     // Fetch matches
     const fetchMatches = useCallback(async () => {
         if (!selectedYear) return;
@@ -94,7 +107,7 @@ function MatchManagement() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setMatches(data.data || []);
@@ -120,7 +133,7 @@ function MatchManagement() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setGroups(data.data || []);
@@ -137,7 +150,7 @@ function MatchManagement() {
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}api/playground/all`);
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setPlaygrounds(data.data || []);
@@ -160,7 +173,7 @@ function MatchManagement() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setRobots(data.data || []);
@@ -189,30 +202,30 @@ function MatchManagement() {
         // Search based on selected search type
         const searchLower = searchQuery.toLowerCase();
         let matchesSearch = !searchQuery;
-        
+
         if (searchQuery) {
             switch (searchType) {
                 case 'id':
                     matchesSearch = match.id.toString().includes(searchQuery);
                     break;
                 case 'robotName':
-                    matchesSearch = 
+                    matchesSearch =
                         (match.robotAName?.toLowerCase().includes(searchLower)) ||
                         (match.robotBName?.toLowerCase().includes(searchLower));
                     break;
                 case 'robotNumber':
-                    matchesSearch = 
+                    matchesSearch =
                         (match.robotANumber?.toString().includes(searchQuery)) ||
                         (match.robotBNumber?.toString().includes(searchQuery));
                     break;
                 case 'teamName':
-                    matchesSearch = 
+                    matchesSearch =
                         (match.teamAName?.toLowerCase().includes(searchLower)) ||
                         (match.teamBName?.toLowerCase().includes(searchLower));
                     break;
                 case 'all':
                 default:
-                    matchesSearch = 
+                    matchesSearch =
                         (match.robotAName?.toLowerCase().includes(searchLower)) ||
                         (match.robotBName?.toLowerCase().includes(searchLower)) ||
                         (match.teamAName?.toLowerCase().includes(searchLower)) ||
@@ -225,19 +238,19 @@ function MatchManagement() {
         }
 
         // Filter by playground
-        const matchesPlayground = !filterPlayground || 
+        const matchesPlayground = !filterPlayground ||
             match.playgroundID?.toString() === filterPlayground;
 
         // Filter by phase
-        const matchesPhase = !filterPhase || 
+        const matchesPhase = !filterPhase ||
             match.phaseName === filterPhase;
 
         // Filter by state
-        const matchesState = !filterState || 
+        const matchesState = !filterState ||
             match.state?.name === filterState;
 
         // Filter by category
-        const matchesCategory = !filterCategory || 
+        const matchesCategory = !filterCategory ||
             match.categoryA === filterCategory ||
             match.categoryB === filterCategory;
 
@@ -273,7 +286,7 @@ function MatchManagement() {
                 group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
-            
+
             if (selectedRobotA) {
                 requestBody.robotAID = selectedRobotA.id;
             }
@@ -299,11 +312,15 @@ function MatchManagement() {
                 setShowCreateModal(false);
                 resetCreateModal();
                 fetchMatches();
+            } else if (data.type === 'ERROR' && data.data.includes("has not started yet")) {
+                toast.error(t('compNotStarted'));
+            } else if (data.type === 'ERROR' && data.data === 'failure, robots must be from the same category') {
+                toast.error(t('matchCategoryMismatch'));
             } else {
-                toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+                toast.error(t('matchCreateFailed') + ': ' + data.data);
             }
         } catch (error) {
-            toast.error(t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+            toast.error(t('matchCreateFailed') + ': ' + error);
         }
     };
 
@@ -322,7 +339,7 @@ function MatchManagement() {
                 group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
-            
+
             if (selectedRobotA) {
                 requestBody.robotAID = selectedRobotA.id;
             }
@@ -352,11 +369,15 @@ function MatchManagement() {
                 if (newMatchId) {
                     navigate(`/admin/match-score/${newMatchId}`);
                 }
+            } else if (data.type === 'ERROR' && data.data.includes("has not started yet")) {
+                toast.error(t('compNotStarted'));
+            } else if (data.type === 'ERROR' && data.data === 'failure, robots must be from the same category') {
+                toast.error(t('matchCategoryMismatch'));
             } else {
-                toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+                toast.error(t('matchCreateFailed') + ': ' + data.data);
             }
         } catch (error) {
-            toast.error(t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+            toast.error(t('matchCreateFailed') + ': ' + error);
         }
     };
 
@@ -690,16 +711,16 @@ function MatchManagement() {
                                                 <Input
                                                     placeholder={
                                                         searchType === 'id' ? (t('enterMatchId') || 'Zadejte ID...') :
-                                                        searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
-                                                        searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
-                                                        searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
-                                                        (t('searchMatchPlaceholder') || 'ID, robot, tým...')
+                                                            searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
+                                                                searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
+                                                                    searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
+                                                                        (t('searchMatchPlaceholder') || 'ID, robot, tým...')
                                                     }
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                 />
                                                 {searchQuery && (
-                                                    <InputGroupText 
+                                                    <InputGroupText
                                                         style={{ cursor: 'pointer' }}
                                                         onClick={() => setSearchQuery('')}
                                                         title={t('clearSearch') || 'Vymazat'}
@@ -778,13 +799,12 @@ function MatchManagement() {
                                                 <tr>
                                                     <th>ID</th>
                                                     <th>{t('playground') || 'Hřiště'}</th>
-                                                    <th>{t('category') || 'Kategorie'}</th>
                                                     <th>{t('robotA') || 'Robot A'}</th>
                                                     <th>{t('robotB') || 'Robot B'}</th>
                                                     <th>{t('score') || 'Skóre'}</th>
-                                                    <th>{t('phase') || 'Fáze'}</th>
-                                                    <th>{t('groupName') || 'Skupina'}</th>
                                                     <th>{t('state') || 'Stav'}</th>
+                                                    <th>{t('info') || 'Info'}</th>
+                                                    <th>{t('note') || 'Pozn.'}</th>
                                                     <th>{t('lastUpdate') || 'Poslední změna'}</th>
                                                     <th>{t('actions') || 'Akce'}</th>
                                                 </tr>
@@ -793,118 +813,171 @@ function MatchManagement() {
                                                 {filteredMatches
                                                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                                     .map(match => (
-                                                    <tr key={match.id}>
-                                                        <td>
-                                                            <span 
-                                                                style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
-                                                                onClick={() => goToScoreEntry(match.id)}
-                                                                title={t('clickToWriteScore') || 'Klikněte pro zápis skóre'}
-                                                            >
-                                                                #{match.id}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            {match.playgroundName || '-'} <Badge color="info">{match.playgroundNumber}</Badge>
-                                                        </td>
-                                                        <td>
-                                                            {match.categoryA ? (
-                                                                <Badge color={getCategoryColor(match.categoryA)}>
-                                                                    {getCategoryDisplay(match.categoryA)}
+                                                        <tr key={match.id}>
+                                                            <td>
+                                                                <span
+                                                                    style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
+                                                                    onClick={() => goToScoreEntry(match.id)}
+                                                                    title={t('clickToWriteScore') || 'Klikněte pro zápis skóre'}
+                                                                >
+                                                                    #{match.id}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                {match.playgroundName || '-'} <Badge color="info">{match.playgroundNumber}</Badge>
+                                                            </td>
+                                                            <td>
+                                                                {match.robotAID ? (
+                                                                    <span>
+                                                                        <a
+                                                                            href="#"
+                                                                            onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotAID}`); }}
+                                                                            style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                        >
+                                                                            <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotANumber}</span>{match.robotAName}
+                                                                        </a>
+                                                                        <br />
+                                                                        <small className="text-muted">{match.teamAName}</small>
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                {match.robotBID ? (
+                                                                    <span>
+                                                                        <a
+                                                                            href="#"
+                                                                            onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotBID}`); }}
+                                                                            style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                        >
+                                                                            <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotBNumber}</span>{match.robotBName}
+                                                                        </a>
+                                                                        <br />
+                                                                        <small className="text-muted">{match.teamBName}</small>
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                {match.scoreA !== null ? (
+                                                                    <span>
+                                                                        <strong>{match.scoreA}</strong>
+                                                                        {match.robotBID && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                <Badge color={getStateColor(match.state?.name)} style={{ fontSize: '11px' }}>
+                                                                    {match.state?.name || '-'}
                                                                 </Badge>
-                                                            ) : (
-                                                                <span className="text-muted">-</span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            {match.robotAID ? (
-                                                                <span>
-                                                                    <a
-                                                                        href="#"
-                                                                        onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotAID}`); }}
-                                                                        style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                            </td>
+                                                            <td style={{ minWidth: '120px' }}>
+                                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '3px' }}>
+                                                                    {match.categoryA && (
+                                                                        <Badge 
+                                                                            style={{ 
+                                                                                fontSize: '10px', 
+                                                                                display: 'block',
+                                                                                width: '100%',
+                                                                                textAlign: 'left',
+                                                                                padding: '4px 8px',
+                                                                                backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                                color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                            }}
+                                                                            title={t('ageCategory') || 'Věková kategorie'}
+                                                                        >
+                                                                            <i className="tim-icons icon-single-02" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                            {getCategoryDisplay(match.categoryA)}
+                                                                        </Badge>
+                                                                    )}
+                                                                    <Badge 
+                                                                        style={{ 
+                                                                            fontSize: '10px', 
+                                                                            display: 'block',
+                                                                            width: '100%',
+                                                                            textAlign: 'left',
+                                                                            padding: '4px 8px',
+                                                                            marginLeft: 0,
+                                                                            backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                            color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                            border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                        }}
+                                                                        title={t('tournamentPhase') || 'Fáze turnaje'}
                                                                     >
-                                                                        <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotANumber}</span>{match.robotAName}
-                                                                    </a>
-                                                                    <br />
-                                                                    <small className="text-muted">{match.teamAName}</small>
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-muted">-</span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            {match.robotBID ? (
-                                                                <span>
-                                                                    <a
-                                                                        href="#"
-                                                                        onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotBID}`); }}
-                                                                        style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                        <i className="tim-icons icon-trophy" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                        {getPhaseLabel(match.phaseName)}
+                                                                    </Badge>
+                                                                    {match.group && (
+                                                                        <Badge 
+                                                                            style={{ 
+                                                                                fontSize: '10px', 
+                                                                                display: 'block',
+                                                                                width: '100%',
+                                                                                textAlign: 'left',
+                                                                                padding: '4px 8px',
+                                                                                marginLeft: 0,
+                                                                                backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                                color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                            }}
+                                                                            title={t('groupName') || 'Název skupiny'}
+                                                                        >
+                                                                            <i className="tim-icons icon-bullet-list-67" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                            {match.group}
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                            <td className="text-center">
+                                                                {match.refereeNote ? (
+                                                                    <Button
+                                                                        color="link"
+                                                                        size="sm"
+                                                                        className="p-0"
+                                                                        onClick={() => {
+                                                                            setSelectedNote({ matchId: match.id, note: match.refereeNote });
+                                                                            setShowNoteModal(true);
+                                                                        }}
+                                                                        title={t('clickToViewNote') || 'Klikněte pro zobrazení poznámky'}
                                                                     >
-                                                                        <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotBNumber}</span>{match.robotBName}
-                                                                    </a>
-                                                                    <br />
-                                                                    <small className="text-muted">{match.teamBName}</small>
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-muted">-</span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            {match.scoreA !== null ? (
-                                                                <span>
-                                                                    <strong>{match.scoreA}</strong>
-                                                                    {match.robotBID && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-muted">-</span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            <Badge color="primary">
-                                                                {getPhaseLabel(match.phaseName)}
-                                                            </Badge>
-                                                        </td>
-                                                        <td>
-                                                            {match.group ? (
-                                                                <Badge color="secondary">
-                                                                    {match.group}
-                                                                </Badge>
-                                                            ) : (
-                                                                <span className="text-muted">-</span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            <Badge color={getStateColor(match.state?.name)}>
-                                                                {match.state?.name || '-'}
-                                                            </Badge>
-                                                        </td>
-                                                        <td>
-                                                            <small className="text-muted">
-                                                                {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
-                                                            </small>
-                                                        </td>
-                                                        <td style={{ textAlign: 'center' }}>
-                                                            <Button
-                                                                color="primary"
-                                                                size="sm"
-                                                                className="btn-icon"
-                                                                onClick={() => handleOpenEditModal(match)}
-                                                                title={t('edit') || 'Upravit'}
-                                                            >
-                                                                <i className="tim-icons icon-pencil" />
-                                                            </Button>
-                                                            <Button
-                                                                color="danger"
-                                                                size="sm"
-                                                                className="btn-icon ml-1"
-                                                                onClick={() => handleDeleteMatch(match.id)}
-                                                                title={t('delete') || 'Smazat'}
-                                                            >
-                                                                <i className="tim-icons icon-trash-simple" />
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                                        <i className="tim-icons icon-paper" style={{ color: '#1d8cf8', fontSize: '16px' }} />
+                                                                    </Button>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                <small className="text-muted">
+                                                                    {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
+                                                                </small>
+                                                            </td>
+                                                            <td style={{ textAlign: 'center' }}>
+                                                                <Button
+                                                                    color="primary"
+                                                                    size="sm"
+                                                                    className="btn-icon"
+                                                                    onClick={() => handleOpenEditModal(match)}
+                                                                    title={t('edit') || 'Upravit'}
+                                                                >
+                                                                    <i className="tim-icons icon-pencil" />
+                                                                </Button>
+                                                                <Button
+                                                                    color="danger"
+                                                                    size="sm"
+                                                                    className="btn-icon ml-1"
+                                                                    onClick={() => handleDeleteMatch(match.id)}
+                                                                    title={t('delete') || 'Smazat'}
+                                                                >
+                                                                    <i className="tim-icons icon-trash-simple" />
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
                                             </tbody>
                                         </Table>
                                     )}
@@ -937,10 +1010,10 @@ function MatchManagement() {
                                                 // Count matches in this group
                                                 const groupMatches = matches.filter(m => m.group === groupName);
                                                 const doneMatches = groupMatches.filter(m => m.state?.name === 'DONE').length;
-                                                
+
                                                 return (
                                                     <Col md="4" lg="3" key={groupName}>
-                                                        <Card 
+                                                        <Card
                                                             className="group-card mb-3"
                                                             style={{ cursor: 'pointer' }}
                                                             onClick={() => navigate(`/admin/match-group/${encodeURIComponent(groupName)}`)}
@@ -984,20 +1057,22 @@ function MatchManagement() {
                                                 // Count matches on this playground
                                                 const pgMatches = matches.filter(m => m.playgroundID === pg.id);
                                                 const doneMatches = pgMatches.filter(m => m.state?.name === 'DONE').length;
-                                                
+
                                                 return (
                                                     <Col md="4" lg="3" key={pg.id}>
-                                                        <Card 
+                                                        <Card
                                                             className="playground-card mb-3"
                                                             style={{ cursor: 'pointer' }}
                                                             onClick={() => navigate(`/admin/playground-matches/${pg.id}`)}
                                                         >
                                                             <CardBody className="text-center py-4">
                                                                 <i className="tim-icons icon-square-pin mb-3" style={{ fontSize: '2rem', color: '#e14eca' }} />
-                                                                <h4 className="mb-1">{pg.name}</h4>
-                                                                <p className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
-                                                                    #{pg.number} - {pg.disciplineName}
-                                                                </p>
+                                                                <h4 className="mb-1" style={{ color: '#1d1d1d', fontWeight: 'bold' }}>
+                                                                    {pg.name} <span style={{ backgroundColor: '#ff8d00', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.8rem' }}>{pg.number}</span>
+                                                                </h4>
+                                                                <div className="mb-2">
+                                                                    <Badge color="secondary">{pg.disciplineName}</Badge>
+                                                                </div>
                                                                 <Badge color="info" className="mr-1">
                                                                     {pgMatches.length} {t('matches') || 'zápasů'}
                                                                 </Badge>
@@ -1065,7 +1140,7 @@ function MatchManagement() {
                                 </FormGroup>
                             </Col>
                         </Row>
-                        
+
                         {newMatch.playgroundID && (
                             <Alert color="info" className="mb-3">
                                 <i className="tim-icons icon-bulb-63 mr-2" />
@@ -1297,6 +1372,31 @@ function MatchManagement() {
                     color: #1d8cf8;
                 }
             `}</style>
+
+            {/* Referee Note Modal */}
+            <Modal isOpen={showNoteModal} toggle={() => setShowNoteModal(false)}>
+                <ModalHeader toggle={() => setShowNoteModal(false)}>
+                    <i className="tim-icons icon-paper mr-2" />
+                    {t('refereeNote') || 'Poznámka rozhodčího'} - {t('match') || 'Zápas'} #{selectedNote.matchId}
+                </ModalHeader>
+                <ModalBody>
+                    <div style={{ 
+                        background: 'rgba(29, 140, 248, 0.1)', 
+                        borderRadius: '8px', 
+                        padding: '15px',
+                        border: '1px solid rgba(29, 140, 248, 0.3)',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word'
+                    }}>
+                        {selectedNote.note || '-'}
+                    </div>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowNoteModal(false)}>
+                        {t('close') || 'Zavřít'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
         </div>
     );
 }

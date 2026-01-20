@@ -57,7 +57,8 @@ function CompetitionManagement() {
         year: '',
         date: '',
         startTime: '',
-        endTime: ''
+        endTime: '',
+        showResults: false
     });
 
     // Filters & Pagination
@@ -160,7 +161,8 @@ function CompetitionManagement() {
             year: comp.year?.toString() || '',
             date: comp.date ? comp.date.split('T')[0] : '',
             startTime: comp.startTime ? comp.startTime.substring(0, 5) : '',
-            endTime: comp.endTime ? comp.endTime.substring(0, 5) : ''
+            endTime: comp.endTime ? comp.endTime.substring(0, 5) : '',
+            showResults: comp.showResults || false
         });
         setShowEditModal(true);
     };
@@ -183,7 +185,8 @@ function CompetitionManagement() {
                     year: parseInt(editCompetition.year, 10),
                     date: editCompetition.date,
                     startTime: editCompetition.startTime + ':00',
-                    endTime: editCompetition.endTime + ':00'
+                    endTime: editCompetition.endTime + ':00',
+                    showResults: editCompetition.showResults
                 })
             });
             if (tokenExpired(response.status)) return;
@@ -197,7 +200,7 @@ function CompetitionManagement() {
                 toast.error(data.data || data.message || t("compUpdateFail"));
             }
         } catch (error) {
-            toast.error(error.message || t("compUpdateError"));
+            toast.error(error.message || t("compUpdateError", { message: error.message }));
         }
     };
 
@@ -282,6 +285,34 @@ function CompetitionManagement() {
             } catch (error) {
                 toast.error(error.message || t("compCancelStartError") || "Chyba při rušení zahájení");
             }
+        }
+    };
+
+    // Toggle show results
+    const handleToggleShowResults = async (comp) => {
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}api/competition/toggleShowResults?id=${comp.id}&showResults=${!comp.showResults}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }
+            );
+            if (tokenExpired(response.status)) return;
+
+            const data = await response.json();
+            if (response.ok && data.type !== 'ERROR') {
+                toast.success(
+                    !comp.showResults 
+                        ? (t('resultsShown') || 'Globální výsledky jsou nyní zobrazeny')
+                        : (t('resultsHiddenMsg') || 'Globální výsledky jsou nyní skryty')
+                );
+                fetchCompetitions();
+            } else {
+                toast.error(data.data || data.message || t('compUpdateFail'));
+            }
+        } catch (error) {
+            toast.error(error.message || t('compUpdateError'));
         }
     };
 
@@ -451,6 +482,18 @@ function CompetitionManagement() {
                                                                         <i className="tim-icons icon-pencil" />
                                                                     </Button>
                                                                     <Button
+                                                                        color={comp.showResults ? 'info' : 'secondary'}
+                                                                        size="sm"
+                                                                        className="btn-icon ml-1"
+                                                                        onClick={() => handleToggleShowResults(comp)}
+                                                                        title={comp.showResults 
+                                                                            ? (t('hideGlobalResults') || 'Skrýt globální výsledky')
+                                                                            : (t('showGlobalResults') || 'Zobrazit globální výsledky')
+                                                                        }
+                                                                    >
+                                                                        <i className={`tim-icons ${comp.showResults ? 'icon-chart-bar-32' : 'icon-lock-circle'}`} />
+                                                                    </Button>
+                                                                    <Button
                                                                         color="danger"
                                                                         size="sm"
                                                                         className="btn-icon ml-1"
@@ -462,15 +505,29 @@ function CompetitionManagement() {
                                                                 </>
                                                             )}
                                                             {isAdminOrLeader && comp.started && (
-                                                                <Button
-                                                                    color="warning"
-                                                                    size="sm"
-                                                                    className="btn-icon ml-1"
-                                                                    onClick={() => handleCancelStart(comp)}
-                                                                    title={t('cancelStart') || 'Zrušit zahájení'}
-                                                                >
-                                                                    <i className="tim-icons icon-simple-remove" />
-                                                                </Button>
+                                                                <>
+                                                                    <Button
+                                                                        color="warning"
+                                                                        size="sm"
+                                                                        className="btn-icon ml-1"
+                                                                        onClick={() => handleCancelStart(comp)}
+                                                                        title={t('cancelStart') || 'Zrušit zahájení'}
+                                                                    >
+                                                                        <i className="tim-icons icon-simple-remove" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        color={comp.showResults ? 'info' : 'secondary'}
+                                                                        size="sm"
+                                                                        className="btn-icon ml-1"
+                                                                        onClick={() => handleToggleShowResults(comp)}
+                                                                        title={comp.showResults 
+                                                                            ? (t('hideGlobalResults') || 'Skrýt globální výsledky')
+                                                                            : (t('showGlobalResults') || 'Zobrazit globální výsledky')
+                                                                        }
+                                                                    >
+                                                                        <i className={`tim-icons ${comp.showResults ? 'icon-chart-bar-32' : 'icon-lock-circle'}`} />
+                                                                    </Button>
+                                                                </>
                                                             )}
                                                         </td>
                                                     </tr>

@@ -109,8 +109,8 @@ function Sidebar(props) {
   const rolesString = localStorage.getItem('roles'); // Get the roles string from localStorage
   const rolesArray = rolesString ? rolesString.split(', ') : []; // Split the roles string into an array or use an empty array if no roles exist
   const isAdminOrLeaderOrAssistant = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT'].includes(role)); // Check if the user has any of the specified roles
-
-  const isAdminOrLeaderOrAssistantOrReferee = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT', 'REFEREE'].includes(role)); // Check if the user has any of the specified roles
+  const isReferee = rolesArray.includes('REFEREE'); // Check if the user has the REFEREE role
+  // const isAdminOrLeaderOrAssistantOrReferee = rolesArray.some(role => ['ADMIN', 'LEADER', 'ASSISTANT', 'REFEREE'].includes(role)); // Check if the user has any of the specified roles
 
   // console.log("is referee:" + isAdminOrLeaderOrAssistantOrReferee) // Log the value of isAdminOrLeaderOrAssistantOrReferee to the console
 
@@ -141,7 +141,7 @@ function Sidebar(props) {
                 if (prop.path === "/match-generation") return null; // Always hide match generation
                 if (prop.path === "/robot-profile") return null; // Always hide robot profile
                 if (prop.path === "/match-score/:matchId") return null; // Always hide match score entry (accessible via match management)
-                if (prop.path === "/match-management") return null; // Hide match management from sidebar (accessible via admin dashboard)
+                if (prop.path === "/match-management" && !isReferee) return null; // Hide match management from sidebar (accessible via admin dashboard), except for referees
                 if (prop.path === "/team-management") return null; // Hide team management from sidebar (accessible via admin dashboard)
                 if (prop.path === "/registration-management") return null; // Hide registration management from sidebar (accessible via admin dashboard)
                 if (prop.path === "/admin-dashboard" && !isAdminOrLeaderOrAssistant) return null; // Hide admin dashboard if the user doesn't have the required roles

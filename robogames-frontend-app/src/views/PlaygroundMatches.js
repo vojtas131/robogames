@@ -9,7 +9,8 @@ import {
     Row, Col, Button,
     Table, Badge, Spinner, Alert,
     Modal, ModalHeader, ModalBody, ModalFooter,
-    Form, FormGroup, Label, Input
+    Form, FormGroup, Label, Input,
+    InputGroup, InputGroupText
 } from 'reactstrap';
 import { useUser } from "contexts/UserContext";
 import { useAdmin } from "contexts/AdminContext";
@@ -21,13 +22,13 @@ import RobotSearchSelect from "components/RobotSearchSelect";
 
 function PlaygroundMatches() {
     const { playgroundId } = useParams();
-    
+
     const { selectedYear } = useAdmin();
     const { token, tokenExpired } = useUser();
     const toast = useToast();
     const { theme } = useContext(ThemeContext);
     const navigate = useNavigate();
-    
+
     const isDark = theme === themes.dark;
 
     // State
@@ -39,10 +40,26 @@ function PlaygroundMatches() {
     const [loadingPlayground, setLoadingPlayground] = useState(false);
     const [loadingCurrentMatch, setLoadingCurrentMatch] = useState(false);
     const [skippingMatch, setSkippingMatch] = useState(false);
-    
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(15);
+
+    // Filter states - load from localStorage
+    const STORAGE_KEY = 'playgroundMatches_filters';
+    const savedFilters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const [searchQuery, setSearchQuery] = useState(savedFilters.searchQuery || '');
+    const [searchType, setSearchType] = useState(savedFilters.searchType || 'all');
+    const [filterPhase, setFilterPhase] = useState(savedFilters.filterPhase || '');
+    const [filterState, setFilterState] = useState(savedFilters.filterState || '');
+    const [filterCategory, setFilterCategory] = useState(savedFilters.filterCategory || '');
+
+    // Save filters to localStorage when they change
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            searchQuery, searchType, filterPhase, filterState, filterCategory
+        }));
+    }, [searchQuery, searchType, filterPhase, filterState, filterCategory]);
 
     // Create Match Modal
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -54,7 +71,11 @@ function PlaygroundMatches() {
     const [selectedRobotA, setSelectedRobotA] = useState(null);
     const [selectedRobotB, setSelectedRobotB] = useState(null);
 
-    const phases = ['GROUP_STAGE', 'PRELIMINARY', 'ROUND_OF_16', 'QUARTERFINAL', 'SEMIFINAL', 'FINAL'];
+    // Referee Note Modal
+    const [showNoteModal, setShowNoteModal] = useState(false);
+    const [selectedNote, setSelectedNote] = useState({ matchId: null, note: '' });
+
+    const phases = ['GROUP_STAGE', 'PRELIMINARY', 'ROUND_OF_16', 'QUARTERFINAL', 'SEMIFINAL', 'THIRD_PLACE', 'FINAL'];
 
     // Fetch playground info
     const fetchPlayground = useCallback(async () => {
@@ -70,7 +91,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setPlayground(data.data);
@@ -96,7 +117,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setMatches(data.data || []);
@@ -111,10 +132,10 @@ function PlaygroundMatches() {
     // Fetch robots for the selected year and discipline
     const fetchRobots = useCallback(async () => {
         if (!selectedYear || !playground?.disciplineID) {
-            console.log('fetchRobots skipped:', { selectedYear, disciplineID: playground?.disciplineID });
+            // console.log('fetchRobots skipped:', { selectedYear, disciplineID: playground?.disciplineID });
             return;
         }
-        console.log('fetchRobots called:', { selectedYear, disciplineID: playground?.disciplineID });
+        // console.log('fetchRobots called:', { selectedYear, disciplineID: playground?.disciplineID });
         try {
             const response = await fetch(
                 `${process.env.REACT_APP_API_URL}api/robot/allForYear?year=${selectedYear}`,
@@ -125,7 +146,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 // Filter robots by discipline
@@ -133,7 +154,7 @@ function PlaygroundMatches() {
                 const disciplineFiltered = allRobots.filter(
                     robot => robot.disciplineID === playground.disciplineID
                 );
-                console.log('Robots loaded:', { total: allRobots.length, filtered: disciplineFiltered.length, disciplineID: playground.disciplineID });
+                // console.log('Robots loaded:', { total: allRobots.length, filtered: disciplineFiltered.length, disciplineID: playground.disciplineID });
                 setRobots(disciplineFiltered);
             }
         } catch (error) {
@@ -155,7 +176,7 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 setCurrentMatch(data.data);
@@ -185,11 +206,13 @@ function PlaygroundMatches() {
                 }
             );
             if (tokenExpired(response.status)) return;
-            
+
             const data = await response.json();
             if (response.ok && data.type === 'RESPONSE') {
                 toast.success(t('matchSkipped') || 'Zápas byl přeskočen');
                 fetchCurrentMatch();
+            } else if (data.type === 'ERROR' && data.data.includes('queue is empty or has only one match')) {
+                toast.error(t('matchSkipQueueEmpty') || 'Nelze přeskočit zápas, fronta je prázdná nebo obsahuje pouze jeden zápas');
             } else {
                 toast.error(data.message || t('matchSkipFailed') || 'Nepodařilo se přeskočit zápas');
             }
@@ -211,7 +234,7 @@ function PlaygroundMatches() {
     useEffect(() => {
         // Fetch robots when playground is loaded and selectedYear is available
         if (playground && selectedYear) {
-            console.log('Triggering fetchRobots:', { playground: playground.id, selectedYear });
+            // console.log('Triggering fetchRobots:', { playground: playground.id, selectedYear });
             fetchRobots();
         }
     }, [playground, selectedYear, fetchRobots]);
@@ -219,6 +242,65 @@ function PlaygroundMatches() {
     useEffect(() => {
         fetchCurrentMatch();
     }, [fetchCurrentMatch]);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, searchType, filterPhase, filterState, filterCategory]);
+
+    // Filter matches
+    const filteredMatches = matches.filter(match => {
+        // Search based on selected search type
+        const searchLower = searchQuery.toLowerCase();
+        let matchesSearch = !searchQuery;
+
+        if (searchQuery) {
+            switch (searchType) {
+                case 'id':
+                    matchesSearch = match.id.toString().includes(searchQuery);
+                    break;
+                case 'robotName':
+                    matchesSearch =
+                        (match.robotAName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotBName?.toLowerCase().includes(searchLower));
+                    break;
+                case 'robotNumber':
+                    matchesSearch =
+                        (match.robotANumber?.toString().includes(searchQuery)) ||
+                        (match.robotBNumber?.toString().includes(searchQuery));
+                    break;
+                case 'teamName':
+                    matchesSearch =
+                        (match.teamAName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamBName?.toLowerCase().includes(searchLower));
+                    break;
+                case 'all':
+                default:
+                    matchesSearch =
+                        (match.robotAName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotBName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamAName?.toLowerCase().includes(searchLower)) ||
+                        (match.teamBName?.toLowerCase().includes(searchLower)) ||
+                        (match.robotANumber?.toString().includes(searchQuery)) ||
+                        (match.robotBNumber?.toString().includes(searchQuery)) ||
+                        match.id.toString().includes(searchQuery);
+                    break;
+            }
+        }
+
+        // Filter by phase
+        const matchesPhase = !filterPhase || match.phaseName === filterPhase;
+
+        // Filter by state
+        const matchesState = !filterState || match.state?.name === filterState;
+
+        // Filter by category
+        const matchesCategory = !filterCategory ||
+            match.categoryA === filterCategory ||
+            match.categoryB === filterCategory;
+
+        return matchesSearch && matchesPhase && matchesState && matchesCategory;
+    });
 
     // Reset create modal
     const resetCreateModal = () => {
@@ -241,7 +323,7 @@ function PlaygroundMatches() {
                 group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
-            
+
             if (selectedRobotA) {
                 requestBody.robotAID = selectedRobotA.id;
             }
@@ -263,15 +345,19 @@ function PlaygroundMatches() {
             const data = await response.json();
 
             if (response.ok && data.type === 'RESPONSE') {
-                toast.success(t('matchCreated') || 'Zápas byl vytvořen');
+                toast.success(t('matchCreated'));
                 setShowCreateModal(false);
                 resetCreateModal();
                 fetchMatches();
+            } else if (data.type === 'ERROR' && data.data.includes("has not started yet")) {
+                toast.error(t('compNotStarted'));
+            } else if (data.type === 'ERROR' && data.data === 'failure, robots must be from the same category') {
+                toast.error(t('matchCategoryMismatch'));
             } else {
-                toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+                toast.error(t('matchCreateFailed') + ': ' + data.data);
             }
         } catch (error) {
-            toast.error(t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+            toast.error(t('matchCreateFailed') + ': ' + error);
         }
     };
 
@@ -285,7 +371,7 @@ function PlaygroundMatches() {
                 group: newMatch.groupName || null,
                 competitionYear: selectedYear  // Include year for matches without robots
             };
-            
+
             if (selectedRobotA) {
                 requestBody.robotAID = selectedRobotA.id;
             }
@@ -315,11 +401,15 @@ function PlaygroundMatches() {
                 if (matchId) {
                     navigate(`/admin/match-score/${matchId}?from=playground`);
                 }
+            } else if (data.type === 'ERROR' && data.data.includes("has not started yet")) {
+                toast.error(t('compNotStarted'));
+            } else if (data.type === 'ERROR' && data.data === 'failure, robots must be from the same category') {
+                toast.error(t('matchCategoryMismatch'));
             } else {
-                toast.error(data.message || t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+                toast.error(t('matchCreateFailed') + ': ' + data.data);
             }
         } catch (error) {
-            toast.error(t('matchCreateFailed') || 'Nepodařilo se vytvořit zápas');
+            toast.error(t('matchCreateFailed') + ': ' + error);
         }
     };
 
@@ -373,6 +463,12 @@ function PlaygroundMatches() {
     // Get filtered robots (only confirmed)
     const filteredRobots = robots.filter(r => r.confirmed);
 
+    // Get filtered robots for create modal for robot B (filtered by robot A's category)
+    const getFilteredRobotsForCreateB = () => {
+        const categoryFilter = selectedRobotA?.category || null;
+        return categoryFilter ? filteredRobots.filter(robot => robot.category === categoryFilter) : filteredRobots;
+    };
+
     return (
         <div className="content">
             <Row>
@@ -381,8 +477,8 @@ function PlaygroundMatches() {
                         <CardHeader>
                             <Row className="align-items-center">
                                 <Col>
-                                    <Button 
-                                        color="link" 
+                                    <Button
+                                        color="link"
                                         className="p-0 mr-3"
                                         onClick={() => navigate('/admin/match-management?tab=3')}
                                     >
@@ -401,7 +497,7 @@ function PlaygroundMatches() {
                                     {playground && (
                                         <CardTitle tag="h4" className="d-inline-block mb-0">
                                             <i className="tim-icons icon-square-pin mr-2" />
-                                            <small className="text-muted">({playground.disciplineName})</small>
+                                            <Badge color="secondary">{playground.disciplineName}</Badge>
                                         </CardTitle>
                                     )}
                                 </Col>
@@ -415,31 +511,31 @@ function PlaygroundMatches() {
                         </CardHeader>
                         <CardBody>
                             {/* Current Match Display */}
-                            <Card className="mb-4" style={{ 
-                                background: currentMatch ? 'linear-gradient(135deg, rgba(29, 140, 248, 0.15) 0%, rgba(29, 140, 248, 0.05) 100%)' : 'rgba(255,255,255,0.02)',
-                                border: currentMatch ? '2px solid rgba(29, 140, 248, 0.4)' : '1px solid rgba(255,255,255,0.1)',
+                            <Card className="mb-4" style={{
+                                background: currentMatch ? 'linear-gradient(135deg, rgba(239, 96, 0, 0.15) 0%, rgba(239, 96, 0, 0.05) 100%)' : 'rgba(255,255,255,0.02)',
+                                border: currentMatch ? '2px solid rgba(239, 96, 0, 0.5)' : '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: '12px'
                             }}>
                                 <CardBody className="py-2 px-3">
                                     {loadingCurrentMatch ? (
                                         <div className="text-center py-3">
-                                            <Spinner size="sm" color="info" />
+                                            <Spinner size="sm" color="warning" />
                                         </div>
                                     ) : currentMatch ? (
                                         <>
                                             {/* Header row: Title + Skip button */}
                                             <div className="d-flex justify-content-between align-items-center mb-2">
                                                 <div className="d-flex align-items-center">
-                                                    <i className="tim-icons icon-bell-55 text-info mr-2" style={{ fontSize: '1.1rem' }} />
+                                                    <i className="tim-icons icon-bell-55 mr-2" style={{ fontSize: '1.1rem', color: '#ef6000' }} />
                                                     <span className="text-muted d-none d-sm-inline" style={{ fontSize: '0.85rem' }}>
                                                         {t('currentMatchInQueue') || 'Aktuální zápas'}
                                                     </span>
-                                                    <Badge color="info" className="ml-2 px-2" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                                                    <Badge className="ml-2 px-2" style={{ fontSize: '0.9rem', fontWeight: 'bold', backgroundColor: '#ef6000' }}>
                                                         #{currentMatch.id}
                                                     </Badge>
                                                 </div>
-                                                <Button 
-                                                    color="warning" 
+                                                <Button
+                                                    color="warning"
                                                     size="sm"
                                                     className="py-1 px-2"
                                                     onClick={handleSkipCurrentMatch}
@@ -458,10 +554,10 @@ function PlaygroundMatches() {
                                             </div>
 
                                             {/* Main content: Robots vs layout */}
-                                            <div 
+                                            <div
                                                 className="d-flex flex-column flex-sm-row align-items-center justify-content-center py-2"
-                                                style={{ 
-                                                    background: 'rgba(0,0,0,0.15)', 
+                                                style={{
+                                                    background: 'rgba(0,0,0,0.15)',
                                                     borderRadius: '8px',
                                                     margin: '0 -0.5rem'
                                                 }}
@@ -471,14 +567,13 @@ function PlaygroundMatches() {
                                                     {currentMatch.robotAID ? (
                                                         <>
                                                             <div className="d-flex align-items-center justify-content-center">
-                                                                <Badge 
-                                                                    color="primary" 
+                                                                <Badge
                                                                     className="mr-2"
-                                                                    style={{ fontSize: '1rem', padding: '4px 10px', fontWeight: 'bold' }}
+                                                                    style={{ fontSize: '1.1rem', padding: '6px 12px', fontWeight: 'bold', backgroundColor: '#ef6000' }}
                                                                 >
                                                                     {currentMatch.robotANumber}
                                                                 </Badge>
-                                                                <strong style={{ fontSize: '1.1rem' }}>{currentMatch.robotAName}</strong>
+                                                                <strong style={{ fontSize: '1.2rem' }}>{currentMatch.robotAName}</strong>
                                                             </div>
                                                             <small className="text-muted">{currentMatch.teamAName}</small>
                                                         </>
@@ -490,11 +585,12 @@ function PlaygroundMatches() {
                                                 {/* VS separator */}
                                                 {currentMatch.robotBID && (
                                                     <div className="mx-2 my-2 my-sm-0">
-                                                        <span 
-                                                            className="text-warning font-weight-bold"
-                                                            style={{ 
-                                                                fontSize: '1.1rem',
-                                                                textShadow: '0 0 10px rgba(251, 99, 64, 0.5)'
+                                                        <span
+                                                            className="font-weight-bold"
+                                                            style={{
+                                                                fontSize: '1.2rem',
+                                                                color: '#ef6000',
+                                                                textShadow: '0 0 10px rgba(239, 96, 0, 0.5)'
                                                             }}
                                                         >
                                                             VS
@@ -506,14 +602,13 @@ function PlaygroundMatches() {
                                                 {currentMatch.robotBID && (
                                                     <div className="text-center px-3 py-1">
                                                         <div className="d-flex align-items-center justify-content-center">
-                                                            <Badge 
-                                                                color="primary" 
+                                                            <Badge
                                                                 className="mr-2"
-                                                                style={{ fontSize: '1rem', padding: '4px 10px', fontWeight: 'bold' }}
+                                                                style={{ fontSize: '1.1rem', padding: '6px 12px', fontWeight: 'bold', backgroundColor: '#ef6000' }}
                                                             >
                                                                 {currentMatch.robotBNumber}
                                                             </Badge>
-                                                            <strong style={{ fontSize: '1.1rem' }}>{currentMatch.robotBName}</strong>
+                                                            <strong style={{ fontSize: '1.2rem' }}>{currentMatch.robotBName}</strong>
                                                         </div>
                                                         <small className="text-muted">{currentMatch.teamBName}</small>
                                                     </div>
@@ -537,8 +632,8 @@ function PlaygroundMatches() {
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <Button 
-                                                    color="success" 
+                                                <Button
+                                                    color="success"
                                                     size="sm"
                                                     className="mt-2 mt-sm-0"
                                                     onClick={() => goToScoreEntry(currentMatch.id)}
@@ -568,20 +663,101 @@ function PlaygroundMatches() {
                                 <Col md="3">
                                     <div className="text-center p-3" style={{ background: 'rgba(29, 140, 248, 0.1)', borderRadius: '8px' }}>
                                         <h3 className="mb-0 text-success">{doneMatches}</h3>
-                                        <small className="text-muted">{t('done') || 'Hotové'}</small>
+                                        <small className="text-muted">{t('doneStatus') || 'Hotové'}</small>
                                     </div>
                                 </Col>
                                 <Col md="3">
                                     <div className="text-center p-3" style={{ background: 'rgba(255, 178, 43, 0.1)', borderRadius: '8px' }}>
                                         <h3 className="mb-0 text-warning">{waitingMatches}</h3>
-                                        <small className="text-muted">{t('waiting') || 'Čekající'}</small>
+                                        <small className="text-muted">{t('waitingStatus') || 'Čekající'}</small>
                                     </div>
                                 </Col>
                                 <Col md="3">
                                     <div className="text-center p-3" style={{ background: 'rgba(253, 93, 147, 0.1)', borderRadius: '8px' }}>
                                         <h3 className="mb-0 text-danger">{rematchMatches}</h3>
-                                        <small className="text-muted">{t('rematch') || 'Opakování'}</small>
+                                        <small className="text-muted">{t('rematchStatus') || 'Opakování'}</small>
                                     </div>
+                                </Col>
+                            </Row>
+
+                            {/* Filters */}
+                            <Row className="mb-4">
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={searchType}
+                                        onChange={(e) => setSearchType(e.target.value)}
+                                    >
+                                        <option value="all">{t('searchAll') || 'Hledat vše'}</option>
+                                        <option value="id">{t('searchById') || 'ID zápasu'}</option>
+                                        <option value="robotName">{t('searchByRobotName') || 'Jméno robota'}</option>
+                                        <option value="robotNumber">{t('searchByRobotNumber') || 'Číslo robota'}</option>
+                                        <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>
+                                    </Input>
+                                </Col>
+                                <Col md="3">
+                                    <InputGroup>
+                                        <InputGroupText>
+                                            <i className="tim-icons icon-zoom-split" />
+                                        </InputGroupText>
+                                        <Input
+                                            placeholder={
+                                                searchType === 'id' ? (t('enterMatchId') || 'Zadejte ID...') :
+                                                    searchType === 'robotName' ? (t('enterRobotName') || 'Jméno robota...') :
+                                                        searchType === 'robotNumber' ? (t('enterRobotNumber') || 'Číslo robota...') :
+                                                            searchType === 'teamName' ? (t('enterTeamName') || 'Název týmu...') :
+                                                                (t('searchMatchPlaceholder') || 'ID, robot, tým...')
+                                            }
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                        {searchQuery && (
+                                            <InputGroupText
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => setSearchQuery('')}
+                                                title={t('clearSearch') || 'Vymazat'}
+                                            >
+                                                <i className="tim-icons icon-simple-remove" />
+                                            </InputGroupText>
+                                        )}
+                                    </InputGroup>
+                                </Col>
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={filterPhase}
+                                        onChange={(e) => setFilterPhase(e.target.value)}
+                                    >
+                                        <option value="">{t('allPhases') || 'Všechny fáze'}</option>
+                                        {phases.map(phase => (
+                                            <option key={phase} value={phase}>
+                                                {getPhaseLabel(phase)}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                </Col>
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={filterState}
+                                        onChange={(e) => setFilterState(e.target.value)}
+                                    >
+                                        <option value="">{t('allStates') || 'Všechny stavy'}</option>
+                                        <option value="WAITING">{t('waitingStatus') || 'Čekající'}</option>
+                                        <option value="DONE">{t('doneStatus') || 'Hotové'}</option>
+                                        <option value="REMATCH">{t('rematchStatus') || 'Opakování'}</option>
+                                    </Input>
+                                </Col>
+                                <Col md="2">
+                                    <Input
+                                        type="select"
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                    >
+                                        <option value="">{t('allCategories') || 'Všechny kategorie'}</option>
+                                        <option value="LOW_AGE_CATEGORY">{t('pupils') || 'Žáci'}</option>
+                                        <option value="HIGH_AGE_CATEGORY">{t('students') || 'Studenti a dospělí'}</option>
+                                    </Input>
                                 </Col>
                             </Row>
 
@@ -590,126 +766,181 @@ function PlaygroundMatches() {
                                 <div className="text-center py-5">
                                     <Spinner color="primary" />
                                 </div>
-                            ) : matches.length === 0 ? (
+                            ) : filteredMatches.length === 0 ? (
                                 <Alert color="info">
                                     <i className="tim-icons icon-alert-circle-exc mr-2" />
-                                    {t('noMatchesOnPlayground') || 'Na tomto hřišti nejsou žádné zápasy'}
+                                    {matches.length === 0
+                                        ? (t('noMatchesOnPlayground') || 'Na tomto hřišti nejsou žádné zápasy')
+                                        : (t('noMatchesMatchingFilters') || 'Žádné zápasy neodpovídají filtrům')
+                                    }
                                 </Alert>
                             ) : (
                                 <Table responsive hover className="table-management">
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>{t('category') || 'Kategorie'}</th>
                                             <th>{t('robotA') || 'Robot A'}</th>
                                             <th>{t('robotB') || 'Robot B'}</th>
                                             <th>{t('score') || 'Skóre'}</th>
-                                            <th>{t('phase') || 'Fáze'}</th>
-                                            <th>{t('groupName') || 'Skupina'}</th>
                                             <th>{t('state') || 'Stav'}</th>
+                                            <th>{t('info') || 'Info'}</th>
+                                            <th>{t('note') || 'Pozn.'}</th>
                                             <th>{t('lastUpdate') || 'Poslední změna'}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {matches
+                                        {filteredMatches
                                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                             .map(match => (
-                                            <tr key={match.id}>
-                                                <td>
-                                                    <span 
-                                                        style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
-                                                        onClick={() => goToScoreEntry(match.id)}
-                                                        title={t('clickToWriteScore') || 'Klikněte pro zápis skóre'}
-                                                    >
-                                                        #{match.id}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {match.categoryA ? (
-                                                        <Badge color={getCategoryColor(match.categoryA)}>
-                                                            {getCategoryDisplay(match.categoryA)}
+                                                <tr key={match.id}>
+                                                    <td>
+                                                        <span
+                                                            style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
+                                                            onClick={() => goToScoreEntry(match.id)}
+                                                            title={t('clickToWriteScore') || 'Klikněte pro zápis skóre'}
+                                                        >
+                                                            #{match.id}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {match.robotAID ? (
+                                                            <span>
+                                                                <a
+                                                                    href="#"
+                                                                    onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotAID}`); }}
+                                                                    style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                >
+                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotANumber}</span>{match.robotAName}
+                                                                </a>
+                                                                <br />
+                                                                <small className="text-muted">{match.teamAName}</small>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {match.robotBID ? (
+                                                            <span>
+                                                                <a
+                                                                    href="#"
+                                                                    onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotBID}`); }}
+                                                                    style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                >
+                                                                    <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotBNumber}</span>{match.robotBName}
+                                                                </a>
+                                                                <br />
+                                                                <small className="text-muted">{match.teamBName}</small>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {match.scoreA !== null ? (
+                                                            <span>
+                                                                <strong>{match.scoreA}</strong>
+                                                                {match.robotBID && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <Badge color={getStateColor(match.state?.name)} style={{ fontSize: '11px' }}>
+                                                            {match.state?.name || '-'}
                                                         </Badge>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {match.robotAID ? (
-                                                        <span>
-                                                            <a
-                                                                href="#"
-                                                                onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotAID}`); }}
-                                                                style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                    </td>
+                                                    <td style={{ minWidth: '120px' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '3px' }}>
+                                                            {match.categoryA && (
+                                                                <Badge 
+                                                                    style={{ 
+                                                                        fontSize: '10px', 
+                                                                        display: 'block',
+                                                                        width: '100%',
+                                                                        textAlign: 'left',
+                                                                        padding: '4px 8px',
+                                                                        backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                        color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                    }}
+                                                                    title={t('ageCategory') || 'Věková kategorie'}
+                                                                >
+                                                                    <i className="tim-icons icon-single-02" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                    {getCategoryDisplay(match.categoryA)}
+                                                                </Badge>
+                                                            )}
+                                                            <Badge 
+                                                                style={{ 
+                                                                    fontSize: '10px', 
+                                                                    display: 'block',
+                                                                    width: '100%',
+                                                                    textAlign: 'left',
+                                                                    padding: '4px 8px',
+                                                                    marginLeft: 0,
+                                                                    backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                    color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                }}
+                                                                title={t('tournamentPhase') || 'Fáze turnaje'}
                                                             >
-                                                                <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotANumber}</span>{match.robotAName}
-                                                            </a>
-                                                            <br />
-                                                            <small className="text-muted">{match.teamAName}</small>
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {match.robotBID ? (
-                                                        <span>
-                                                            <a
-                                                                href="#"
-                                                                onClick={(e) => { e.preventDefault(); navigate(`/admin/robot-profile?id=${match.robotBID}`); }}
-                                                                style={{ color: '#5e72e4', cursor: 'pointer' }}
+                                                                <i className="tim-icons icon-trophy" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                {getPhaseLabel(match.phaseName)}
+                                                            </Badge>
+                                                            {match.group && (
+                                                                <Badge 
+                                                                    style={{ 
+                                                                        fontSize: '10px', 
+                                                                        display: 'block',
+                                                                        width: '100%',
+                                                                        textAlign: 'left',
+                                                                        padding: '4px 8px',
+                                                                        marginLeft: 0,
+                                                                        backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                                                                        color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)'
+                                                                    }}
+                                                                    title={t('groupName') || 'Název skupiny'}
+                                                                >
+                                                                    <i className="tim-icons icon-bullet-list-67" style={{ marginRight: '5px', fontSize: '9px', width: '12px', display: 'inline-block', textAlign: 'center' }} />
+                                                                    {match.group}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="text-center">
+                                                        {match.refereeNote ? (
+                                                            <Button
+                                                                color="link"
+                                                                size="sm"
+                                                                className="p-0"
+                                                                onClick={() => {
+                                                                    setSelectedNote({ matchId: match.id, note: match.refereeNote });
+                                                                    setShowNoteModal(true);
+                                                                }}
+                                                                title={t('clickToViewNote') || 'Klikněte pro zobrazení poznámky'}
                                                             >
-                                                                <span style={{ backgroundColor: 'rgba(94, 114, 228, 0.15)', padding: '1px 5px', borderRadius: '4px', marginRight: '6px', fontWeight: 'bold' }}>{match.robotBNumber}</span>{match.robotBName}
-                                                            </a>
-                                                            <br />
-                                                            <small className="text-muted">{match.teamBName}</small>
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {match.scoreA !== null ? (
-                                                        <span>
-                                                            <strong>{match.scoreA}</strong>
-                                                            {match.robotBID && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <Badge color="primary">
-                                                        {getPhaseLabel(match.phaseName)}
-                                                    </Badge>
-                                                </td>
-                                                <td>
-                                                    {match.group ? (
-                                                        <Badge color="secondary">
-                                                            {match.group}
-                                                        </Badge>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <Badge color={getStateColor(match.state?.name)}>
-                                                        {match.state?.name || '-'}
-                                                    </Badge>
-                                                </td>
-                                                <td>
-                                                    <small className="text-muted">
-                                                        {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
-                                                    </small>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                                <i className="tim-icons icon-paper" style={{ color: '#1d8cf8', fontSize: '16px' }} />
+                                                            </Button>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <small className="text-muted">
+                                                            {match.timestamp ? new Date(match.timestamp).toLocaleString('cs-CZ') : '-'}
+                                                        </small>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </Table>
                             )}
 
                             <TablePagination
                                 currentPage={currentPage}
-                                totalItems={matches.length}
+                                totalItems={filteredMatches.length}
                                 itemsPerPage={itemsPerPage}
                                 onPageChange={(page) => setCurrentPage(page)}
                                 onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
@@ -773,6 +1004,14 @@ function PlaygroundMatches() {
                             </Alert>
                         )}
 
+                        {selectedRobotA && (
+                            <Alert color={getCategoryColor(selectedRobotA.category)} className="mb-3">
+                                <i className="tim-icons icon-badge mr-2" />
+                                {t('selectedCategory') || 'Vybraná kategorie'}: <strong>{getCategoryDisplay(selectedRobotA.category)}</strong>
+                                {' '}({t('robotBMustBeSameCategory') || 'Robot B musí být ze stejné kategorie'})
+                            </Alert>
+                        )}
+
                         <Row>
                             <Col md="6">
                                 <FormGroup>
@@ -780,7 +1019,13 @@ function PlaygroundMatches() {
                                     <RobotSearchSelect
                                         robots={filteredRobots}
                                         selectedRobot={selectedRobotA}
-                                        onSelect={setSelectedRobotA}
+                                        onSelect={(robot) => {
+                                            setSelectedRobotA(robot);
+                                            // Clear robot B if category doesn't match
+                                            if (robot && selectedRobotB && robot.category !== selectedRobotB.category) {
+                                                setSelectedRobotB(null);
+                                            }
+                                        }}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
                                         excludeRobotIds={selectedRobotB ? [selectedRobotB.id] : []}
                                         showDisciplineInfo={true}
@@ -792,7 +1037,7 @@ function PlaygroundMatches() {
                                 <FormGroup>
                                     <Label>{t('robotB') || 'Robot B'} ({t('optional') || 'volitelné'})</Label>
                                     <RobotSearchSelect
-                                        robots={filteredRobots}
+                                        robots={getFilteredRobotsForCreateB()}
                                         selectedRobot={selectedRobotB}
                                         onSelect={setSelectedRobotB}
                                         placeholder={t('searchRobotPlaceholder') || 'Hledat robota (ID, číslo, název)...'}
@@ -838,6 +1083,31 @@ function PlaygroundMatches() {
                     background: ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'};
                 }
             `}</style>
+
+            {/* Referee Note Modal */}
+            <Modal isOpen={showNoteModal} toggle={() => setShowNoteModal(false)}>
+                <ModalHeader toggle={() => setShowNoteModal(false)}>
+                    <i className="tim-icons icon-paper mr-2" />
+                    {t('refereeNote') || 'Poznámka rozhodčího'} - {t('match') || 'Zápas'} #{selectedNote.matchId}
+                </ModalHeader>
+                <ModalBody>
+                    <div style={{ 
+                        background: 'rgba(29, 140, 248, 0.1)', 
+                        borderRadius: '8px', 
+                        padding: '15px',
+                        border: '1px solid rgba(29, 140, 248, 0.3)',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word'
+                    }}>
+                        {selectedNote.note || '-'}
+                    </div>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowNoteModal(false)}>
+                        {t('close') || 'Zavřít'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
         </div>
     );
 }
