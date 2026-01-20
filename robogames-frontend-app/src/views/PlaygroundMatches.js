@@ -493,7 +493,7 @@ function PlaygroundMatches() {
                                     {playground && (
                                         <CardTitle tag="h4" className="d-inline-block mb-0">
                                             <i className="tim-icons icon-square-pin mr-2" />
-                                            <small className="text-muted">({playground.disciplineName})</small>
+                                            <Badge color="secondary">{playground.disciplineName}</Badge>
                                         </CardTitle>
                                     )}
                                 </Col>
