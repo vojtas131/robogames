@@ -359,15 +359,25 @@ function CompetitionRegistration() {
           })
         ]);
 
-        // check token expiration / statuses before parsing JSON
-        if (tokenExpired(responses[0].status) || tokenExpired(responses[1].status) || tokenExpired(responses[2].status)) { return; }
+        // check token expiration / statuses before parsing JSON (only for endpoints that matter)
+        if (tokenExpired(responses[0].status) || tokenExpired(responses[2].status)) { return; }
 
         const [competitionsData, registrationsData, teamData] = await Promise.all(responses.map(res => res.json()));
-        if (responses[0].ok && responses[1].ok) {
+        
+        // Load competitions - this should always work
+        if (responses[0].ok) {
           setCompetitions(competitionsData.data);
+        } else {
+          console.error('Failed to fetch competitions:', competitionsData);
+        }
+        
+        // Load registrations - may fail for COMPETITOR role (403), that's OK
+        if (responses[1].ok && registrationsData.type !== 'ERROR') {
           setRegistrations(registrationsData.data);
         } else {
-          console.error('Failed to fetch data:', competitionsData, registrationsData);
+          // User doesn't have permission to see registrations (e.g. COMPETITOR role)
+          // or there was an error - set empty array
+          setRegistrations([]);
         }
         
         // Check if user is team leader
