@@ -213,7 +213,7 @@
     "teamFetchFail":"Nepodařilo se načíst data týmu.",
     "leaderUnknown":"Neznámý vedoucí týmu",
     "teamCreateLogin":"Pro\u00a0vytvoření týmu se musíte přihlásit.",
-    "invalidTitle":"Název obsahuje neplatné znaky.",
+    "invalidTitle":"Název obsahuje neplatné znaky. Povolené znaky: písmena, čísla, mezera, _ - . , : / ? ! + '",
     "shortTitle":"Název je příliš krátký.",
     "longTitle":"Název je příliš dlouhý.",
     "teamExists":"Tým s\u00a0tímto názvem již existuje.",

@@ -69,7 +69,7 @@ export function validateName(name) {
 
 // Validates robot or team title
 export function validateTitle(title) {
-  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ '-.:,/?!+]+$/;
+  const allowed = /^[A-Za-z0-9ČŠŽŘŤĎŇÁÉĚÍÓÚŮÝčšžřťďňáéěíóúůýßäöüÄÖÜàèìòùâêîôûãõñëïÿ '_\-.,:/?!+]+$/;
   const trimmed = title.trim();
   if (allowed.test(trimmed)) {
     if (trimmed.length < process.env.REACT_APP_TITLE_MIN_LENGTH) {

@@ -213,7 +213,7 @@
     "teamFetchFail": "Failed to\u00a0load team data.",
     "leaderUnknown": "Unknown team leader",
     "teamCreateLogin": "You must log in\u00a0to\u00a0create a\u00a0team.",
-    "invalidTitle": "Name contains invalid characters.",
+    "invalidTitle": "Name contains invalid characters. Allowed: letters, numbers, space, _ - . , : / ? ! + '",
     "shortTitle": "Name is\u00a0too short.",
     "longTitle": "Name is\u00a0too long.",
     "teamExists": "A\u00a0team with this name already exists.",
