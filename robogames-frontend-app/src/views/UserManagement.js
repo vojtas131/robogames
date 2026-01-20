@@ -31,6 +31,7 @@ import TablePagination from "components/TablePagination";
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [editModal, setEditModal] = useState(false);
   const [addModal, setAddModal] = useState(false);
   const [userEditModal, setUserEditModal] = useState(false);
@@ -76,6 +77,13 @@ function UserManagement() {
   const { confirm } = useConfirm();
   const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER'];
 
+  // Získání názvu týmu podle ID
+  const getTeamName = (teamId) => {
+    if (!teamId) return '-';
+    const team = teams.find(t => t.id === teamId);
+    return team ? team.name : `#${teamId}`;
+  };
+
   // Překlad role na základě jejího jména
   const getRoleTranslation = (roleName) => {
     switch (roleName) {
@@ -112,6 +120,17 @@ function UserManagement() {
           setUsers(result.data);
         } else {
           console.error('Failed to fetch users:', result.message);
+        }
+
+        // Fetch all teams for displaying team names
+        const teamsRes = await fetch(`${process.env.REACT_APP_API_URL}api/team/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (teamsRes.ok) {
+          const teamsData = await teamsRes.json();
+          if (teamsData.data) {
+            setTeams(teamsData.data);
+          }
         }
 
         // Fetch super admin IDs
@@ -452,7 +471,7 @@ function UserManagement() {
                     <th>{t("mail")}</th>
                     <th>{t("birthDate")}</th>
                     <th>{t("role")}</th>
-                    <th>{t("teamID")}</th>
+                    <th>{t("team")}</th>
                     <th>{t("status")}</th>
                     {isAdmin && (
                       <th style={{ textAlign: 'center' }}>{t("action")}</th>
@@ -527,7 +546,7 @@ function UserManagement() {
                           <td>
                             {user.roles.map(role => getRoleTranslation(role.name)).join(', ')}
                           </td>
-                          <td>{user.teamID}</td>
+                          <td>{getTeamName(user.teamID)}</td>
                           <td>
                             {user.banned ? (
                               <span style={{ color: '#f5365c', fontWeight: 'bold' }}>
