@@ -48,19 +48,24 @@ function UserManagement() {
   const [isAdminOrLeader, setIsAdminOrLeader] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [errors, setErrors] = useState({});
-  
+
   // Super Admin IDs - list of user IDs that are super admins
   const [superAdminIds, setSuperAdminIds] = useState([]);
-  
+
   // Search/Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'surname', 'fullname', 'email'
   const [filterRole, setFilterRole] = useState(''); // '' = all roles
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(15);
-  
+
+  // Retrieve user roles
+  const rolesString = localStorage.getItem('roles');
+  const rolesArray = rolesString ? rolesString.split(', ') : [];
+  const isAdmin = rolesArray.some(role => ['ADMIN'].includes(role));
+
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
@@ -203,7 +208,7 @@ function UserManagement() {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/user/ban?id=${userId}`, {
           method: 'PUT',
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
@@ -229,7 +234,7 @@ function UserManagement() {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/user/unban?id=${userId}`, {
           method: 'PUT',
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
@@ -400,17 +405,17 @@ function UserManagement() {
                       <Input
                         placeholder={
                           searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
-                          searchType === 'name' ? (t('enterName') || 'Zadejte jméno...') :
-                          searchType === 'surname' ? (t('enterSurname') || 'Zadejte příjmení...') :
-                          searchType === 'fullname' ? (t('enterFullname') || 'Zadejte jméno a příjmení...') :
-                          searchType === 'email' ? (t('enterEmail') || 'Zadejte email...') :
-                          (t('searchUserPlaceholder') || 'Hledat uživatele...')
+                            searchType === 'name' ? (t('enterName') || 'Zadejte jméno...') :
+                              searchType === 'surname' ? (t('enterSurname') || 'Zadejte příjmení...') :
+                                searchType === 'fullname' ? (t('enterFullname') || 'Zadejte jméno a příjmení...') :
+                                  searchType === 'email' ? (t('enterEmail') || 'Zadejte email...') :
+                                    (t('searchUserPlaceholder') || 'Hledat uživatele...')
                         }
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
                       {searchQuery && (
-                        <InputGroupText 
+                        <InputGroupText
                           style={{ cursor: 'pointer' }}
                           onClick={() => setSearchQuery('')}
                           title={t('clearSearch') || 'Vymazat'}
@@ -449,7 +454,9 @@ function UserManagement() {
                     <th>{t("role")}</th>
                     <th>{t("teamID")}</th>
                     <th>{t("status")}</th>
-                    <th style={{ textAlign: 'center' }}>{t("action")}</th>
+                    {isAdmin && (
+                      <th style={{ textAlign: 'center' }}>{t("action")}</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -459,10 +466,10 @@ function UserManagement() {
                       if (filterRole && !user.roles?.some(role => role.name === filterRole)) {
                         return false;
                       }
-                      
+
                       const searchLower = searchQuery.toLowerCase();
                       if (!searchQuery) return true;
-                      
+
                       switch (searchType) {
                         case 'id':
                           return user.id.toString().includes(searchQuery);
@@ -489,131 +496,134 @@ function UserManagement() {
                     .map((user, index) => {
                       const isSuperAdmin = superAdminIds.includes(user.id);
                       return (
-                    <tr key={index} style={{
-                      ...(user.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}),
-                      ...(isSuperAdmin ? { backgroundColor: 'rgba(255, 215, 0, 0.15)', borderLeft: '4px solid #ffd700' } : {})
-                    }}>
-                      <td>
-                        <div>#{user.id}</div>
-                        {isSuperAdmin && (
-                          <span 
-                            style={{ 
-                              display: 'inline-block',
-                              marginTop: '4px',
-                              backgroundColor: '#ffd700', 
-                              color: '#000', 
-                              padding: '2px 6px', 
-                              borderRadius: '4px', 
-                              fontSize: '10px', 
-                              fontWeight: 'bold' 
-                            }}
-                            title={t("superAdminProtected") || "Tento uživatel je chráněný super admin"}
-                          >
-                            SUPER ADMIN
-                          </span>
-                        )}
-                      </td>
-                      <td>{user.name}</td>
-                      <td>{user.surname}</td>
-                      <td>{user.email}</td>
-                      <td>{user.birthDate}</td>
-                      <td>
-                        {user.roles.map(role => getRoleTranslation(role.name)).join(', ')}
-                      </td>
-                      <td>{user.teamID}</td>
-                      <td>
-                        {user.banned ? (
-                          <span style={{ color: '#f5365c', fontWeight: 'bold' }}>
-                            <i className="fa-solid fa-ban" style={{ marginRight: '5px' }}></i>
-                            {t("banned")}
-                          </span>
-                        ) : (
-                          <span style={{ color: '#2dce89' }}>
-                            <i className="fa-solid fa-check" style={{ marginRight: '5px' }}></i>
-                            {t("active")}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {/* Role edit - super admin může editovat sám sebe, ostatní super adminy ne */}
-                        {isAdminOrLeader && (!isSuperAdmin || (isSuperAdmin && user.id === currentUserId)) && (
-                          <Button
-                            color="info"
-                            size="sm"
-                            className="btn-icon"
-                            onClick={() => handleEdit(user)}
-                            title={t("roleEdit")}
-                          >
-                            <i className="tim-icons icon-badge" />
-                          </Button>
-                        )}
-                        {/* User data edit - super admin může editovat sám sebe, ostatní super adminy ne */}
-                        {isAdminOrLeader && (!isSuperAdmin || (isSuperAdmin && user.id === currentUserId)) && (
-                          <Button
-                            color="primary"
-                            size="sm"
-                            className="btn-icon ml-1"
-                            onClick={() => handleUserEdit(user)}
-                            title={t("edit")}
-                          >
-                            <i className="tim-icons icon-pencil" />
-                          </Button>
-                        )}
-                        {/* Ban - nikdo nemůže zabanovat super admina */}
-                        {isAdminOrLeader && !isSuperAdmin && !user.banned && (
-                          <Button
-                            color="warning"
-                            size="sm"
-                            className="btn-icon ml-1"
-                            onClick={() => handleBanUser(user.id)}
-                            title={t("banUser")}
-                          >
-                            <i className="tim-icons icon-lock-circle" />
-                          </Button>
-                        )}
-                        {/* Unban - nikdo nemůže odbanovat super admina (protože nemůže být zabanován) */}
-                        {isAdminOrLeader && !isSuperAdmin && user.banned && (
-                          <Button
-                            color="success"
-                            size="sm"
-                            className="btn-icon ml-1"
-                            onClick={() => handleUnbanUser(user.id)}
-                            title={t("unbanUser")}
-                          >
-                            <i className="tim-icons icon-key-25" />
-                          </Button>
-                        )}
-                        {/* Remove - nikdo nemůže smazat super admina */}
-                        {isAdminOrLeader && !isSuperAdmin && (
-                          <Button
-                            color="danger"
-                            size="sm"
-                            className="btn-icon ml-1"
-                            onClick={() => handleRemoveUser(user.id)}
-                            title={t("remove")}
-                          >
-                            <i className="tim-icons icon-trash-simple" />
-                          </Button>
-                        )}
-                        {/* Zobrazit "Chráněný" jen pro cizí super adminy, ne pro sebe */}
-                        {isSuperAdmin && user.id !== currentUserId && (
-                          <span 
-                            style={{ 
-                              color: '#685800', 
-                              fontSize: '12px',
-                              fontStyle: 'italic'
-                            }}
-                          >
-                            <i className="tim-icons icon-lock-circle" style={{ marginRight: '4px' }} />
-                            {t("protectedUser") || "Chráněný"}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  )})}
+                        <tr key={index} style={{
+                          ...(user.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}),
+                          ...(isSuperAdmin ? { backgroundColor: 'rgba(255, 215, 0, 0.15)', borderLeft: '4px solid #ffd700' } : {})
+                        }}>
+                          <td>
+                            <div>#{user.id}</div>
+                            {isSuperAdmin && (
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  marginTop: '4px',
+                                  backgroundColor: '#ffd700',
+                                  color: '#000',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  fontWeight: 'bold'
+                                }}
+                                title={t("superAdminProtected") || "Tento uživatel je chráněný super admin"}
+                              >
+                                SUPER ADMIN
+                              </span>
+                            )}
+                          </td>
+                          <td>{user.name}</td>
+                          <td>{user.surname}</td>
+                          <td>{user.email}</td>
+                          <td>{user.birthDate}</td>
+                          <td>
+                            {user.roles.map(role => getRoleTranslation(role.name)).join(', ')}
+                          </td>
+                          <td>{user.teamID}</td>
+                          <td>
+                            {user.banned ? (
+                              <span style={{ color: '#f5365c', fontWeight: 'bold' }}>
+                                <i className="fa-solid fa-ban" style={{ marginRight: '5px' }}></i>
+                                {t("banned")}
+                              </span>
+                            ) : (
+                              <span style={{ color: '#2dce89' }}>
+                                <i className="fa-solid fa-check" style={{ marginRight: '5px' }}></i>
+                                {t("active")}
+                              </span>
+                            )}
+                          </td>
+                          {isAdmin && (
+                            <td style={{ textAlign: 'center' }}>
+                              {/* Role edit - super admin může editovat sám sebe, ostatní super adminy ne */}
+                              {isAdmin && (!isSuperAdmin || (isSuperAdmin && user.id === currentUserId)) && (
+                                <Button
+                                  color="info"
+                                  size="sm"
+                                  className="btn-icon"
+                                  onClick={() => handleEdit(user)}
+                                  title={t("roleEdit")}
+                                >
+                                  <i className="tim-icons icon-badge" />
+                                </Button>
+                              )}
+                              {/* User data edit - super admin může editovat sám sebe, ostatní super adminy ne */}
+                              {isAdmin && (!isSuperAdmin || (isSuperAdmin && user.id === currentUserId)) && (
+                                <Button
+                                  color="primary"
+                                  size="sm"
+                                  className="btn-icon ml-1"
+                                  onClick={() => handleUserEdit(user)}
+                                  title={t("edit")}
+                                >
+                                  <i className="tim-icons icon-pencil" />
+                                </Button>
+                              )}
+                              {/* Ban - nikdo nemůže zabanovat super admina */}
+                              {isAdmin && !isSuperAdmin && !user.banned && (
+                                <Button
+                                  color="warning"
+                                  size="sm"
+                                  className="btn-icon ml-1"
+                                  onClick={() => handleBanUser(user.id)}
+                                  title={t("banUser")}
+                                >
+                                  <i className="tim-icons icon-lock-circle" />
+                                </Button>
+                              )}
+                              {/* Unban - nikdo nemůže odbanovat super admina (protože nemůže být zabanován) */}
+                              {isAdmin && !isSuperAdmin && user.banned && (
+                                <Button
+                                  color="success"
+                                  size="sm"
+                                  className="btn-icon ml-1"
+                                  onClick={() => handleUnbanUser(user.id)}
+                                  title={t("unbanUser")}
+                                >
+                                  <i className="tim-icons icon-key-25" />
+                                </Button>
+                              )}
+                              {/* Remove - nikdo nemůže smazat super admina */}
+                              {isAdmin && !isSuperAdmin && (
+                                <Button
+                                  color="danger"
+                                  size="sm"
+                                  className="btn-icon ml-1"
+                                  onClick={() => handleRemoveUser(user.id)}
+                                  title={t("remove")}
+                                >
+                                  <i className="tim-icons icon-trash-simple" />
+                                </Button>
+                              )}
+                              {/* Zobrazit "Chráněný" jen pro cizí super adminy, ne pro sebe */}
+                              {isSuperAdmin && user.id !== currentUserId && (
+                                <span
+                                  style={{
+                                    color: '#685800',
+                                    fontSize: '12px',
+                                    fontStyle: 'italic'
+                                  }}
+                                >
+                                  <i className="tim-icons icon-lock-circle" style={{ marginRight: '4px' }} />
+                                  {t("protectedUser") || "Chráněný"}
+                                </span>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      )
+                    })}
                 </tbody>
               </Table>
-              
+
               <TablePagination
                 currentPage={currentPage}
                 totalItems={users.filter(user => {
@@ -764,11 +774,11 @@ function UserManagement() {
           <div style={{ marginBottom: '15px' }}>
             <strong>{t("totalEmails") || "Celkem emailů"}:</strong> {getAllEmails().length}
           </div>
-          <div style={{ 
-            maxHeight: '300px', 
-            overflowY: 'auto', 
-            backgroundColor: 'rgba(0,0,0,0.1)', 
-            padding: '15px', 
+          <div style={{
+            maxHeight: '300px',
+            overflowY: 'auto',
+            backgroundColor: 'rgba(0,0,0,0.1)',
+            padding: '15px',
             borderRadius: '8px',
             fontFamily: 'monospace',
             fontSize: '13px'

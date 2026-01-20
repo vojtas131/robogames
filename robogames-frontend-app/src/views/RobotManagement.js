@@ -34,6 +34,11 @@ function RobotManagement() {
   const [disciplines, setDisciplines] = useState([]);
   const [registrations, setRegistrations] = useState([]);
 
+  // Retrieve user roles
+  const rolesString = localStorage.getItem('roles');
+  const rolesArray = rolesString ? rolesString.split(', ') : [];
+  const isAdmin = rolesArray.some(role => ['ADMIN'].includes(role));
+
   // Helper function for category display
   const getCategoryDisplay = (category) => {
     if (category === 'LOW_AGE_CATEGORY') return t("pupils");
@@ -69,7 +74,7 @@ function RobotManagement() {
     if (!confirmed && !await confirm({ message: t("robotAction", { conf: t("remove_lower") }) })) {
       return;
     }
-    
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/robot/confirmRegistration?id=${robotId}&confirmed=${confirmed}`, {
         method: 'PUT',
@@ -124,7 +129,7 @@ function RobotManagement() {
     if (filterCategory && robot.category !== filterCategory) {
       return false;
     }
-    
+
     // Filter by confirmed status
     if (filterConfirmed === 'true' && !robot.confirmed) {
       return false;
@@ -132,10 +137,10 @@ function RobotManagement() {
     if (filterConfirmed === 'false' && robot.confirmed) {
       return false;
     }
-    
+
     const searchLower = searchTerm.toLowerCase();
     if (!searchTerm) return true;
-    
+
     switch (searchType) {
       case 'id':
         return robot.id?.toString().includes(searchTerm);
@@ -150,17 +155,17 @@ function RobotManagement() {
       case 'all':
       default:
         return robot.id?.toString().includes(searchTerm) ||
-               robot.number?.toString().includes(searchTerm) ||
-               robot.name?.toLowerCase().includes(searchLower) ||
-               robot.teamName?.toLowerCase().includes(searchLower) ||
-               robot.diciplineName?.toLowerCase().includes(searchLower);
+          robot.number?.toString().includes(searchTerm) ||
+          robot.name?.toLowerCase().includes(searchLower) ||
+          robot.teamName?.toLowerCase().includes(searchLower) ||
+          robot.diciplineName?.toLowerCase().includes(searchLower);
     }
   });
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(15);
-  
+
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
@@ -394,11 +399,11 @@ function RobotManagement() {
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center mr-3"
-                  style={{ 
-                    width: '48px', 
-                    height: '48px', 
+                  style={{
+                    width: '48px',
+                    height: '48px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)'
                   }}
@@ -417,11 +422,11 @@ function RobotManagement() {
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center mr-3"
-                  style={{ 
-                    width: '48px', 
-                    height: '48px', 
+                  style={{
+                    width: '48px',
+                    height: '48px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #2dce89 0%, #2dcecc 100%)'
                   }}
@@ -440,11 +445,11 @@ function RobotManagement() {
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center mr-3"
-                  style={{ 
-                    width: '48px', 
-                    height: '48px', 
+                  style={{
+                    width: '48px',
+                    height: '48px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #f5365c 0%, #f56036 100%)'
                   }}
@@ -469,12 +474,14 @@ function RobotManagement() {
                 <Col>
                   <CardTitle tag="h4">{t("robotOverview")} {selectedYear && `(${selectedYear})`}</CardTitle>
                 </Col>
-                <Col className="text-right">
-                  <Button color="success" onClick={() => setCreateModal(true)}>
-                    <i className="tim-icons icon-simple-add mr-1" />
-                    {t("robotAdd")}
-                  </Button>
-                </Col>
+                {isAdmin && (
+                  <Col className="text-right">
+                    <Button color="success" onClick={() => setCreateModal(true)}>
+                      <i className="tim-icons icon-simple-add mr-1" />
+                      {t("robotAdd")}
+                    </Button>
+                  </Col>
+                )}
               </Row>
               <Row className="mb-2">
                 <Col md="2">
@@ -500,17 +507,17 @@ function RobotManagement() {
                       type="text"
                       placeholder={
                         searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
-                        searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
-                        searchType === 'name' ? (t('enterRobotName') || 'Zadejte název robota...') :
-                        searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
-                        searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
-                        (t('findByTeam') || 'Hledat...')
+                          searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
+                            searchType === 'name' ? (t('enterRobotName') || 'Zadejte název robota...') :
+                              searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                                searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
+                                  (t('findByTeam') || 'Hledat...')
                       }
                       value={searchTerm}
                       onChange={handleSearchChange}
                     />
                     {searchTerm && (
-                      <InputGroupText 
+                      <InputGroupText
                         style={{ cursor: 'pointer' }}
                         onClick={() => { setSearchTerm(''); setSearchParams({}); }}
                         title={t('clearSearch') || 'Vymazat'}
@@ -549,89 +556,93 @@ function RobotManagement() {
             <CardBody>
               {robots.length > 0 ? (
                 <>
-                <Table responsive>
-                  <thead>
-                    <tr>
-                      <th>{t("id")}</th>
-                      <th>{t("robotNum")}</th>
-                      <th>{t("title")}</th>
-                      <th>{t("category")}</th>
-                      <th>{t("team")}</th>
-                      <th>{t("discipline")}</th>
-                      <th>{t("confirmedStatus")}</th>
-                      <th style={{ textAlign: 'center' }}>{t("action")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredRobots
-                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                      .map(robot => (
-                      <tr key={robot.id} style={robot.teamMemberCount === 0 ? { backgroundColor: 'rgba(255, 90, 90, 0.15)' } : {}}>
-                        <td>
-                          <a 
-                            href="#" 
-                            onClick={(e) => { e.preventDefault(); navigateToProfile(robot.id); }}
-                            style={{ color: '#5e72e4', cursor: 'pointer', textDecoration: 'underline' }}
-                          >
-                            #{robot.id}
-                          </a>
-                        </td>
-                        <td>{robot.number}</td>
-                        <td>{robot.name}</td>
-                        <td>{getCategoryDisplay(robot.category)}</td>
-                        <td>
-                          {robot.teamName}
-                          {robot.teamMemberCount === 0 && (
-                            <Badge color="danger" className="ml-2" title={t("teamHasNoMembers")}>
-                              <i className="tim-icons icon-alert-circle-exc" />
-                            </Badge>
-                          )}
-                        </td>
-                        <td>{robot.diciplineName}</td>
-                        <td style={{ textAlign: 'center' }}>
-                          {robot.diciplineName && (
-                            <Button
-                              color={robot.confirmed ? "success" : "warning"}
-                              size="sm"
-                              className="btn-icon"
-                              onClick={() => handleConfirmRegistration(robot.id, !robot.confirmed)}
-                              title={robot.confirmed ? t("unconfirm") : t("confirm")}
-                            >
-                              <i className={robot.confirmed ? "tim-icons icon-check-2" : "tim-icons icon-simple-remove"} />
-                            </Button>)}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <Button
-                            color="primary"
-                            size="sm"
-                            className="btn-icon"
-                            onClick={() => openEditModal(robot)}
-                            title={t("edit")}
-                          >
-                            <i className="tim-icons icon-pencil" />
-                          </Button>
-                          <Button
-                            color="danger"
-                            size="sm"
-                            className="btn-icon ml-1"
-                            onClick={() => handleForceRemove(robot.id)}
-                            title={t("remove")}
-                          >
-                            <i className="tim-icons icon-trash-simple" />
-                          </Button>
-                        </td>
+                  <Table responsive>
+                    <thead>
+                      <tr>
+                        <th>{t("id")}</th>
+                        <th>{t("robotNum")}</th>
+                        <th>{t("title")}</th>
+                        <th>{t("category")}</th>
+                        <th>{t("team")}</th>
+                        <th>{t("discipline")}</th>
+                        <th>{t("confirmedStatus")}</th>
+                        {isAdmin && (
+                          <th style={{ textAlign: 'center' }}>{t("action")}</th>
+                        )}
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
-                
-                <TablePagination
-                  currentPage={currentPage}
-                  totalItems={filteredRobots.length}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={(page) => setCurrentPage(page)}
-                  onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
-                />
+                    </thead>
+                    <tbody>
+                      {filteredRobots
+                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                        .map(robot => (
+                          <tr key={robot.id} style={robot.teamMemberCount === 0 ? { backgroundColor: 'rgba(255, 90, 90, 0.15)' } : {}}>
+                            <td>
+                              <a
+                                href="#"
+                                onClick={(e) => { e.preventDefault(); navigateToProfile(robot.id); }}
+                                style={{ color: '#5e72e4', cursor: 'pointer', textDecoration: 'underline' }}
+                              >
+                                #{robot.id}
+                              </a>
+                            </td>
+                            <td>{robot.number}</td>
+                            <td>{robot.name}</td>
+                            <td>{getCategoryDisplay(robot.category)}</td>
+                            <td>
+                              {robot.teamName}
+                              {robot.teamMemberCount === 0 && (
+                                <Badge color="danger" className="ml-2" title={t("teamHasNoMembers")}>
+                                  <i className="tim-icons icon-alert-circle-exc" />
+                                </Badge>
+                              )}
+                            </td>
+                            <td>{robot.diciplineName}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              {robot.diciplineName && (
+                                <Button
+                                  color={robot.confirmed ? "success" : "warning"}
+                                  size="sm"
+                                  className="btn-icon"
+                                  onClick={() => handleConfirmRegistration(robot.id, !robot.confirmed)}
+                                  title={robot.confirmed ? t("unconfirm") : t("confirm")}
+                                >
+                                  <i className={robot.confirmed ? "tim-icons icon-check-2" : "tim-icons icon-simple-remove"} />
+                                </Button>)}
+                            </td>
+                            {isAdmin && (
+                              <td style={{ textAlign: 'center' }}>
+                                <Button
+                                  color="primary"
+                                  size="sm"
+                                  className="btn-icon"
+                                  onClick={() => openEditModal(robot)}
+                                  title={t("edit")}
+                                >
+                                  <i className="tim-icons icon-pencil" />
+                                </Button>
+                                <Button
+                                  color="danger"
+                                  size="sm"
+                                  className="btn-icon ml-1"
+                                  onClick={() => handleForceRemove(robot.id)}
+                                  title={t("remove")}
+                                >
+                                  <i className="tim-icons icon-trash-simple" />
+                                </Button>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                    </tbody>
+                  </Table>
+
+                  <TablePagination
+                    currentPage={currentPage}
+                    totalItems={filteredRobots.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={(page) => setCurrentPage(page)}
+                    onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
+                  />
                 </>
               ) : (
                 <div>{t("noRobotsFoundYear")}</div>

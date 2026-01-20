@@ -45,15 +45,20 @@ function TeamManagement() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [errors, setErrors] = useState({});
-  
+
   // Search/Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'leader', 'member'
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(15);
-  
+
+  // Retrieve user roles
+  const rolesString = localStorage.getItem('roles');
+  const rolesArray = rolesString ? rolesString.split(', ') : [];
+  const isAdmin = rolesArray.some(role => ['ADMIN'].includes(role));
+
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
@@ -191,7 +196,7 @@ function TeamManagement() {
       if (tokenExpired(response.status)) return;
 
       const result = await response.json();
-      
+
       if (response.ok && result.type !== 'ERROR') {
         toast.success(t("teamRemoved"));
         fetchTeams();
@@ -310,7 +315,7 @@ function TeamManagement() {
   const filteredTeams = teams.filter(team => {
     const searchLower = searchTerm.toLowerCase();
     if (!searchTerm) return true;
-    
+
     switch (searchType) {
       case 'id':
         return team.id.toString().includes(searchTerm);
@@ -319,7 +324,7 @@ function TeamManagement() {
       case 'leader':
         return team.leaderName.toLowerCase().includes(searchLower);
       case 'member':
-        return team.memberNames.some(member => 
+        return team.memberNames.some(member =>
           `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
           member.name.toLowerCase().includes(searchLower) ||
           member.surname.toLowerCase().includes(searchLower)
@@ -333,7 +338,7 @@ function TeamManagement() {
         // Search by leader name
         if (team.leaderName.toLowerCase().includes(searchLower)) return true;
         // Search by any member name
-        if (team.memberNames.some(member => 
+        if (team.memberNames.some(member =>
           `${member.name} ${member.surname}`.toLowerCase().includes(searchLower) ||
           member.name.toLowerCase().includes(searchLower) ||
           member.surname.toLowerCase().includes(searchLower)
@@ -361,11 +366,11 @@ function TeamManagement() {
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center mr-3"
-                  style={{ 
-                    width: '48px', 
-                    height: '48px', 
+                  style={{
+                    width: '48px',
+                    height: '48px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)'
                   }}
@@ -384,11 +389,11 @@ function TeamManagement() {
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center mr-3"
-                  style={{ 
-                    width: '48px', 
-                    height: '48px', 
+                  style={{
+                    width: '48px',
+                    height: '48px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #fb6340 0%, #fbb140 100%)'
                   }}
@@ -407,11 +412,11 @@ function TeamManagement() {
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center mr-3"
-                  style={{ 
-                    width: '48px', 
-                    height: '48px', 
+                  style={{
+                    width: '48px',
+                    height: '48px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #2dce89 0%, #2dcecc 100%)'
                   }}
@@ -430,11 +435,11 @@ function TeamManagement() {
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
-                <div 
+                <div
                   className="d-flex align-items-center justify-content-center mr-3"
-                  style={{ 
-                    width: '48px', 
-                    height: '48px', 
+                  style={{
+                    width: '48px',
+                    height: '48px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #11cdef 0%, #1171ef 100%)'
                   }}
@@ -459,12 +464,14 @@ function TeamManagement() {
                 <Col>
                   <CardTitle tag="h4">{t("teamManagement")}</CardTitle>
                 </Col>
-                <Col className="text-right">
-                  <Button color="success" onClick={() => setCreateModal(true)}>
-                    <i className="tim-icons icon-simple-add mr-1" />
-                    {t("teamCreateNew")}
-                  </Button>
-                </Col>
+                {isAdmin && (
+                  <Col className="text-right">
+                    <Button color="success" onClick={() => setCreateModal(true)}>
+                      <i className="tim-icons icon-simple-add mr-1" />
+                      {t("teamCreateNew")}
+                    </Button>
+                  </Col>
+                )}
               </Row>
               <Row>
                 <Col md="3">
@@ -489,16 +496,16 @@ function TeamManagement() {
                       type="text"
                       placeholder={
                         searchType === 'id' ? (t('enterId') || 'Zadejte ID...') :
-                        searchType === 'name' ? (t('enterTeamName') || 'Zadejte název týmu...') :
-                        searchType === 'leader' ? (t('enterLeaderName') || 'Zadejte jméno vedoucího...') :
-                        searchType === 'member' ? (t('enterMemberName') || 'Zadejte jméno člena...') :
-                        (t('searchTeamOrMember') || 'Hledat tým...')
+                          searchType === 'name' ? (t('enterTeamName') || 'Zadejte název týmu...') :
+                            searchType === 'leader' ? (t('enterLeaderName') || 'Zadejte jméno vedoucího...') :
+                              searchType === 'member' ? (t('enterMemberName') || 'Zadejte jméno člena...') :
+                                (t('searchTeamOrMember') || 'Hledat tým...')
                       }
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                     />
                     {searchTerm && (
-                      <InputGroupText 
+                      <InputGroupText
                         style={{ cursor: 'pointer' }}
                         onClick={() => setSearchTerm('')}
                         title={t('clearSearch') || 'Vymazat'}
@@ -518,101 +525,104 @@ function TeamManagement() {
                     <th>{t("title")}</th>
                     <th>{t("leader")}</th>
                     <th>{t("members")}</th>
-                    <th style={{ textAlign: 'center' }}>{t("action")}</th>
+                    {isAdmin && (
+                      <th style={{ textAlign: 'center' }}>{t("action")}</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTeams
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                     .map((team) => (
-                    <tr key={team.id}>
-                      <td>#{team.id}</td>
-                      <td>{team.name}</td>
-                      <td>{team.leaderName}</td>
-                      <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {team.memberNames.map((member) => (
-                            <div key={member.id} style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              padding: '4px 8px',
-                              backgroundColor: member.id === team.leaderID ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255,255,255,0.05)',
-                              borderRadius: '4px',
-                              borderLeft: member.id === team.leaderID ? '3px solid #ffd700' : '3px solid transparent'
-                            }}>
-                              <span style={{ flex: 1 }}>
-                                {`${member.name} ${member.surname}`}
-                                {member.id === team.leaderID && (
-                                  <span style={{ marginLeft: '6px', color: '#ffd700' }}>⭐</span>
+                      <tr key={team.id}>
+                        <td>#{team.id}</td>
+                        <td>{team.name}</td>
+                        <td>{team.leaderName}</td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {team.memberNames.map((member) => (
+                              <div key={member.id} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px 8px',
+                                backgroundColor: member.id === team.leaderID ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255,255,255,0.05)',
+                                borderRadius: '4px',
+                                borderLeft: member.id === team.leaderID ? '3px solid #ffd700' : '3px solid transparent'
+                              }}>
+                                <span style={{ flex: 1 }}>
+                                  {`${member.name} ${member.surname}`}
+                                  {member.id === team.leaderID && (
+                                    <span style={{ marginLeft: '6px', color: '#ffd700' }}>⭐</span>
+                                  )}
+                                </span>
+                                {member.id !== team.leaderID && isAdmin && (
+                                  <div style={{ display: 'flex', gap: '2px', marginLeft: '8px' }}>
+                                    <Button
+                                      color="info"
+                                      size="sm"
+                                      className="btn-icon"
+                                      style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
+                                      onClick={() => handleSetLeader(team.id, member.id)}
+                                      title={t("setAsLeader")}
+                                    >
+                                      <i className="tim-icons icon-badge" />
+                                    </Button>
+                                    <Button
+                                      color="danger"
+                                      size="sm"
+                                      className="btn-icon"
+                                      style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
+                                      onClick={() => handleRemoveUserFromTeam(team.id, member.id)}
+                                      title={t("removeFromTeam")}
+                                    >
+                                      <i className="tim-icons icon-simple-remove" />
+                                    </Button>
+                                  </div>
                                 )}
+                              </div>
+                            ))}
+                            {team.memberNames.length === 0 && (
+                              <span style={{ color: '#aaa', fontStyle: 'italic' }}>
+                                {t("noMembers") || "Žádní členové"}
                               </span>
-                              {member.id !== team.leaderID && (
-                                <div style={{ display: 'flex', gap: '2px', marginLeft: '8px' }}>
-                                  <Button
-                                    color="info"
-                                    size="sm"
-                                    className="btn-icon"
-                                    style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
-                                    onClick={() => handleSetLeader(team.id, member.id)}
-                                    title={t("setAsLeader")}
-                                  >
-                                    <i className="tim-icons icon-badge" />
-                                  </Button>
-                                  <Button
-                                    color="danger"
-                                    size="sm"
-                                    className="btn-icon"
-                                    style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
-                                    onClick={() => handleRemoveUserFromTeam(team.id, member.id)}
-                                    title={t("removeFromTeam")}
-                                  >
-                                    <i className="tim-icons icon-simple-remove" />
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                          {team.memberNames.length === 0 && (
-                            <span style={{ color: '#aaa', fontStyle: 'italic' }}>
-                              {t("noMembers") || "Žádní členové"}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <Button
-                          color="info"
-                          size="sm"
-                          className="btn-icon"
-                          onClick={() => openAddUserModal(team)}
-                          title={t("addUserToTeam")}
-                        >
-                          <i className="tim-icons icon-single-02" />
-                        </Button>
-                        <Button
-                          color="primary"
-                          size="sm"
-                          className="btn-icon ml-1"
-                          onClick={() => openEditModal(team)}
-                          title={t("edit")}
-                        >
-                          <i className="tim-icons icon-pencil" />
-                        </Button>
-                        <Button
-                          color="danger"
-                          size="sm"
-                          className="btn-icon ml-1"
-                          onClick={() => handleDeleteTeam(team.id)}
-                          title={t("remove")}
-                        >
-                          <i className="tim-icons icon-trash-simple" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                            )}
+                          </div>
+                        </td>
+                        {isAdmin && (
+                          <td style={{ textAlign: 'center' }}>
+                            <Button
+                              color="info"
+                              size="sm"
+                              className="btn-icon"
+                              onClick={() => openAddUserModal(team)}
+                              title={t("addUserToTeam")}
+                            >
+                              <i className="tim-icons icon-single-02" />
+                            </Button>
+                            <Button
+                              color="primary"
+                              size="sm"
+                              className="btn-icon ml-1"
+                              onClick={() => openEditModal(team)}
+                              title={t("edit")}
+                            >
+                              <i className="tim-icons icon-pencil" />
+                            </Button>
+                            <Button
+                              color="danger"
+                              size="sm"
+                              className="btn-icon ml-1"
+                              onClick={() => handleDeleteTeam(team.id)}
+                              title={t("remove")}
+                            >
+                              <i className="tim-icons icon-trash-simple" />
+                            </Button>
+                          </td>)}
+                      </tr>
+                    ))}
                 </tbody>
               </Table>
-              
+
               <TablePagination
                 currentPage={currentPage}
                 totalItems={filteredTeams.length}
@@ -620,7 +630,7 @@ function TeamManagement() {
                 onPageChange={(page) => setCurrentPage(page)}
                 onItemsPerPageChange={(items) => { setItemsPerPage(items); setCurrentPage(1); }}
               />
-              
+
               {filteredTeams.length === 0 && (
                 <p className="text-center">{t("noTeamsFound")}</p>
               )}

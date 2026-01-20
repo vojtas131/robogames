@@ -18,9 +18,9 @@ const ROUTE_ROLE_MAP = {
     '/playground-management': ['LEADER', 'ASSISTANT', 'ADMIN'],
     '/match-management': ['REFEREE','LEADER', 'ASSISTANT', 'ADMIN'],
     '/match-group': ['LEADER', 'ASSISTANT', 'ADMIN'],
-    '/playground-matches': ['LEADER', 'ASSISTANT', 'ADMIN'],
+    '/playground-matches': ['REFEREE', 'LEADER', 'ASSISTANT', 'ADMIN'],
     '/tournament-generator': ['LEADER', 'ADMIN'],
-    '/match-score': ['LEADER', 'ASSISTANT', 'ADMIN'],
+    '/match-score': ['REFEREE', 'LEADER', 'ASSISTANT', 'ADMIN'],
     '/competition-detail': ['LEADER', 'ASSISTANT', 'ADMIN']
 };
 

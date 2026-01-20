@@ -200,7 +200,7 @@ function CompetitionManagement() {
                 toast.error(data.data || data.message || t("compUpdateFail"));
             }
         } catch (error) {
-            toast.error(error.message || t("compUpdateError"));
+            toast.error(error.message || t("compUpdateError", { message: error.message }));
         }
     };
 
