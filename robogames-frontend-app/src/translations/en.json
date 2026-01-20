@@ -1114,5 +1114,9 @@
     "generated": "Generated",
     "skipped": "Skipped",
     "errors": "Errors",
-    "totalCreated": "Total matches created"
+    "totalCreated": "Total matches created",
+    "protectedUser": "Protected User",
+    "singleMemberTeams": "Single Member Teams",
+    "totalMembers": "Total Members",
+    "avgMembersPerTeam": "Average Members Per Team"
 }

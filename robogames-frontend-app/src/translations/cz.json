@@ -1114,5 +1114,9 @@
     "generated": "Vygenerováno",
     "skipped": "Přeskočeno",
     "errors": "Chyby",
-    "totalCreated": "Celkem vytvořeno zápasů"
+    "totalCreated": "Celkem vytvořeno zápasů",
+    "protectedUser": "Chráněný uživatel",
+    "singleMemberTeams": "Jednočlenné týmy",
+    "totalMembers": "Celkem členů",
+    "avgMembersPerTeam": "Průměr členů na tým"
 }

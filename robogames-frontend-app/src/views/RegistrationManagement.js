@@ -358,8 +358,87 @@ function RegistrationManagement() {
     setCurrentPage(1);
   }, [searchTerm, searchType]);
 
+  // Calculate summary statistics
+  const totalRegistrations = registrations.length;
+  const lowAgeCategory = registrations.filter(reg => reg.category === 'LOW_AGE_CATEGORY').length;
+  const highAgeCategory = registrations.filter(reg => reg.category === 'HIGH_AGE_CATEGORY').length;
+
+
   return (
     <div className="content">
+      {/* Summary Statistics */}
+      <Row className="mb-3">
+        <Col md="4">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-paper" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("totalRegistrations") || "Celkem registrací"}</p>
+                  <CardTitle tag="h3" className="mb-0">{totalRegistrations}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md="4">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #2dce89 0%, #2dcecc 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-single-02" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("pupils") || "Žáci"}</p>
+                  <CardTitle tag="h3" className="mb-0">{lowAgeCategory}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md="4">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #fb6340 0%, #fbb140 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-single-02" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("students") || "Studenti"}</p>
+                  <CardTitle tag="h3" className="mb-0">{highAgeCategory}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
       <Row>
         <Col xs="12">
           <Card>

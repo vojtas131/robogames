@@ -342,12 +342,115 @@ function TeamManagement() {
     }
   });
 
+  // Calculate summary statistics
+  const totalTeams = teams.length;
+  const emptyTeams = teams.filter(team => team.memberNames.length === 0 || (team.memberNames.length === 1 && team.memberNames[0].id === team.leaderID)).length;
+  const singleMemberTeams = teams.filter(team => team.memberNames.length === 1).length;
+  const totalMembers = teams.reduce((acc, team) => acc + team.memberNames.length, 0);
+  const avgMembersPerTeam = totalTeams > 0 ? (totalMembers / totalTeams).toFixed(1) : 0;
+
   if (loading) {
     return <div className="content"><p>{t("loading")}</p></div>;
   }
 
   return (
     <div className="content">
+      {/* Summary Statistics */}
+      <Row className="mb-3">
+        <Col md="3">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-single-02" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("totalTeams") || "Celkem týmů"}</p>
+                  <CardTitle tag="h3" className="mb-0">{totalTeams}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md="3">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #fb6340 0%, #fbb140 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-alert-circle-exc" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("singleMemberTeams") || "Jednočlenné týmy"}</p>
+                  <CardTitle tag="h3" className="mb-0">{singleMemberTeams}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md="3">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #2dce89 0%, #2dcecc 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-single-02" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("totalMembers") || "Celkem členů"}</p>
+                  <CardTitle tag="h3" className="mb-0">{totalMembers}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md="3">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #11cdef 0%, #1171ef 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-chart-bar-32" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("avgMembersPerTeam") || "Průměr členů/tým"}</p>
+                  <CardTitle tag="h3" className="mb-0">{avgMembersPerTeam}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
       <Row>
         <Col xs="12">
           <Card>
@@ -427,37 +530,54 @@ function TeamManagement() {
                       <td>{team.name}</td>
                       <td>{team.leaderName}</td>
                       <td>
-                        {team.memberNames.map((member, idx) => (
-                          <span key={member.id}>
-                            {`${member.name} ${member.surname}`}
-                            {member.id === team.leaderID && ' ⭐'}
-                            {member.id !== team.leaderID && (
-                              <>
-                                <Button
-                                  color="info"
-                                  size="sm"
-                                  className="btn-icon ml-1"
-                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
-                                  onClick={() => handleSetLeader(team.id, member.id)}
-                                  title={t("setAsLeader")}
-                                >
-                                  <i className="tim-icons icon-badge" />
-                                </Button>
-                                <Button
-                                  color="danger"
-                                  size="sm"
-                                  className="btn-icon ml-1"
-                                  style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
-                                  onClick={() => handleRemoveUserFromTeam(team.id, member.id)}
-                                  title={t("removeFromTeam")}
-                                >
-                                  <i className="tim-icons icon-simple-remove" />
-                                </Button>
-                              </>
-                            )}
-                            {idx < team.memberNames.length - 1 && ', '}
-                          </span>
-                        ))}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {team.memberNames.map((member) => (
+                            <div key={member.id} style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              padding: '4px 8px',
+                              backgroundColor: member.id === team.leaderID ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255,255,255,0.05)',
+                              borderRadius: '4px',
+                              borderLeft: member.id === team.leaderID ? '3px solid #ffd700' : '3px solid transparent'
+                            }}>
+                              <span style={{ flex: 1 }}>
+                                {`${member.name} ${member.surname}`}
+                                {member.id === team.leaderID && (
+                                  <span style={{ marginLeft: '6px', color: '#ffd700' }}>⭐</span>
+                                )}
+                              </span>
+                              {member.id !== team.leaderID && (
+                                <div style={{ display: 'flex', gap: '2px', marginLeft: '8px' }}>
+                                  <Button
+                                    color="info"
+                                    size="sm"
+                                    className="btn-icon"
+                                    style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
+                                    onClick={() => handleSetLeader(team.id, member.id)}
+                                    title={t("setAsLeader")}
+                                  >
+                                    <i className="tim-icons icon-badge" />
+                                  </Button>
+                                  <Button
+                                    color="danger"
+                                    size="sm"
+                                    className="btn-icon"
+                                    style={{ padding: '2px 5px', fontSize: '10px', width: '22px', height: '22px', minWidth: '22px' }}
+                                    onClick={() => handleRemoveUserFromTeam(team.id, member.id)}
+                                    title={t("removeFromTeam")}
+                                  >
+                                    <i className="tim-icons icon-simple-remove" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {team.memberNames.length === 0 && (
+                            <span style={{ color: '#aaa', fontStyle: 'italic' }}>
+                              {t("noMembers") || "Žádní členové"}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <Button

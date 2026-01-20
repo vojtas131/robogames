@@ -49,6 +49,9 @@ function UserManagement() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [errors, setErrors] = useState({});
   
+  // Super Admin IDs - list of user IDs that are super admins
+  const [superAdminIds, setSuperAdminIds] = useState([]);
+  
   // Search/Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'name', 'surname', 'fullname', 'email'
@@ -104,6 +107,17 @@ function UserManagement() {
           setUsers(result.data);
         } else {
           console.error('Failed to fetch users:', result.message);
+        }
+
+        // Fetch super admin IDs
+        const superAdminRes = await fetch(`${process.env.REACT_APP_API_URL}api/user/superAdmins`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (superAdminRes.ok) {
+          const superAdminData = await superAdminRes.json();
+          if (superAdminData.type === 'RESPONSE' && Array.isArray(superAdminData.data)) {
+            setSuperAdminIds(superAdminData.data);
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -472,9 +486,33 @@ function UserManagement() {
                       }
                     })
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((user, index) => (
-                    <tr key={index} style={user.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}}>
-                      <td>#{user.id}</td>
+                    .map((user, index) => {
+                      const isSuperAdmin = superAdminIds.includes(user.id);
+                      return (
+                    <tr key={index} style={{
+                      ...(user.banned ? { opacity: 0.6, backgroundColor: 'rgba(255,0,0,0.1)' } : {}),
+                      ...(isSuperAdmin ? { backgroundColor: 'rgba(255, 215, 0, 0.15)', borderLeft: '4px solid #ffd700' } : {})
+                    }}>
+                      <td>
+                        <div>#{user.id}</div>
+                        {isSuperAdmin && (
+                          <span 
+                            style={{ 
+                              display: 'inline-block',
+                              marginTop: '4px',
+                              backgroundColor: '#ffd700', 
+                              color: '#000', 
+                              padding: '2px 6px', 
+                              borderRadius: '4px', 
+                              fontSize: '10px', 
+                              fontWeight: 'bold' 
+                            }}
+                            title={t("superAdminProtected") || "Tento uživatel je chráněný super admin"}
+                          >
+                            SUPER ADMIN
+                          </span>
+                        )}
+                      </td>
                       <td>{user.name}</td>
                       <td>{user.surname}</td>
                       <td>{user.email}</td>
@@ -497,7 +535,8 @@ function UserManagement() {
                         )}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        {isAdminOrLeader && (
+                        {/* Role edit - super admin může editovat sám sebe, ostatní super adminy ne */}
+                        {isAdminOrLeader && (!isSuperAdmin || (isSuperAdmin && user.id === currentUserId)) && (
                           <Button
                             color="info"
                             size="sm"
@@ -508,7 +547,8 @@ function UserManagement() {
                             <i className="tim-icons icon-badge" />
                           </Button>
                         )}
-                        {isAdminOrLeader && (
+                        {/* User data edit - super admin může editovat sám sebe, ostatní super adminy ne */}
+                        {isAdminOrLeader && (!isSuperAdmin || (isSuperAdmin && user.id === currentUserId)) && (
                           <Button
                             color="primary"
                             size="sm"
@@ -519,7 +559,8 @@ function UserManagement() {
                             <i className="tim-icons icon-pencil" />
                           </Button>
                         )}
-                        {isAdminOrLeader && !user.banned && (
+                        {/* Ban - nikdo nemůže zabanovat super admina */}
+                        {isAdminOrLeader && !isSuperAdmin && !user.banned && (
                           <Button
                             color="warning"
                             size="sm"
@@ -530,7 +571,8 @@ function UserManagement() {
                             <i className="tim-icons icon-lock-circle" />
                           </Button>
                         )}
-                        {isAdminOrLeader && user.banned && (
+                        {/* Unban - nikdo nemůže odbanovat super admina (protože nemůže být zabanován) */}
+                        {isAdminOrLeader && !isSuperAdmin && user.banned && (
                           <Button
                             color="success"
                             size="sm"
@@ -541,7 +583,8 @@ function UserManagement() {
                             <i className="tim-icons icon-key-25" />
                           </Button>
                         )}
-                        {isAdminOrLeader && (
+                        {/* Remove - nikdo nemůže smazat super admina */}
+                        {isAdminOrLeader && !isSuperAdmin && (
                           <Button
                             color="danger"
                             size="sm"
@@ -552,9 +595,22 @@ function UserManagement() {
                             <i className="tim-icons icon-trash-simple" />
                           </Button>
                         )}
+                        {/* Zobrazit "Chráněný" jen pro cizí super adminy, ne pro sebe */}
+                        {isSuperAdmin && user.id !== currentUserId && (
+                          <span 
+                            style={{ 
+                              color: '#685800', 
+                              fontSize: '12px',
+                              fontStyle: 'italic'
+                            }}
+                          >
+                            <i className="tim-icons icon-lock-circle" style={{ marginRight: '4px' }} />
+                            {t("protectedUser") || "Chráněný"}
+                          </span>
+                        )}
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </Table>
               
