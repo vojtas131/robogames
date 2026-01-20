@@ -1131,5 +1131,7 @@
     "totalMembers": "Celkem členů",
     "avgMembersPerTeam": "Průměr členů na tým",
     "noBracketData": "Pro tento pavouk nejsou dostupná žádná data",
-    "bracketPlayground": "Hřiště pavouka"
+    "bracketPlayground": "Hřiště pavouka",
+    "ageCategory": "Věková kategorie",
+    "tournamentPhase": "Fáze turnaje"
 }
