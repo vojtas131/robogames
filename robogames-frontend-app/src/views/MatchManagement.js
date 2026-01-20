@@ -1011,10 +1011,12 @@ function MatchManagement() {
                                                         >
                                                             <CardBody className="text-center py-4">
                                                                 <i className="tim-icons icon-square-pin mb-3" style={{ fontSize: '2rem', color: '#e14eca' }} />
-                                                                <h4 className="mb-1">{pg.name}</h4>
-                                                                <p className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
-                                                                    #{pg.number} - {pg.disciplineName}
-                                                                </p>
+                                                                <h4 className="mb-1" style={{ color: '#1d1d1d', fontWeight: 'bold' }}>
+                                                                    {pg.name} <span style={{ backgroundColor: '#ff8d00', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.8rem' }}>{pg.number}</span>
+                                                                </h4>
+                                                                <div className="mb-2">
+                                                                    <Badge color="secondary">{pg.disciplineName}</Badge>
+                                                                </div>
                                                                 <Badge color="info" className="mr-1">
                                                                     {pgMatches.length} {t('matches') || 'zápasů'}
                                                                 </Badge>
