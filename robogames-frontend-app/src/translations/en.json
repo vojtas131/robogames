@@ -92,6 +92,17 @@
     "manageRobots": "MANAGE ROBOTS",
     "regCancel": "Cancel Registration",
     
+    "refereeNote": "Referee Note",
+    "addRefereeNote": "Add note",
+    "refereeNotePlaceholder": "Write a note about the match...",
+    "clickToViewNote": "Click to view note",
+    
+    "invalidConfiguration": "Invalid Configuration",
+    "configValidationNotEnoughRobots": "For {{groupCount}} groups with {{advancingPerGroup}} advancing, you need at least {{minRobotsNeeded}} robots. You only have {{robotCount}} robots.",
+    "configValidationSuggestion": "Reduce the number of groups or the number of advancing robots per group.",
+    "configValidationTooManyGroups": "Too many groups ({{groupCount}}) for {{robotCount}} robots. Each group must have at least 2 robots.",
+    "configValidationReduceGroups": "Reduce the number of groups to maximum {{maxGroups}}.",
+    
     "dipGives": "awards",
     "diploma_caps": "DIPLOMA",
     "dipTeam": "to team",
@@ -1094,7 +1105,7 @@
 
     "tournamentDisciplines": "Tournament Disciplines",
     "nonTournamentDisciplines": "Non-Tournament Disciplines",
-    "nonTournamentInfo": "Non-tournament disciplines (e.g., line follower, robot race) don't require tournament generation. Each robot gets one match in waiting state where their score/time is recorded.",
+    "nonTournamentInfo": "Non-tournament disciplines (e.g., line follower) don't require tournament generation. Each robot gets one match in waiting state where their score/time is recorded.",
     "generateAllNonTournament": "Generate matches for all",
     "generatingMatches": "Generating matches...",
     "matchesGenerated": "Matches generated",
@@ -1118,5 +1129,7 @@
     "protectedUser": "Protected User",
     "singleMemberTeams": "Single Member Teams",
     "totalMembers": "Total Members",
-    "avgMembersPerTeam": "Average Members Per Team"
+    "avgMembersPerTeam": "Average Members Per Team",
+    "noBracketData": "No data available for this bracket",
+    "bracketPlayground": "Bracket Playground"
 }

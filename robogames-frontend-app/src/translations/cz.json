@@ -92,6 +92,17 @@
     "manageRobots":"SPRAVOVAT ROBOTY",
     "regCancel":"Zrušit registraci",
     
+    "refereeNote":"Poznámka rozhodčího",
+    "addRefereeNote":"Přidat poznámku",
+    "refereeNotePlaceholder":"Napište poznámku k zápasu...",
+    "clickToViewNote":"Klikněte pro zobrazení poznámky",
+    
+    "invalidConfiguration":"Neplatná konfigurace",
+    "configValidationNotEnoughRobots":"Pro {{groupCount}} skupin s {{advancingPerGroup}} postupujícími potřebujete minimálně {{minRobotsNeeded}} robotů. Máte pouze {{robotCount}} robotů.",
+    "configValidationSuggestion":"Snižte počet skupin nebo počet postupujících ze skupiny.",
+    "configValidationTooManyGroups":"Příliš mnoho skupin ({{groupCount}}) pro {{robotCount}} robotů. Každá skupina musí mít alespoň 2 roboty.",
+    "configValidationReduceGroups":"Snižte počet skupin na maximálně {{maxGroups}}.",
+    
     "dipGives":"uděluje",
     "diploma_caps":"DIPLOM",
     "dipTeam":"týmu",
@@ -1094,7 +1105,7 @@
 
     "tournamentDisciplines": "Turnajové disciplíny",
     "nonTournamentDisciplines": "Neturnajové disciplíny",
-    "nonTournamentInfo": "Neturnajové disciplíny (např. stopař, jízda robotů) nevyžadují generování turnaje. Pro každého robota je vytvořen jeden zápas ve stavu čekající, kam se zapisuje jeho skóre/čas.",
+    "nonTournamentInfo": "Neturnajové disciplíny (např. line follower) nevyžadují generování turnaje. Pro každého robota je vytvořen jeden zápas ve stavu čekající, kam se zapisuje jeho skóre/čas.",
     "generateAllNonTournament": "Vygenerovat zápasy pro všechny",
     "generatingMatches": "Generuji zápasy...",
     "matchesGenerated": "Zápasy vygenerovány",
@@ -1118,5 +1129,7 @@
     "protectedUser": "Chráněný uživatel",
     "singleMemberTeams": "Jednočlenné týmy",
     "totalMembers": "Celkem členů",
-    "avgMembersPerTeam": "Průměr členů na tým"
+    "avgMembersPerTeam": "Průměr členů na tým",
+    "noBracketData": "Pro tento pavouk nejsou dostupná žádná data",
+    "bracketPlayground": "Hřiště pavouka"
 }

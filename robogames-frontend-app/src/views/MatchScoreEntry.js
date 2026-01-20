@@ -41,6 +41,10 @@ function MatchScoreEntry() {
     const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
     const [confirmRematchOpen, setConfirmRematchOpen] = useState(false);
 
+    // Referee note states
+    const [refereeNote, setRefereeNote] = useState('');
+    const [showNoteInput, setShowNoteInput] = useState(false);
+
     // Stopwatch states for TIME score type
     const [stopwatchRunning, setStopwatchRunning] = useState(false);
     const [stopwatchStartTime, setStopwatchStartTime] = useState(null);
@@ -97,6 +101,11 @@ function MatchScoreEntry() {
                         setTimeBSeconds(secs.toString().padStart(2, '0'));
                         setTimeBMillis(ms.toString().padStart(3, '0'));
                     }
+                }
+                // Pre-fill existing referee note if any
+                if (data.data.refereeNote) {
+                    setRefereeNote(data.data.refereeNote);
+                    setShowNoteInput(true);
                 }
             } else {
                 setError(data.message || t('matchLoadFailed') || 'Nepodařilo se načíst zápas');
@@ -253,7 +262,8 @@ function MatchScoreEntry() {
             const requestBody = {
                 matchID: parseInt(matchId),
                 scoreA: parseFloat(finalScoreA),
-                scoreB: isTwoRobotMatch ? parseFloat(finalScoreB) : null
+                scoreB: isTwoRobotMatch ? parseFloat(finalScoreB) : null,
+                refereeNote: refereeNote.trim() || null
             };
 
             const response = await fetch(
@@ -1027,6 +1037,60 @@ function MatchScoreEntry() {
                                                 {isTwoRobotMatch && ` : ${match.scoreB !== null ? match.scoreB : '-'}`}
                                             </strong>
                                         </Alert>
+                                    </Col>
+                                </Row>
+                            )}
+
+                            {/* Referee Note Section */}
+                            {!noRobotAssigned && (
+                                <Row className="mt-3 mx-2">
+                                    <Col>
+                                        {!showNoteInput ? (
+                                            <div className="text-center">
+                                                <Button 
+                                                    color="secondary" 
+                                                    size="sm"
+                                                    outline
+                                                    onClick={() => setShowNoteInput(true)}
+                                                >
+                                                    <i className="tim-icons icon-paper mr-1" />
+                                                    {t('addRefereeNote') || 'Přidat poznámku'}
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div style={{ 
+                                                background: 'rgba(255,255,255,0.05)', 
+                                                borderRadius: '8px', 
+                                                padding: '12px',
+                                                border: '1px solid rgba(255,255,255,0.1)'
+                                            }}>
+                                                <FormGroup className="mb-0">
+                                                    <Label style={{ fontSize: '12px' }}>
+                                                        <i className="tim-icons icon-paper mr-1" />
+                                                        {t('refereeNote') || 'Poznámka rozhodčího'}
+                                                        <Button 
+                                                            close 
+                                                            className="ml-2" 
+                                                            style={{ fontSize: '14px' }}
+                                                            onClick={() => { setShowNoteInput(false); setRefereeNote(''); }}
+                                                        />
+                                                    </Label>
+                                                    <Input
+                                                        type="textarea"
+                                                        value={refereeNote}
+                                                        onChange={(e) => setRefereeNote(e.target.value)}
+                                                        placeholder={t('refereeNotePlaceholder') || 'Napište poznámku k zápasu...'}
+                                                        rows={2}
+                                                        maxLength={1000}
+                                                        disabled={submitting}
+                                                        style={{ fontSize: '13px' }}
+                                                    />
+                                                    <small className="text-muted" style={{ fontSize: '10px' }}>
+                                                        {refereeNote.length}/1000
+                                                    </small>
+                                                </FormGroup>
+                                            </div>
+                                        )}
                                     </Col>
                                 </Row>
                             )}

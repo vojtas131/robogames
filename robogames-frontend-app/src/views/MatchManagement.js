@@ -89,6 +89,10 @@ function MatchManagement() {
     const [editRobotA, setEditRobotA] = useState(null);
     const [editRobotB, setEditRobotB] = useState(null);
 
+    // Referee Note Modal
+    const [showNoteModal, setShowNoteModal] = useState(false);
+    const [selectedNote, setSelectedNote] = useState({ matchId: null, note: '' });
+
     // Fetch matches
     const fetchMatches = useCallback(async () => {
         if (!selectedYear) return;
@@ -801,6 +805,7 @@ function MatchManagement() {
                                                     <th>{t('score') || 'Skóre'}</th>
                                                     <th>{t('phase') || 'Fáze'}</th>
                                                     <th>{t('groupName') || 'Skupina'}</th>
+                                                    <th>{t('note') || 'Pozn.'}</th>
                                                     <th>{t('state') || 'Stav'}</th>
                                                     <th>{t('lastUpdate') || 'Poslední změna'}</th>
                                                     <th>{t('actions') || 'Akce'}</th>
@@ -886,6 +891,24 @@ function MatchManagement() {
                                                                     <Badge color="secondary">
                                                                         {match.group}
                                                                     </Badge>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="text-center">
+                                                                {match.refereeNote ? (
+                                                                    <Button
+                                                                        color="link"
+                                                                        size="sm"
+                                                                        className="p-0"
+                                                                        onClick={() => {
+                                                                            setSelectedNote({ matchId: match.id, note: match.refereeNote });
+                                                                            setShowNoteModal(true);
+                                                                        }}
+                                                                        title={t('clickToViewNote') || 'Klikněte pro zobrazení poznámky'}
+                                                                    >
+                                                                        <i className="tim-icons icon-paper" style={{ color: '#1d8cf8', fontSize: '16px' }} />
+                                                                    </Button>
                                                                 ) : (
                                                                     <span className="text-muted">-</span>
                                                                 )}
@@ -1316,6 +1339,31 @@ function MatchManagement() {
                     color: #1d8cf8;
                 }
             `}</style>
+
+            {/* Referee Note Modal */}
+            <Modal isOpen={showNoteModal} toggle={() => setShowNoteModal(false)}>
+                <ModalHeader toggle={() => setShowNoteModal(false)}>
+                    <i className="tim-icons icon-paper mr-2" />
+                    {t('refereeNote') || 'Poznámka rozhodčího'} - {t('match') || 'Zápas'} #{selectedNote.matchId}
+                </ModalHeader>
+                <ModalBody>
+                    <div style={{ 
+                        background: 'rgba(29, 140, 248, 0.1)', 
+                        borderRadius: '8px', 
+                        padding: '15px',
+                        border: '1px solid rgba(29, 140, 248, 0.3)',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word'
+                    }}>
+                        {selectedNote.note || '-'}
+                    </div>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowNoteModal(false)}>
+                        {t('close') || 'Zavřít'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
         </div>
     );
 }

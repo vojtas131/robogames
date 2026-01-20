@@ -758,10 +758,10 @@ function TournamentGenerator() {
                 }
                 setPreview(previewData);
                 toast.success(t('previewGenerated') || 'Náhled vygenerován');
-            } else if (data.type === 'ERROR' && data.data.includes('Not enough robots')) {
-                toast.error(t('notEnoughRobots') || 'Nedostatek robotů');
             } else {
-                toast.error(data.message || t('errorGenerating') || 'Chyba při generování');
+                // Show the detailed error message from backend
+                const errorMessage = data.data || data.message || t('errorGenerating') || 'Chyba při generování';
+                toast.error(errorMessage);
             }
         } catch (error) {
             console.error('Failed to generate preview:', error);
@@ -970,6 +970,52 @@ function TournamentGenerator() {
     // Get current robot count
     const currentRobotCount = robotCounts[selectedCategory] || 0;
 
+    // Validate tournament configuration
+    const getConfigValidation = () => {
+        if (!selectedDiscipline || currentRobotCount === 0) {
+            return { valid: true, message: null }; // Don't show validation errors if discipline not selected
+        }
+        
+        const { groupCount, advancingPerGroup } = params;
+        const minRobotsPerGroup = advancingPerGroup + 1;
+        const minRobotsNeeded = groupCount * minRobotsPerGroup;
+        
+        if (currentRobotCount < minRobotsNeeded) {
+            return {
+                valid: false,
+                message: t('configValidationNotEnoughRobots')
+                    ? t('configValidationNotEnoughRobots')
+                        .replace('{{robotCount}}', currentRobotCount)
+                        .replace('{{groupCount}}', groupCount)
+                        .replace('{{advancingPerGroup}}', advancingPerGroup)
+                        .replace('{{minRobotsNeeded}}', minRobotsNeeded)
+                    : `Pro ${groupCount} skupin s ${advancingPerGroup} postupujícími potřebujete minimálně ${minRobotsNeeded} robotů (${minRobotsPerGroup} na skupinu). Máte pouze ${currentRobotCount} robotů.`,
+                suggestion: t('configValidationSuggestion')
+                    ? t('configValidationSuggestion')
+                    : 'Snižte počet skupin nebo počet postupujících ze skupiny.'
+            };
+        }
+        
+        const robotsPerGroup = Math.floor(currentRobotCount / groupCount);
+        if (robotsPerGroup < 2) {
+            return {
+                valid: false,
+                message: t('configValidationTooManyGroups')
+                    ? t('configValidationTooManyGroups')
+                        .replace('{{groupCount}}', groupCount)
+                        .replace('{{robotCount}}', currentRobotCount)
+                    : `Příliš mnoho skupin (${groupCount}) pro ${currentRobotCount} robotů. Každá skupina musí mít alespoň 2 roboty.`,
+                suggestion: t('configValidationReduceGroups')
+                    ? t('configValidationReduceGroups').replace('{{maxGroups}}', Math.floor(currentRobotCount / 2))
+                    : `Snižte počet skupin na maximálně ${Math.floor(currentRobotCount / 2)}.`
+            };
+        }
+        
+        return { valid: true, message: null };
+    };
+    
+    const configValidation = getConfigValidation();
+
     // Calculate matches per playground (for accurate time estimation)
     const getMatchesPerPlayground = () => {
         if (!preview || !preview.groups) return {};
@@ -1017,33 +1063,23 @@ function TournamentGenerator() {
         <div className="content">
             <Row>
                 <Col md="12">
-                    <Card className={isDark ? 'bg-dark' : ''} style={{ borderRadius: '12px' }}>
-                        <CardHeader style={{
-                            background: isDark
-                                ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
-                                : 'linear-gradient(135deg, #f8f9fa 0%, #fff 100%)',
-                            borderRadius: '12px 12px 0 0'
-                        }}>
-                            <CardTitle tag="h4" style={{ color: isDark ? 'white' : '#32325d' }}>
-                                <i className="tim-icons icon-trophy mr-2" style={{ color: '#000' }} />
+                    <Card>
+                        <CardHeader>
+                            <CardTitle tag="h4">
+                                <i className="tim-icons icon-trophy mr-2" />
                                 {t('tournamentGenerator') || 'Generátor turnajů'}
                             </CardTitle>
+                        </CardHeader>
+                        <CardBody>
                             {/* Main Tab Navigation */}
-                            <Nav tabs style={{ marginTop: '15px', borderBottom: 'none' }}>
+                            <Nav tabs className="mb-4">
                                 <NavItem>
                                     <NavLink
                                         className={classnames({ active: mainTab === 'tournament' })}
                                         onClick={() => setMainTab('tournament')}
-                                        style={{
-                                            cursor: 'pointer',
-                                            borderRadius: '8px 8px 0 0',
-                                            background: mainTab === 'tournament' ? (isDark ? '#ff8e1cb6' : '#ff8d1c') : 'transparent',
-                                            color: mainTab === 'tournament' ? '#fff' : (isDark ? '#a0aec0' : '#525f7f'),
-                                            border: 'none',
-                                            fontWeight: '600'
-                                        }}
+                                        style={{ cursor: 'pointer' }}
                                     >
-                                        <i className="tim-icons icon-trophy mr-1" />
+                                        <i className="tim-icons icon-trophy mr-2" />
                                         {t('tournamentDisciplines') || 'Turnajové disciplíny'}
                                     </NavLink>
                                 </NavItem>
@@ -1051,23 +1087,13 @@ function TournamentGenerator() {
                                     <NavLink
                                         className={classnames({ active: mainTab === 'nontournament' })}
                                         onClick={() => setMainTab('nontournament')}
-                                        style={{
-                                            cursor: 'pointer',
-                                            borderRadius: '8px 8px 0 0',
-                                            background: mainTab === 'nontournament' ? (isDark ? '#ff8e1cb6' : '#ff8d1c') : 'transparent',
-                                            color: mainTab === 'nontournament' ? '#fff' : (isDark ? '#a0aec0' : '#525f7f'),
-                                            border: 'none',
-                                            fontWeight: '600',
-                                            marginLeft: '5px'
-                                        }}
+                                        style={{ cursor: 'pointer' }}
                                     >
-                                        <i className="tim-icons icon-chart-bar-32 mr-1" />
+                                        <i className="tim-icons icon-chart-bar-32 mr-2" />
                                         {t('nonTournamentDisciplines') || 'Neturnajové disciplíny'}
                                     </NavLink>
                                 </NavItem>
                             </Nav>
-                        </CardHeader>
-                        <CardBody>
                             <TabContent activeTab={mainTab}>
                                 {/* Tournament Disciplines Tab */}
                                 <TabPane tabId="tournament">
@@ -1079,7 +1105,7 @@ function TournamentGenerator() {
                             <Row>
                                 <Col md="6">
                                     <FormGroup>
-                                        <Label style={{ fontWeight: '600', color: isDark ? '#fff' : '#32325d' }}>
+                                        <Label>
                                             {t('discipline') || 'Disciplína'}
                                         </Label>
                                         <Input
@@ -1090,8 +1116,6 @@ function TournamentGenerator() {
                                                 setPreview(null);
                                                 setRobotCounts({});
                                             }}
-                                            className={isDark ? 'bg-dark text-white' : ''}
-                                            style={{ borderRadius: '8px' }}
                                         >
                                             <option value="">{t('selectDiscipline') || 'Vyberte disciplínu'}</option>
                                             {disciplines.map(d => (
@@ -1102,7 +1126,7 @@ function TournamentGenerator() {
                                 </Col>
                                 <Col md="6">
                                     <FormGroup>
-                                        <Label style={{ fontWeight: '600', color: isDark ? '#fff' : '#32325d' }}>
+                                        <Label>
                                             {t('category') || 'Kategorie'}
                                         </Label>
                                         <Input
@@ -1112,8 +1136,6 @@ function TournamentGenerator() {
                                                 setSelectedCategory(e.target.value);
                                                 setPreview(null);
                                             }}
-                                            className={isDark ? 'bg-dark text-white' : ''}
-                                            style={{ borderRadius: '8px' }}
                                         >
                                             <option value="LOW_AGE_CATEGORY">
                                                 {t('pupils') || 'Žáci'}
@@ -1428,12 +1450,30 @@ function TournamentGenerator() {
                                             </FormGroup>
                                         </Col>
                                     </Row>
+                                    {/* Configuration validation warning */}
+                                    {!configValidation.valid && (
+                                        <Alert color="danger" style={{ borderRadius: '8px', marginTop: '1rem' }}>
+                                            <div className="d-flex align-items-start">
+                                                <i className="tim-icons icon-alert-circle-exc mr-2" style={{ marginTop: '3px' }} />
+                                                <div>
+                                                    <strong>{t('invalidConfiguration') || 'Neplatná konfigurace'}</strong>
+                                                    <div style={{ marginTop: '4px' }}>{configValidation.message}</div>
+                                                    {configValidation.suggestion && (
+                                                        <div style={{ marginTop: '8px', fontStyle: 'italic', opacity: 0.9 }}>
+                                                            <i className="tim-icons icon-bulb-63 mr-1" />
+                                                            {configValidation.suggestion}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Alert>
+                                    )}
                                     <Row className="mt-2">
                                         <Col md="12" className="d-flex justify-content-center">
                                             <Button
                                                 color="primary"
                                                 onClick={handleGeneratePreview}
-                                                disabled={generating || !selectedDiscipline || currentRobotCount === 0 || playgrounds.length === 0}
+                                                disabled={generating || !selectedDiscipline || currentRobotCount === 0 || playgrounds.length === 0 || !configValidation.valid}
                                                 style={{
                                                     borderRadius: '8px',
                                                     padding: '12px 30px',
@@ -1507,17 +1547,11 @@ function TournamentGenerator() {
                                             {nonTournamentStatus.map((discipline) => (
                                                 <Card
                                                     key={discipline.disciplineId}
-                                                    className={`mb-3 ${isDark ? 'bg-secondary' : ''}`}
-                                                    style={{
-                                                        borderRadius: '12px',
-                                                        border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`
-                                                    }}
+                                                    className="mb-3"
+                                                    style={{ border: '1px solid #dee2e6', borderRadius: '8px' }}
                                                 >
-                                                    <CardHeader className="py-3 px-4" style={{
-                                                        background: isDark ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)' : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                                                        borderRadius: '12px 12px 0 0'
-                                                    }}>
-                                                        <h5 className="mb-0" style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                    <CardHeader className="py-3 px-4">
+                                                        <h5 className="mb-0">
                                                             <i className="tim-icons icon-controller mr-2" />
                                                             {discipline.disciplineName}
                                                         </h5>
@@ -1526,14 +1560,10 @@ function TournamentGenerator() {
                                                         <Row>
                                                             {/* LOW_AGE_CATEGORY */}
                                                             <Col md="6">
-                                                                <Card className={isDark ? 'bg-dark' : ''} style={{
-                                                                    borderRadius: '8px',
-                                                                    border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
-                                                                    marginBottom: '0'
-                                                                }}>
+                                                                <Card className="mb-0 mb-md-0 mb-3" style={{ border: '1px solid #dee2e6', borderRadius: '8px' }}>
                                                                     <CardBody className="py-3 px-3">
                                                                         <div className="d-flex justify-content-between align-items-center mb-2">
-                                                                            <span style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                                            <span style={{ fontWeight: '600' }}>
                                                                                 {t('pupils') || 'Žáci'}
                                                                             </span>
                                                                             <Badge color={discipline.LOW_AGE_CATEGORY?.robotCount > 0 ? 'info' : 'secondary'}>
@@ -1544,24 +1574,24 @@ function TournamentGenerator() {
                                                                         {discipline.LOW_AGE_CATEGORY?.matchesExist ? (
                                                                             <>
                                                                                 <div className="d-flex justify-content-between mb-2">
-                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                    <small className="text-muted">
                                                                                         {t('matchProgress') || 'Průběh'}
                                                                                     </small>
-                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                    <small className="text-muted">
                                                                                         {discipline.LOW_AGE_CATEGORY.completedMatches}/{discipline.LOW_AGE_CATEGORY.totalMatches}
                                                                                     </small>
                                                                                 </div>
                                                                                 <Progress
                                                                                     value={discipline.LOW_AGE_CATEGORY.progress}
                                                                                     color={discipline.LOW_AGE_CATEGORY.progress === 100 ? 'success' : 'info'}
-                                                                                    style={{ height: '8px', borderRadius: '4px', marginBottom: '10px' }}
+                                                                                    className="mb-2"
+                                                                                    style={{ height: '8px' }}
                                                                                 />
                                                                                 <Button
                                                                                     color="danger"
                                                                                     size="sm"
                                                                                     outline
                                                                                     onClick={() => handleDeleteNonTournamentMatches(discipline.disciplineId, 'LOW_AGE_CATEGORY')}
-                                                                                    style={{ borderRadius: '6px' }}
                                                                                     disabled={loadingNonTournament}
                                                                                 >
                                                                                     <i className="tim-icons icon-trash-simple mr-1" />
@@ -1573,14 +1603,13 @@ function TournamentGenerator() {
                                                                                 color="success"
                                                                                 size="sm"
                                                                                 onClick={() => handleGenerateSingleNonTournament(discipline.disciplineId, 'LOW_AGE_CATEGORY')}
-                                                                                style={{ borderRadius: '6px' }}
                                                                                 disabled={loadingNonTournament}
                                                                             >
                                                                                 <i className="tim-icons icon-spaceship mr-1" />
                                                                                 {t('generateSingleDiscipline') || 'Vygenerovat'}
                                                                             </Button>
                                                                         ) : (
-                                                                            <small style={{ color: isDark ? '#666' : '#aaa' }}>
+                                                                            <small className="text-muted">
                                                                                 {t('noRobotsRegistered') || 'Žádní roboti'}
                                                                             </small>
                                                                         )}
@@ -1590,14 +1619,10 @@ function TournamentGenerator() {
 
                                                             {/* HIGH_AGE_CATEGORY */}
                                                             <Col md="6">
-                                                                <Card className={isDark ? 'bg-dark' : ''} style={{
-                                                                    borderRadius: '8px',
-                                                                    border: `1px solid ${isDark ? '#3d3d5c' : '#e0e0e0'}`,
-                                                                    marginBottom: '0'
-                                                                }}>
+                                                                <Card className="mb-0" style={{ border: '1px solid #dee2e6', borderRadius: '8px' }}>
                                                                     <CardBody className="py-3 px-3">
                                                                         <div className="d-flex justify-content-between align-items-center mb-2">
-                                                                            <span style={{ color: isDark ? '#fff' : '#32325d', fontWeight: '600' }}>
+                                                                            <span style={{ fontWeight: '600' }}>
                                                                                 {t('students') || 'Studenti a\u00a0dospělí'}
                                                                             </span>
                                                                             <Badge color={discipline.HIGH_AGE_CATEGORY?.robotCount > 0 ? 'info' : 'secondary'}>
@@ -1608,24 +1633,24 @@ function TournamentGenerator() {
                                                                         {discipline.HIGH_AGE_CATEGORY?.matchesExist ? (
                                                                             <>
                                                                                 <div className="d-flex justify-content-between mb-2">
-                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                    <small className="text-muted">
                                                                                         {t('matchProgress') || 'Průběh'}
                                                                                     </small>
-                                                                                    <small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                                                                                    <small className="text-muted">
                                                                                         {discipline.HIGH_AGE_CATEGORY.completedMatches}/{discipline.HIGH_AGE_CATEGORY.totalMatches}
                                                                                     </small>
                                                                                 </div>
                                                                                 <Progress
                                                                                     value={discipline.HIGH_AGE_CATEGORY.progress}
                                                                                     color={discipline.HIGH_AGE_CATEGORY.progress === 100 ? 'success' : 'info'}
-                                                                                    style={{ height: '8px', borderRadius: '4px', marginBottom: '10px' }}
+                                                                                    className="mb-2"
+                                                                                    style={{ height: '8px' }}
                                                                                 />
                                                                                 <Button
                                                                                     color="danger"
                                                                                     size="sm"
                                                                                     outline
                                                                                     onClick={() => handleDeleteNonTournamentMatches(discipline.disciplineId, 'HIGH_AGE_CATEGORY')}
-                                                                                    style={{ borderRadius: '6px' }}
                                                                                     disabled={loadingNonTournament}
                                                                                 >
                                                                                     <i className="tim-icons icon-trash-simple mr-1" />
@@ -1637,14 +1662,13 @@ function TournamentGenerator() {
                                                                                 color="success"
                                                                                 size="sm"
                                                                                 onClick={() => handleGenerateSingleNonTournament(discipline.disciplineId, 'HIGH_AGE_CATEGORY')}
-                                                                                style={{ borderRadius: '6px' }}
                                                                                 disabled={loadingNonTournament}
                                                                             >
                                                                                 <i className="tim-icons icon-spaceship mr-1" />
                                                                                 {t('generateSingleDiscipline') || 'Vygenerovat'}
                                                                             </Button>
                                                                         ) : (
-                                                                            <small style={{ color: isDark ? '#666' : '#aaa' }}>
+                                                                            <small className="text-muted">
                                                                                 {t('noRobotsRegistered') || 'Žádní roboti'}
                                                                             </small>
                                                                         )}
@@ -1666,29 +1690,26 @@ function TournamentGenerator() {
 
             {/* Generation Summary Modal */}
             <Modal isOpen={showGenerationSummary} toggle={() => setShowGenerationSummary(false)} size="lg">
-                <ModalHeader toggle={() => setShowGenerationSummary(false)} style={{
-                    background: isDark ? '#1e1e2f' : '#f8f9fa',
-                    color: isDark ? 'white' : '#32325d'
-                }}>
+                <ModalHeader toggle={() => setShowGenerationSummary(false)}>
                     <i className="tim-icons icon-check-2 mr-2" style={{ color: '#2dce89' }} />
                     {t('generationSummary') || 'Souhrn generování'}
                 </ModalHeader>
-                <ModalBody style={{ background: isDark ? '#2d2d44' : '#fff' }}>
+                <ModalBody>
                     {generationResult && (
                         <>
                             <div className="mb-3">
-                                <Badge color="success" style={{ fontSize: '1em', padding: '10px 15px' }}>
+                                <Badge color="success" className="p-2">
                                     {t('totalCreated') || 'Celkem vytvořeno zápasů'}: {generationResult.totalMatchesCreated}
                                 </Badge>
                             </div>
 
                             {generationResult.generated?.length > 0 && (
                                 <div className="mb-3">
-                                    <h6 style={{ color: '#2dce89', fontWeight: '600' }}>
+                                    <h6 className="text-success">
                                         <i className="tim-icons icon-check-2 mr-1" />
                                         {t('generated') || 'Vygenerováno'} ({generationResult.generated.length})
                                     </h6>
-                                    <Table size="sm" className={isDark ? 'text-white' : ''}>
+                                    <Table size="sm">
                                         <tbody>
                                             {generationResult.generated.map((item, idx) => (
                                                 <tr key={idx}>
@@ -1704,17 +1725,17 @@ function TournamentGenerator() {
 
                             {generationResult.skipped?.length > 0 && (
                                 <div className="mb-3">
-                                    <h6 style={{ color: '#ffc107', fontWeight: '600' }}>
+                                    <h6 className="text-warning">
                                         <i className="tim-icons icon-minimal-right mr-1" />
                                         {t('skipped') || 'Přeskočeno'} ({generationResult.skipped.length})
                                     </h6>
-                                    <Table size="sm" className={isDark ? 'text-white' : ''}>
+                                    <Table size="sm">
                                         <tbody>
                                             {generationResult.skipped.map((item, idx) => (
                                                 <tr key={idx}>
                                                     <td>{item.disciplineName}</td>
                                                     <td>{item.category === 'LOW_AGE_CATEGORY' ? t('pupils') : t('students')}</td>
-                                                    <td><small style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>{item.reason}</small></td>
+                                                    <td><small className="text-muted">{item.reason}</small></td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -1724,17 +1745,17 @@ function TournamentGenerator() {
 
                             {generationResult.errors?.length > 0 && (
                                 <div className="mb-3">
-                                    <h6 style={{ color: '#f5365c', fontWeight: '600' }}>
+                                    <h6 className="text-danger">
                                         <i className="tim-icons icon-alert-circle-exc mr-1" />
                                         {t('errors') || 'Chyby'} ({generationResult.errors.length})
                                     </h6>
-                                    <Table size="sm" className={isDark ? 'text-white' : ''}>
+                                    <Table size="sm">
                                         <tbody>
                                             {generationResult.errors.map((item, idx) => (
                                                 <tr key={idx}>
                                                     <td>{item.disciplineName}</td>
                                                     <td>{item.category === 'LOW_AGE_CATEGORY' ? t('pupils') : t('students')}</td>
-                                                    <td><small style={{ color: '#f5365c' }}>{item.error || item.reason}</small></td>
+                                                    <td><small className="text-danger">{item.error || item.reason}</small></td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -1744,8 +1765,8 @@ function TournamentGenerator() {
                         </>
                     )}
                 </ModalBody>
-                <ModalFooter style={{ background: isDark ? '#2d2d44' : '#fff' }}>
-                    <Button color="primary" onClick={() => setShowGenerationSummary(false)} style={{ borderRadius: '8px' }}>
+                <ModalFooter>
+                    <Button color="primary" onClick={() => setShowGenerationSummary(false)}>
                         {t('close') || 'Zavřít'}
                     </Button>
                 </ModalFooter>
@@ -1755,46 +1776,41 @@ function TournamentGenerator() {
             {preview && (
                 <Row>
                     <Col md="12">
-                        <Card className={isDark ? 'bg-dark' : ''} style={{ borderRadius: '12px' }}>
-                            <CardHeader style={{
-                                background: isDark
-                                    ? 'linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%)'
-                                    : 'linear-gradient(135deg, #f8f9fa 0%, #fff 100%)',
-                                borderRadius: '12px 12px 0 0'
-                            }}>
-                                <CardTitle tag="h4" style={{ color: isDark ? 'white' : '#32325d' }}>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle tag="h4">
                                     <i className="tim-icons icon-zoom-split mr-2" />
                                     {t('preview') || 'Náhled'}: {preview.disciplineName} - {preview.category === 'LOW_AGE_CATEGORY' ? t('pupils') || 'Žáci' : t('students') || 'Studenti a\u00a0dospělí'}
                                 </CardTitle>
                                 <div className="d-flex gap-2 flex-wrap mt-2">
-                                    <Badge color="secondary" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
+                                    <Badge color="secondary" className="p-2">
                                         <i className="tim-icons icon-single-02 mr-1" />
                                         {t('robotsInTournament') || 'Robotů v turnaji'}: {preview.groups?.reduce((sum, g) => sum + (g.robots?.length || 0), 0) || 0}
                                     </Badge>
-                                    <Badge color="info" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
+                                    <Badge color="info" className="p-2">
                                         <i className="tim-icons icon-bullet-list-67 mr-1" />
                                         {t('groups') || 'Skupiny'}: {preview.groups.length}
                                     </Badge>
-                                    <Badge color="primary" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
+                                    <Badge color="primary" className="p-2">
                                         <i className="tim-icons icon-controller mr-1" />
                                         {t('totalGroupMatches') || 'Skupinové zápasy'}: {preview.totalGroupMatches}
                                     </Badge>
-                                    <Badge color="success" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
+                                    <Badge color="success" className="p-2">
                                         <i className="tim-icons icon-trophy mr-1" />
                                         {t('bracketMatches') || 'Pavouk'}: {preview.totalBracketMatches - (preview.bracket?.byeCount || 0)} {t('matches') || 'zápasů'}
                                         {preview.bracket?.byeCount > 0 && ` (+${preview.bracket.byeCount} BYE)`}
                                     </Badge>
                                 </div>
                                 <div className="d-flex gap-2 flex-wrap mt-2">
-                                    <Badge color="warning" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
+                                    <Badge color="warning" className="p-2">
                                         <i className="tim-icons icon-time-alarm mr-1" />
                                         {t('groupPhaseTime') || 'Čas skupiny'}: ~{getMaxMatchesOnPlayground() * params.matchTimeMinutes} min
                                     </Badge>
-                                    <Badge color="warning" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
+                                    <Badge color="warning" className="p-2">
                                         <i className="tim-icons icon-time-alarm mr-1" />
                                         {t('bracketPhaseTime') || 'Čas pavouk'}: ~{getBracketPhaseTime()} min ({preview.bracket?.rounds?.length || 0} {t('rounds') || 'kol'})
                                     </Badge>
-                                    <Badge color="danger" style={{ fontSize: '0.9em', padding: '8px 12px', borderRadius: '6px' }}>
+                                    <Badge color="danger" className="p-2">
                                         <i className="tim-icons icon-watch-time mr-1" />
                                         {t('totalTimeEstimate') || 'Celkem'}: ~{(getMaxMatchesOnPlayground() * params.matchTimeMinutes) + getBracketPhaseTime()} min
                                     </Badge>
@@ -1816,14 +1832,7 @@ function TournamentGenerator() {
                                         <NavLink
                                             className={classnames({ active: activeTab === 'groups' })}
                                             onClick={() => setActiveTab('groups')}
-                                            style={{
-                                                cursor: 'pointer',
-                                                ...(activeTab === 'groups' && !isDark ? {
-                                                    backgroundColor: '#5e72e4',
-                                                    color: '#fff',
-                                                    borderColor: '#5e72e4'
-                                                } : {})
-                                            }}
+                                            style={{ cursor: 'pointer' }}
                                         >
                                             <i className="tim-icons icon-bullet-list-67 mr-2" />
                                             {t('groups') || 'Skupiny'}
@@ -1834,14 +1843,7 @@ function TournamentGenerator() {
                                         <NavLink
                                             className={classnames({ active: activeTab === 'bracket' })}
                                             onClick={() => setActiveTab('bracket')}
-                                            style={{
-                                                cursor: 'pointer',
-                                                ...(activeTab === 'bracket' && !isDark ? {
-                                                    backgroundColor: '#5e72e4',
-                                                    color: '#fff',
-                                                    borderColor: '#5e72e4'
-                                                } : {})
-                                            }}
+                                            style={{ cursor: 'pointer' }}
                                         >
                                             <i className="tim-icons icon-trophy mr-2" />
                                             {t('bracket') || 'Pavouk'}
@@ -1892,16 +1894,12 @@ function TournamentGenerator() {
                                     </TabPane>
                                 </TabContent>
                             </CardBody>
-                            <CardFooter style={{
-                                background: isDark ? '#1e1e2f' : '#f8f9fa',
-                                borderRadius: '0 0 12px 12px'
-                            }}>
+                            <CardFooter>
                                 <Button
                                     color="success"
                                     size="lg"
                                     onClick={() => setShowSaveConfirmModal(true)}
                                     disabled={saving}
-                                    style={{ borderRadius: '8px' }}
                                 >
                                     {saving ? (
                                         <><Spinner size="sm" /> {t('saving') || 'Ukládám...'}</>
@@ -1913,7 +1911,6 @@ function TournamentGenerator() {
                                     color="secondary"
                                     className="ml-2 ms-2"
                                     onClick={() => setPreview(null)}
-                                    style={{ borderRadius: '8px' }}
                                 >
                                     <i className="tim-icons icon-simple-remove mr-1" />
                                     {t('cancel') || 'Zrušit'}
@@ -1926,45 +1923,37 @@ function TournamentGenerator() {
 
             {/* Save Confirmation Modal */}
             <Modal isOpen={showSaveConfirmModal} toggle={() => setShowSaveConfirmModal(false)}>
-                <ModalHeader toggle={() => setShowSaveConfirmModal(false)} style={{
-                    background: isDark ? '#1e1e2f' : '#f8f9fa',
-                    color: isDark ? 'white' : '#32325d'
-                }}>
+                <ModalHeader toggle={() => setShowSaveConfirmModal(false)}>
                     <i className="tim-icons icon-alert-circle-exc mr-2" style={{ color: '#ffd600' }} />
                     {t('confirmSaveTournament') || 'Potvrzení uložení'}
                 </ModalHeader>
-                <ModalBody style={{ background: isDark ? '#2d2d44' : '#fff' }}>
-                    <p style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                <ModalBody>
+                    <p className="text-muted">
                         {t('confirmSaveTournamentDescription')}
                     </p>
                     {preview && (
-                        <div style={{
-                            background: isDark ? '#1e1e2f' : '#f8f9fa',
-                            padding: '15px',
-                            borderRadius: '8px',
-                            marginTop: '15px'
-                        }}>
-                            <div style={{ color: isDark ? '#fff' : '#32325d' }}>
+                        <div className="bg-secondary p-3 rounded mt-3">
+                            <div>
                                 <strong>{t('discipline') || 'Disciplína'}:</strong> {preview.disciplineName}
                             </div>
-                            <div style={{ color: isDark ? '#fff' : '#32325d' }}>
+                            <div>
                                 <strong>{t('category') || 'Kategorie'}:</strong> {preview.category === 'LOW_AGE_CATEGORY' ? t('pupils') || 'Žáci' : t('students') || 'Studenti a\u00a0dospělí'}
                             </div>
-                            <div style={{ color: isDark ? '#fff' : '#32325d' }}>
+                            <div>
                                 <strong>{t('groups') || 'Skupiny'}:</strong> {preview.groups.length}
                             </div>
-                            <div style={{ color: isDark ? '#fff' : '#32325d' }}>
+                            <div>
                                 <strong>{t('totalMatches') || 'Celkem zápasů'}:</strong> {preview.totalGroupMatches + preview.totalBracketMatches}
                             </div>
                         </div>
                     )}
                 </ModalBody>
-                <ModalFooter style={{ background: isDark ? '#2d2d44' : '#fff' }}>
-                    <Button color="success" onClick={handleSaveTournament} disabled={saving} style={{ borderRadius: '8px' }}>
+                <ModalFooter>
+                    <Button color="success" onClick={handleSaveTournament} disabled={saving}>
                         <i className="tim-icons icon-check-2 mr-1" />
                         {t('confirmAndSave') || 'Potvrdit a uložit'}
                     </Button>
-                    <Button color="secondary" onClick={() => setShowSaveConfirmModal(false)} style={{ borderRadius: '8px' }}>
+                    <Button color="secondary" onClick={() => setShowSaveConfirmModal(false)}>
                         {t('cancel') || 'Zrušit'}
                     </Button>
                 </ModalFooter>
@@ -1972,19 +1961,16 @@ function TournamentGenerator() {
 
             {/* Start Final Modal */}
             <Modal isOpen={showStartFinalModal} toggle={() => setShowStartFinalModal(false)}>
-                <ModalHeader toggle={() => setShowStartFinalModal(false)} style={{
-                    background: isDark ? '#1e1e2f' : '#f8f9fa',
-                    color: isDark ? 'white' : '#32325d'
-                }}>
+                <ModalHeader toggle={() => setShowStartFinalModal(false)}>
                     <i className="tim-icons icon-triangle-right-17 mr-2" style={{ color: '#2dce89' }} />
                     {t('startFinalBracket') || 'Spustit finálový pavouk'}
                 </ModalHeader>
-                <ModalBody style={{ background: isDark ? '#2d2d44' : '#fff' }}>
-                    <p style={{ color: isDark ? '#a0aec0' : '#525f7f' }}>
+                <ModalBody>
+                    <p className="text-muted">
                         {t('startFinalDescription') || 'Tato akce přesune vítěze ze skupin do finálového pavouka. Ujistěte se, že všechny skupinové zápasy jsou dokončeny.'}
                     </p>
                     <FormGroup>
-                        <Label style={{ fontWeight: '600', color: isDark ? '#fff' : '#32325d' }}>
+                        <Label>
                             {t('advancingPerGroup') || 'Počet postupujících z každé skupiny'}
                         </Label>
                         <Input
@@ -1993,20 +1979,33 @@ function TournamentGenerator() {
                             max="4"
                             value={params.advancingPerGroup}
                             onChange={(e) => setParams({ ...params, advancingPerGroup: parseInt(e.target.value) })}
-                            className={isDark ? 'bg-dark text-white' : ''}
-                            style={{ borderRadius: '8px' }}
                         />
                     </FormGroup>
                 </ModalBody>
-                <ModalFooter style={{ background: isDark ? '#2d2d44' : '#fff' }}>
-                    <Button color="success" onClick={handleStartFinal} disabled={loading} style={{ borderRadius: '8px' }}>
+                <ModalFooter>
+                    <Button color="success" onClick={handleStartFinal} disabled={loading}>
                         {loading ? <Spinner size="sm" /> : <><i className="tim-icons icon-triangle-right-17 mr-1" /> {t('startFinal') || 'Spustit finále'}</>}
                     </Button>
-                    <Button color="secondary" onClick={() => setShowStartFinalModal(false)} style={{ borderRadius: '8px' }}>
+                    <Button color="secondary" onClick={() => setShowStartFinalModal(false)}>
                         {t('cancel') || 'Zrušit'}
                     </Button>
                 </ModalFooter>
             </Modal>
+
+            <style>{`
+                .nav-tabs .nav-link {
+                    border: none;
+                    color: ${isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)'};
+                }
+                .nav-tabs .nav-link.active {
+                    background: transparent;
+                    border-bottom: 2px solid #1d8cf8;
+                    color: ${isDark ? '#fff' : '#344675'};
+                }
+                .nav-tabs .nav-link:hover {
+                    color: #1d8cf8;
+                }
+            `}</style>
         </div>
     );
 }
