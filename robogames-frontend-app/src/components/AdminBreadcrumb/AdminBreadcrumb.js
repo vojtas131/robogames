@@ -461,7 +461,7 @@ function AdminBreadcrumb({ toggleSidebar, sidebarOpened }) {
       label: t('matchSchedule') || 'Rozvrh zápasů', 
       parent: '/admin/dashboard',
       icon: 'icon-time-alarm',
-      needsYear: true
+      needsYear: false
     },
     '/admin/generate': { 
       label: t('generate') || 'Generování', 

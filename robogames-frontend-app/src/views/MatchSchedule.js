@@ -23,6 +23,14 @@ function MatchSchedule() {
         isRefreshing.current = true;
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}module/orderManagement/currentMatches`);
+            
+            // Check if response is HTML (likely nginx fallback)
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Failed to fetch current matches: Backend not reachable (received non-JSON response)');
+                return;
+            }
+            
             const data = await response.json();
             
             if (response.ok && data.type === 'RESPONSE') {
