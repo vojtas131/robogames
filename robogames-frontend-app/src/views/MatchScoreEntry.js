@@ -1078,15 +1078,21 @@ function MatchScoreEntry() {
                                                     <Input
                                                         type="textarea"
                                                         value={refereeNote}
-                                                        onChange={(e) => setRefereeNote(e.target.value)}
+                                                        onChange={(e) => {
+                                                            // Only allow valid characters
+                                                            const value = e.target.value;
+                                                            if (/^[a-zA-ZÀ-ž0-9 ,.()]*$/.test(value) || value === '') {
+                                                                setRefereeNote(value);
+                                                            }
+                                                        }}
                                                         placeholder={t('refereeNotePlaceholder') || 'Napište poznámku k zápasu...'}
                                                         rows={2}
-                                                        maxLength={1000}
+                                                        maxLength={255}
                                                         disabled={submitting}
                                                         style={{ fontSize: '13px' }}
                                                     />
                                                     <small className="text-muted" style={{ fontSize: '10px' }}>
-                                                        {refereeNote.length}/1000
+                                                        {refereeNote.length}/255
                                                     </small>
                                                 </FormGroup>
                                             </div>
