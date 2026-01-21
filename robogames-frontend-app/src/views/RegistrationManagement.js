@@ -26,6 +26,7 @@ import { useToast } from "contexts/ToastContext";
 import { useConfirm } from "components/ConfirmModal";
 import { t } from "translations/translate";
 import TeamSearchSelect from "components/TeamSearchSelect/TeamSearchSelect";
+import SchoolSearchSelect from "components/SchoolSearchSelect/SchoolSearchSelect";
 import TablePagination from "components/TablePagination";
 
 /**
@@ -48,14 +49,18 @@ function RegistrationManagement() {
     year: selectedYear || '',
     teacherName: '',
     teacherSurname: '',
-    teacherContact: ''
+    teacherContact: '',
+    schoolName: '',
+    roboLeagueConsent: false
   });
   const [selectedTeamForCreate, setSelectedTeamForCreate] = useState(null);
   const [editTeacher, setEditTeacher] = useState({
     id: null,
     teacherName: '',
     teacherSurname: '',
-    teacherContact: ''
+    teacherContact: '',
+    schoolName: '',
+    roboLeagueConsent: false
   });
   const [categoryChange, setCategoryChange] = useState({
     id: null,
@@ -66,6 +71,8 @@ function RegistrationManagement() {
   // Search/Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'team', 'category', 'teacher'
+  const [consentFilter, setConsentFilter] = useState('all'); // 'all', 'yes', 'no'
+  const [schoolFilter, setSchoolFilter] = useState(''); // filter by school name
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -158,6 +165,11 @@ function RegistrationManagement() {
       newErrors.teacherContact = contactCheck === 'empty' ? t("fieldsRequired") : contactCheck === 'short' ? t("shortContact") : t("longContact");
     }
 
+    // Validate school name if consent is checked
+    if (newRegistration.roboLeagueConsent && (!newRegistration.schoolName || newRegistration.schoolName.trim().length === 0)) {
+      newErrors.schoolName = t("schoolRequiredForConsent");
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -175,7 +187,9 @@ function RegistrationManagement() {
           year: parseInt(newRegistration.year),
           teacherName: newRegistration.teacherName,
           teacherSurname: newRegistration.teacherSurname,
-          teacherContact: newRegistration.teacherContact
+          teacherContact: newRegistration.teacherContact,
+          schoolName: newRegistration.schoolName || null,
+          roboLeagueConsent: newRegistration.roboLeagueConsent
         })
       });
       if (tokenExpired(response.status)) return;
@@ -184,7 +198,7 @@ function RegistrationManagement() {
       if (response.ok) {
         toast.success(t("registrationCreated"));
         setCreateModal(false);
-        setNewRegistration({ teamId: '', year: '', teacherName: '', teacherSurname: '', teacherContact: '' });
+        setNewRegistration({ teamId: '', year: '', teacherName: '', teacherSurname: '', teacherContact: '', schoolName: '', roboLeagueConsent: false });
         setSelectedTeamForCreate(null);
         setErrors({});
         fetchRegistrations(selectedYear);
@@ -215,6 +229,11 @@ function RegistrationManagement() {
       newErrors.teacherContact = contactCheck === 'empty' ? t("fieldsRequired") : contactCheck === 'short' ? t("shortContact") : t("longContact");
     }
 
+    // Validate school name if consent is checked
+    if (editTeacher.roboLeagueConsent && (!editTeacher.schoolName || editTeacher.schoolName.trim().length === 0)) {
+      newErrors.schoolName = t("schoolRequiredForConsent");
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -230,7 +249,9 @@ function RegistrationManagement() {
         body: JSON.stringify({
           teacherName: editTeacher.teacherName,
           teacherSurname: editTeacher.teacherSurname,
-          teacherContact: editTeacher.teacherContact
+          teacherContact: editTeacher.teacherContact,
+          schoolName: editTeacher.schoolName || null,
+          roboLeagueConsent: editTeacher.roboLeagueConsent
         })
       });
       if (tokenExpired(response.status)) return;
@@ -307,7 +328,9 @@ function RegistrationManagement() {
       id: reg.id,
       teacherName: reg.teacherName || '',
       teacherSurname: reg.teacherSurname || '',
-      teacherContact: reg.teacherContact || ''
+      teacherContact: reg.teacherContact || '',
+      schoolName: reg.schoolName || '',
+      roboLeagueConsent: reg.roboLeagueConsent || false
     });
     setEditTeacherModal(true);
   };
@@ -327,6 +350,17 @@ function RegistrationManagement() {
   };
 
   const filteredRegistrations = registrations.filter(reg => {
+    // First apply consent filter
+    if (consentFilter === 'yes' && !reg.roboLeagueConsent) return false;
+    if (consentFilter === 'no' && reg.roboLeagueConsent) return false;
+    
+    // Apply school filter
+    if (schoolFilter && schoolFilter.trim().length > 0) {
+      if (!reg.schoolName || !reg.schoolName.toLowerCase().includes(schoolFilter.toLowerCase())) {
+        return false;
+      }
+    }
+    
     const searchLower = searchTerm.toLowerCase();
     if (!searchTerm) return true;
     
@@ -356,19 +390,20 @@ function RegistrationManagement() {
   // Reset page when search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, searchType]);
+  }, [searchTerm, searchType, consentFilter, schoolFilter]);
 
   // Calculate summary statistics
   const totalRegistrations = registrations.length;
   const lowAgeCategory = registrations.filter(reg => reg.category === 'LOW_AGE_CATEGORY').length;
   const highAgeCategory = registrations.filter(reg => reg.category === 'HIGH_AGE_CATEGORY').length;
+  const roboLeagueConsentCount = registrations.filter(reg => reg.roboLeagueConsent).length;
 
 
   return (
     <div className="content">
       {/* Summary Statistics */}
       <Row className="mb-3">
-        <Col md="4">
+        <Col md="3">
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
@@ -391,7 +426,7 @@ function RegistrationManagement() {
             </CardBody>
           </Card>
         </Col>
-        <Col md="4">
+        <Col md="3">
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
@@ -414,7 +449,7 @@ function RegistrationManagement() {
             </CardBody>
           </Card>
         </Col>
-        <Col md="4">
+        <Col md="3">
           <Card className="card-stats mb-3 mb-md-0">
             <CardBody className="py-3">
               <div className="d-flex align-items-center">
@@ -437,6 +472,29 @@ function RegistrationManagement() {
             </CardBody>
           </Card>
         </Col>
+        <Col md="3">
+          <Card className="card-stats mb-3 mb-md-0">
+            <CardBody className="py-3">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #11cdef 0%, #1171ef 100%)'
+                  }}
+                >
+                  <i className="tim-icons icon-check-2" style={{ fontSize: '20px', color: '#fff' }} />
+                </div>
+                <div>
+                  <p className="card-category mb-0" style={{ fontSize: '12px' }}>{t("roboLeagueConsentShort") || "Robo Lego Liga"}</p>
+                  <CardTitle tag="h3" className="mb-0">{roboLeagueConsentCount}</CardTitle>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
       </Row>
 
       <Row>
@@ -454,8 +512,8 @@ function RegistrationManagement() {
                   </Button>
                 </Col>
               </Row>
-              <Row>
-                <Col md="3">
+              <Row className="mb-2">
+                <Col md="2">
                   <Input
                     type="select"
                     value={searchType}
@@ -468,7 +526,7 @@ function RegistrationManagement() {
                     <option value="teacher">{t('searchByTeacher') || 'Učitel'}</option>
                   </Input>
                 </Col>
-                <Col md="9">
+                <Col md="4">
                   <InputGroup>
                     <InputGroupText>
                       <i className="tim-icons icon-zoom-split" />
@@ -496,6 +554,25 @@ function RegistrationManagement() {
                     )}
                   </InputGroup>
                 </Col>
+                <Col md="2">
+                  <Input
+                    type="select"
+                    value={consentFilter}
+                    onChange={(e) => setConsentFilter(e.target.value)}
+                  >
+                    <option value="all">{t('roboLeagueAll') || 'RLL: Vše'}</option>
+                    <option value="yes">{t('roboLeagueConsentYes') || 'Se souhlasem'}</option>
+                    <option value="no">{t('roboLeagueConsentNo') || 'Bez souhlasu'}</option>
+                  </Input>
+                </Col>
+                <Col md="4">
+                  <SchoolSearchSelect
+                    value={schoolFilter}
+                    onChange={(value) => setSchoolFilter(value)}
+                    placeholder={t("filterBySchool")}
+                    clearable={true}
+                  />
+                </Col>
               </Row>
             </CardHeader>
             <CardBody>
@@ -512,6 +589,8 @@ function RegistrationManagement() {
                       <th>{t("teacherName")}</th>
                       <th>{t("teacherSurname")}</th>
                       <th>{t("teacherContact")}</th>
+                      <th>{t("schoolName")}</th>
+                      <th style={{ textAlign: 'center' }}>{t("roboLeagueConsentShort")}</th>
                       <th style={{ textAlign: 'center' }}>{t("action")}</th>
                     </tr>
                   </thead>
@@ -526,6 +605,34 @@ function RegistrationManagement() {
                         <td>{reg.teacherName || t("notProvided")}</td>
                         <td>{reg.teacherSurname || t("notProvided")}</td>
                         <td>{reg.teacherContact || t("notProvided")}</td>
+                        <td 
+                          title={reg.schoolName ? `${reg.schoolName} - ${t("clickToCopy") || "Klikněte pro zkopírování"}` : ''}
+                          style={{ 
+                            maxWidth: '150px', 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis', 
+                            whiteSpace: 'nowrap',
+                            cursor: reg.schoolName ? 'pointer' : 'default'
+                          }}
+                          onClick={() => {
+                            if (reg.schoolName) {
+                              navigator.clipboard.writeText(reg.schoolName).then(() => {
+                                toast.success(t("copiedToClipboard") || "Zkopírováno do schránky");
+                              }).catch(() => {
+                                toast.error(t("copyFailed") || "Kopírování selhalo");
+                              });
+                            }
+                          }}
+                        >
+                          {reg.schoolName || t("notProvided")}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {reg.roboLeagueConsent ? (
+                            <i className="tim-icons icon-check-2 text-success" title={t("roboLeagueConsentYes")} />
+                          ) : (
+                            <i className="tim-icons icon-simple-remove text-muted" title={t("roboLeagueConsentNo")} />
+                          )}
+                        </td>
                         <td style={{ textAlign: 'center' }}>
                           <Button
                             color="info"
@@ -534,7 +641,7 @@ function RegistrationManagement() {
                             onClick={() => openEditTeacherModal(reg)}
                             title={t("editTeacherInfo")}
                           >
-                            <i className="tim-icons icon-single-02" />
+                            <i className="tim-icons icon-pencil" />
                           </Button>
                           <Button
                             color="warning"
@@ -584,68 +691,127 @@ function RegistrationManagement() {
         <ModalHeader toggle={() => setCreateModal(false)}>{t("registrationCreate")}</ModalHeader>
         <ModalBody style={{ padding: '20px 25px' }}>
           <Form>
-            <FormGroup style={{ marginBottom: '15px' }}>
-              <Label>{t("team")} *</Label>
-              <TeamSearchSelect
-                teams={teams}
-                onSelect={setSelectedTeamForCreate}
-                selectedTeam={selectedTeamForCreate}
-                placeholder={t("searchTeamPlaceholder")}
-                showLeaderInfo={true}
-              />
-              {errors.teamId && <div className="text-danger" style={{ fontSize: '12px', marginTop: '5px' }}>{errors.teamId}</div>}
-            </FormGroup>
-            <FormGroup>
-              <Label>{t("year")}</Label>
-              <Input
-                type="select"
-                value={newRegistration.year}
-                onChange={e => setNewRegistration({ ...newRegistration, year: e.target.value })}
-                invalid={!!errors.year}
-              >
-                <option value="">{t("chooseYear")}</option>
-                {years.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </Input>
-              {errors.year && <FormFeedback>{errors.year}</FormFeedback>}
-            </FormGroup>
-            <FormGroup>
-              <Label>{t("teacherName")}</Label>
-              <Input
-                type="text"
-                value={newRegistration.teacherName}
-                onChange={e => setNewRegistration({ ...newRegistration, teacherName: e.target.value })}
-                invalid={!!errors.teacherName}
-                placeholder={t("enterTeacherName")}
-              />
-              {errors.teacherName && <FormFeedback>{errors.teacherName}</FormFeedback>}
-            </FormGroup>
-            <FormGroup>
-              <Label>{t("teacherSurname")}</Label>
-              <Input
-                type="text"
-                value={newRegistration.teacherSurname}
-                onChange={e => setNewRegistration({ ...newRegistration, teacherSurname: e.target.value })}
-                invalid={!!errors.teacherSurname}
-                placeholder={t("enterTeacherSurname")}
-              />
-              {errors.teacherSurname && <FormFeedback>{errors.teacherSurname}</FormFeedback>}
-            </FormGroup>
-            <FormGroup>
-              <Label>{t("teacherContact")}</Label>
+            <Row>
+              <Col md="8">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("team")} *</Label>
+                  <TeamSearchSelect
+                    teams={teams}
+                    onSelect={setSelectedTeamForCreate}
+                    selectedTeam={selectedTeamForCreate}
+                    placeholder={t("searchTeamPlaceholder")}
+                    showLeaderInfo={true}
+                  />
+                  {errors.teamId && <div className="text-danger" style={{ fontSize: '11px', marginTop: '3px' }}>{errors.teamId}</div>}
+                </FormGroup>
+              </Col>
+              <Col md="4">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("year")}</Label>
+                  <Input
+                    type="select"
+                    value={newRegistration.year}
+                    onChange={e => setNewRegistration({ ...newRegistration, year: e.target.value })}
+                    invalid={!!errors.year}
+                    bsSize="sm"
+                  >
+                    <option value="">{t("chooseYear")}</option>
+                    {years.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </Input>
+                  {errors.year && <FormFeedback>{errors.year}</FormFeedback>}
+                </FormGroup>
+              </Col>
+            </Row>
+            <Row>
+              <Col md="6">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("teacherName")}</Label>
+                  <Input
+                    type="text"
+                    value={newRegistration.teacherName}
+                    onChange={e => setNewRegistration({ ...newRegistration, teacherName: e.target.value })}
+                    invalid={!!errors.teacherName}
+                    placeholder={t("enterTeacherName")}
+                    bsSize="sm"
+                  />
+                  {errors.teacherName && <FormFeedback>{errors.teacherName}</FormFeedback>}
+                </FormGroup>
+              </Col>
+              <Col md="6">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("teacherSurname")}</Label>
+                  <Input
+                    type="text"
+                    value={newRegistration.teacherSurname}
+                    onChange={e => setNewRegistration({ ...newRegistration, teacherSurname: e.target.value })}
+                    invalid={!!errors.teacherSurname}
+                    placeholder={t("enterTeacherSurname")}
+                    bsSize="sm"
+                  />
+                  {errors.teacherSurname && <FormFeedback>{errors.teacherSurname}</FormFeedback>}
+                </FormGroup>
+              </Col>
+            </Row>
+            <FormGroup style={{ marginBottom: '12px' }}>
+              <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("teacherContact")}</Label>
               <Input
                 type="text"
                 value={newRegistration.teacherContact}
                 onChange={e => setNewRegistration({ ...newRegistration, teacherContact: e.target.value })}
                 invalid={!!errors.teacherContact}
                 placeholder={t("enterTeacherContact")}
+                bsSize="sm"
               />
               {errors.teacherContact && <FormFeedback>{errors.teacherContact}</FormFeedback>}
             </FormGroup>
+            <Row>
+              <Col md="8">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("schoolName")} {newRegistration.roboLeagueConsent && '*'}</Label>
+                  <SchoolSearchSelect
+                    value={newRegistration.schoolName}
+                    onChange={(value) => setNewRegistration({ ...newRegistration, schoolName: value })}
+                    placeholder={t("enterSchoolName")}
+                    invalid={!!errors.schoolName}
+                  />
+                  {errors.schoolName && (
+                    <div className="text-danger" style={{ fontSize: '11px', marginTop: '3px' }}>{errors.schoolName}</div>
+                  )}
+                </FormGroup>
+              </Col>
+              <Col md="4" className="d-flex align-items-end">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: 0, fontSize: '0.85rem' }}>
+                    <span
+                      onClick={() => setNewRegistration({ ...newRegistration, roboLeagueConsent: !newRegistration.roboLeagueConsent })}
+                      style={{ 
+                        width: '18px', 
+                        height: '18px', 
+                        marginRight: '8px',
+                        cursor: 'pointer',
+                        border: '2px solid #ff8d72',
+                        borderRadius: '4px',
+                        backgroundColor: newRegistration.roboLeagueConsent ? '#ff8d72' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      {newRegistration.roboLeagueConsent && (
+                        <i className="tim-icons icon-check-2" style={{ color: 'white', fontSize: '10px' }} />
+                      )}
+                    </span>
+                    {t("roboLeagueConsentShort") || "Robo Lego Liga"}
+                  </Label>
+                </FormGroup>
+              </Col>
+            </Row>
           </Form>
         </ModalBody>
-        <ModalFooter style={{ padding: '15px 25px' }}>
+        <ModalFooter style={{ padding: '12px 25px' }}>
           <Button color="success" onClick={handleCreateRegistration} style={{ marginRight: '10px' }}>{t("create")}</Button>
           <Button color="secondary" onClick={() => setCreateModal(false)}>{t("cancel")}</Button>
         </ModalFooter>
@@ -656,39 +822,91 @@ function RegistrationManagement() {
         <ModalHeader toggle={() => setEditTeacherModal(false)}>{t("editTeacherInfo")}</ModalHeader>
         <ModalBody style={{ padding: '20px 25px' }}>
           <Form>
-            <FormGroup>
-              <Label>{t("teacherName")}</Label>
-              <Input
-                type="text"
-                value={editTeacher.teacherName}
-                onChange={e => setEditTeacher({ ...editTeacher, teacherName: e.target.value })}
-                invalid={!!errors.teacherName}
-              />
-              {errors.teacherName && <FormFeedback>{errors.teacherName}</FormFeedback>}
-            </FormGroup>
-            <FormGroup>
-              <Label>{t("teacherSurname")}</Label>
-              <Input
-                type="text"
-                value={editTeacher.teacherSurname}
-                onChange={e => setEditTeacher({ ...editTeacher, teacherSurname: e.target.value })}
-                invalid={!!errors.teacherSurname}
-              />
-              {errors.teacherSurname && <FormFeedback>{errors.teacherSurname}</FormFeedback>}
-            </FormGroup>
-            <FormGroup>
-              <Label>{t("teacherContact")}</Label>
+            <Row>
+              <Col md="6">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("teacherName")}</Label>
+                  <Input
+                    type="text"
+                    value={editTeacher.teacherName}
+                    onChange={e => setEditTeacher({ ...editTeacher, teacherName: e.target.value })}
+                    invalid={!!errors.teacherName}
+                    bsSize="sm"
+                  />
+                  {errors.teacherName && <FormFeedback>{errors.teacherName}</FormFeedback>}
+                </FormGroup>
+              </Col>
+              <Col md="6">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("teacherSurname")}</Label>
+                  <Input
+                    type="text"
+                    value={editTeacher.teacherSurname}
+                    onChange={e => setEditTeacher({ ...editTeacher, teacherSurname: e.target.value })}
+                    invalid={!!errors.teacherSurname}
+                    bsSize="sm"
+                  />
+                  {errors.teacherSurname && <FormFeedback>{errors.teacherSurname}</FormFeedback>}
+                </FormGroup>
+              </Col>
+            </Row>
+            <FormGroup style={{ marginBottom: '12px' }}>
+              <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("teacherContact")}</Label>
               <Input
                 type="text"
                 value={editTeacher.teacherContact}
                 onChange={e => setEditTeacher({ ...editTeacher, teacherContact: e.target.value })}
                 invalid={!!errors.teacherContact}
+                bsSize="sm"
               />
               {errors.teacherContact && <FormFeedback>{errors.teacherContact}</FormFeedback>}
             </FormGroup>
+            <Row>
+              <Col md="8">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("schoolName")} {editTeacher.roboLeagueConsent && '*'}</Label>
+                  <SchoolSearchSelect
+                    value={editTeacher.schoolName}
+                    onChange={(value) => setEditTeacher({ ...editTeacher, schoolName: value })}
+                    placeholder={t("enterSchoolName")}
+                    invalid={!!errors.schoolName}
+                  />
+                  {errors.schoolName && (
+                    <div className="text-danger" style={{ fontSize: '11px', marginTop: '3px' }}>{errors.schoolName}</div>
+                  )}
+                </FormGroup>
+              </Col>
+              <Col md="4" className="d-flex align-items-end">
+                <FormGroup style={{ marginBottom: '12px' }}>
+                  <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: 0, fontSize: '0.85rem' }}>
+                    <span
+                      onClick={() => setEditTeacher({ ...editTeacher, roboLeagueConsent: !editTeacher.roboLeagueConsent })}
+                      style={{ 
+                        width: '18px', 
+                        height: '18px', 
+                        marginRight: '8px',
+                        cursor: 'pointer',
+                        border: '2px solid #ff8d72',
+                        borderRadius: '4px',
+                        backgroundColor: editTeacher.roboLeagueConsent ? '#ff8d72' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      {editTeacher.roboLeagueConsent && (
+                        <i className="tim-icons icon-check-2" style={{ color: 'white', fontSize: '10px' }} />
+                      )}
+                    </span>
+                    {t("roboLeagueConsentShort") || "Robo Lego Liga"}
+                  </Label>
+                </FormGroup>
+              </Col>
+            </Row>
           </Form>
         </ModalBody>
-        <ModalFooter style={{ padding: '15px 25px' }}>
+        <ModalFooter style={{ padding: '12px 25px' }}>
           <Button color="primary" onClick={handleEditTeacher} style={{ marginRight: '10px' }}>{t("save")}</Button>
           <Button color="secondary" onClick={() => setEditTeacherModal(false)}>{t("cancel")}</Button>
         </ModalFooter>

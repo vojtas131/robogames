@@ -863,9 +863,10 @@ function MyTeam() {
                                 {member.id !== team.leaderID && (
                                   <>
                                     <Button 
-                                      color="info" 
+                                      color="warning" 
                                       size="sm" 
-                                      className="mr-1"
+                                      className="mr-1 btn-icon"
+                                      style={{ padding: '6px 8px', borderRadius: '4px', background: '#ff8d72' }}
                                       onClick={() => changeLeader(member.id)} 
                                       title={t("makeLeader") || "Předat vedení"}
                                     >
@@ -874,6 +875,8 @@ function MyTeam() {
                                     <Button 
                                       color="danger" 
                                       size="sm"
+                                      className="btn-icon"
+                                      style={{ padding: '6px 8px', borderRadius: '4px', background: '#fd5d93' }}
                                       onClick={() => removeMember(member.id)} 
                                       title={t("remove")}
                                     >
@@ -915,8 +918,10 @@ function MyTeam() {
                         {isLeader && member.id !== team.leaderID && (
                           <div style={{ display: 'flex', gap: '5px' }}>
                             <Button 
-                              color="info" 
+                              color="warning" 
                               size="sm"
+                              className="btn-icon"
+                              style={{ padding: '6px 8px', borderRadius: '4px', background: '#ff8d72' }}
                               onClick={() => changeLeader(member.id)} 
                               title={t("makeLeader")}
                             >
@@ -925,6 +930,8 @@ function MyTeam() {
                             <Button 
                               color="danger" 
                               size="sm"
+                              className="btn-icon"
+                              style={{ padding: '6px 8px', borderRadius: '4px', background: '#fd5d93' }}
                               onClick={() => removeMember(member.id)} 
                               title={t("remove")}
                             >
