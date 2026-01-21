@@ -31,6 +31,7 @@ function RobotManagement() {
   const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'number', 'name', 'team', 'discipline'
   const [filterCategory, setFilterCategory] = useState(''); // '' = all categories
   const [filterConfirmed, setFilterConfirmed] = useState(''); // '' = all, 'true' = confirmed, 'false' = unconfirmed
+  const [filterDiscipline, setFilterDiscipline] = useState(''); // '' = all disciplines
   const [disciplines, setDisciplines] = useState([]);
   const [registrations, setRegistrations] = useState([]);
 
@@ -130,6 +131,11 @@ function RobotManagement() {
       return false;
     }
 
+    // Filter by discipline
+    if (filterDiscipline && robot.disciplineID?.toString() !== filterDiscipline) {
+      return false;
+    }
+
     // Filter by confirmed status
     if (filterConfirmed === 'true' && !robot.confirmed) {
       return false;
@@ -150,15 +156,12 @@ function RobotManagement() {
         return robot.name?.toLowerCase().includes(searchLower);
       case 'team':
         return robot.teamName?.toLowerCase().includes(searchLower);
-      case 'discipline':
-        return robot.diciplineName?.toLowerCase().includes(searchLower);
       case 'all':
       default:
         return robot.id?.toString().includes(searchTerm) ||
           robot.number?.toString().includes(searchTerm) ||
           robot.name?.toLowerCase().includes(searchLower) ||
-          robot.teamName?.toLowerCase().includes(searchLower) ||
-          robot.diciplineName?.toLowerCase().includes(searchLower);
+          robot.teamName?.toLowerCase().includes(searchLower);
     }
   });
 
@@ -169,7 +172,7 @@ function RobotManagement() {
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, searchType, filterCategory, filterConfirmed]);
+  }, [searchTerm, searchType, filterCategory, filterConfirmed, filterDiscipline]);
 
   // Statistics
   const totalRobots = robots.length;
@@ -484,7 +487,7 @@ function RobotManagement() {
                 )}
               </Row>
               <Row className="mb-2">
-                <Col md="2">
+                <Col xs="6" md="2" lg="2">
                   <Input
                     type="select"
                     value={searchType}
@@ -495,10 +498,9 @@ function RobotManagement() {
                     <option value="number">{t('searchByNumber') || 'Číslo'}</option>
                     <option value="name">{t('searchByRobotName') || 'Název robota'}</option>
                     <option value="team">{t('searchByTeamName') || 'Tým'}</option>
-                    <option value="discipline">{t('searchByDiscipline') || 'Disciplína'}</option>
                   </Input>
                 </Col>
-                <Col md="4">
+                <Col xs="6" md="4" lg="4">
                   <InputGroup>
                     <InputGroupText>
                       <i className="tim-icons icon-zoom-split" />
@@ -510,8 +512,7 @@ function RobotManagement() {
                           searchType === 'number' ? (t('enterNumber') || 'Zadejte číslo...') :
                             searchType === 'name' ? (t('enterRobotName') || 'Zadejte název robota...') :
                               searchType === 'team' ? (t('enterTeamName') || 'Zadejte název týmu...') :
-                                searchType === 'discipline' ? (t('enterDiscipline') || 'Zadejte disciplínu...') :
-                                  (t('findByTeam') || 'Hledat...')
+                                (t('findByTeam') || 'Hledat...')
                       }
                       value={searchTerm}
                       onChange={handleSearchChange}
@@ -527,7 +528,20 @@ function RobotManagement() {
                     )}
                   </InputGroup>
                 </Col>
-                <Col md="3">
+                <Col xs="6" md="3" lg="2">
+                  <Input
+                    type="select"
+                    value={filterDiscipline}
+                    onChange={(e) => setFilterDiscipline(e.target.value)}
+                    title={t('filterByDiscipline') || 'Filtrovat podle disciplíny'}
+                  >
+                    <option value="">{t('allDisciplines') || 'Všechny disciplíny'}</option>
+                    {disciplines.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </Input>
+                </Col>
+                <Col xs="6" md="3" lg="2">
                   <Input
                     type="select"
                     value={filterCategory}
@@ -539,7 +553,7 @@ function RobotManagement() {
                     <option value="HIGH_AGE_CATEGORY">{t('students') || 'Studenti a dospělí'}</option>
                   </Input>
                 </Col>
-                <Col md="3">
+                <Col xs="6" md="2" lg="2">
                   <Input
                     type="select"
                     value={filterConfirmed}

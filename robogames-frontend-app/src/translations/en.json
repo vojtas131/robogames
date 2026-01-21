@@ -1061,6 +1061,7 @@
     "filterByRole": "Filter by role",
     "allRoles": "All roles",
     "filterByCategory": "Filter by category",
+    "filterByDiscipline": "Filter by discipline",
     "filterByConfirmed": "Filter by status",
     "confirmedOnly": "Confirmed only",
     "unconfirmedOnly": "Unconfirmed only",
