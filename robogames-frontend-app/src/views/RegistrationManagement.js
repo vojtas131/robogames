@@ -255,7 +255,7 @@ function RegistrationManagement() {
           teacherName: editTeacher.teacherName,
           teacherSurname: editTeacher.teacherSurname,
           teacherContact: editTeacher.teacherContact,
-          schoolName: editTeacher.schoolName || null,
+          schoolName: editTeacher.schoolName || '',
           roboLeagueConsent: editTeacher.roboLeagueConsent
         })
       });
