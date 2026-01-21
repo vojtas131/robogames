@@ -772,49 +772,44 @@ function CompetitionRegistration() {
             {errors.teacherContact && <FormFeedback>{errors.teacherContact}</FormFeedback>}
           </FormGroup>
 
-          <Row>
-            <Col md="8">
-              <FormGroup style={{ marginBottom: '12px' }}>
-                <Label for="schoolName" style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("schoolName")} {roboLeagueConsent && '*'}</Label>
-                <SchoolSearchSelect
-                  value={schoolName}
-                  onChange={(value) => setSchoolName(value)}
-                  placeholder={t("enterSchoolName")}
-                  invalid={!!errors.schoolName}
-                />
-                {errors.schoolName && (
-                  <div className="text-danger" style={{ fontSize: '11px', marginTop: '3px' }}>{errors.schoolName}</div>
+          <FormGroup style={{ marginBottom: '12px' }}>
+            <Label for="schoolName" style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("schoolName")} {roboLeagueConsent && '*'}</Label>
+            <SchoolSearchSelect
+              value={schoolName}
+              onChange={(value) => setSchoolName(value)}
+              placeholder={t("enterSchoolName")}
+              invalid={!!errors.schoolName}
+            />
+            {errors.schoolName && (
+              <div className="text-danger" style={{ fontSize: '11px', marginTop: '3px' }}>{errors.schoolName}</div>
+            )}
+          </FormGroup>
+
+          <FormGroup style={{ marginBottom: '12px' }}>
+            <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: 0, fontSize: '0.9rem' }}>
+              <span
+                onClick={() => setRoboLeagueConsent(!roboLeagueConsent)}
+                style={{ 
+                  width: '18px', 
+                  height: '18px', 
+                  marginRight: '10px',
+                  cursor: 'pointer',
+                  border: '2px solid #ff8d72',
+                  borderRadius: '4px',
+                  backgroundColor: roboLeagueConsent ? '#ff8d72' : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                {roboLeagueConsent && (
+                  <i className="tim-icons icon-check-2" style={{ color: 'white', fontSize: '10px' }} />
                 )}
-              </FormGroup>
-            </Col>
-            <Col md="4" className="d-flex align-items-end">
-              <FormGroup style={{ marginBottom: '12px' }}>
-                <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: 0, fontSize: '0.85rem' }}>
-                  <span
-                    onClick={() => setRoboLeagueConsent(!roboLeagueConsent)}
-                    style={{ 
-                      width: '18px', 
-                      height: '18px', 
-                      marginRight: '8px',
-                      cursor: 'pointer',
-                      border: '2px solid #ff8d72',
-                      borderRadius: '4px',
-                      backgroundColor: roboLeagueConsent ? '#ff8d72' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}
-                  >
-                    {roboLeagueConsent && (
-                      <i className="tim-icons icon-check-2" style={{ color: 'white', fontSize: '10px' }} />
-                    )}
-                  </span>
-                  {t("roboLeagueConsentShort") || "Robo Lego Liga"}
-                </Label>
-              </FormGroup>
-            </Col>
-          </Row>
+              </span>
+              {t("roboLeagueConsentLabel")}
+            </Label>
+          </FormGroup>
         </ModalBody>
         <ModalFooter style={{ padding: '12px 20px' }}>
           <Button color="success" onClick={handleRegistrationSubmit} style={{ marginRight: '10px' }}>
@@ -891,49 +886,44 @@ function CompetitionRegistration() {
             {errors.teacherContact && <FormFeedback>{errors.teacherContact}</FormFeedback>}
           </FormGroup>
 
-          <Row>
-            <Col md="8">
-              <FormGroup style={{ marginBottom: '12px' }}>
-                <Label for="editSchoolName" style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("schoolName")} {roboLeagueConsent && '*'}</Label>
-                <SchoolSearchSelect
-                  value={schoolName}
-                  onChange={(value) => setSchoolName(value)}
-                  placeholder={t("enterSchoolName")}
-                  invalid={!!errors.schoolName}
-                />
-                {errors.schoolName && (
-                  <div className="text-danger" style={{ fontSize: '11px', marginTop: '3px' }}>{errors.schoolName}</div>
+          <FormGroup style={{ marginBottom: '12px' }}>
+            <Label for="editSchoolName" style={{ marginBottom: '4px', fontSize: '0.9rem' }}>{t("schoolName")} {roboLeagueConsent && '*'}</Label>
+            <SchoolSearchSelect
+              value={schoolName}
+              onChange={(value) => setSchoolName(value)}
+              placeholder={t("enterSchoolName")}
+              invalid={!!errors.schoolName}
+            />
+            {errors.schoolName && (
+              <div className="text-danger" style={{ fontSize: '11px', marginTop: '3px' }}>{errors.schoolName}</div>
+            )}
+          </FormGroup>
+
+          <FormGroup style={{ marginBottom: '12px' }}>
+            <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: 0, fontSize: '0.9rem' }}>
+              <span
+                onClick={() => setRoboLeagueConsent(!roboLeagueConsent)}
+                style={{ 
+                  width: '18px', 
+                  height: '18px', 
+                  marginRight: '10px',
+                  cursor: 'pointer',
+                  border: '2px solid #ff8d72',
+                  borderRadius: '4px',
+                  backgroundColor: roboLeagueConsent ? '#ff8d72' : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                {roboLeagueConsent && (
+                  <i className="tim-icons icon-check-2" style={{ color: 'white', fontSize: '10px' }} />
                 )}
-              </FormGroup>
-            </Col>
-            <Col md="4" className="d-flex align-items-end">
-              <FormGroup style={{ marginBottom: '12px' }}>
-                <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: 0, fontSize: '0.85rem' }}>
-                  <span
-                    onClick={() => setRoboLeagueConsent(!roboLeagueConsent)}
-                    style={{ 
-                      width: '18px', 
-                      height: '18px', 
-                      marginRight: '8px',
-                      cursor: 'pointer',
-                      border: '2px solid #ff8d72',
-                      borderRadius: '4px',
-                      backgroundColor: roboLeagueConsent ? '#ff8d72' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}
-                  >
-                    {roboLeagueConsent && (
-                      <i className="tim-icons icon-check-2" style={{ color: 'white', fontSize: '10px' }} />
-                    )}
-                  </span>
-                  {t("roboLeagueConsentShort") || "Robo Lego Liga"}
-                </Label>
-              </FormGroup>
-            </Col>
-          </Row>
+              </span>
+              {t("roboLeagueConsentLabel")}
+            </Label>
+          </FormGroup>
         </ModalBody>
         <ModalFooter style={{ padding: '12px 20px' }}>
           <Button color="primary" onClick={handleUpdateTeacherInfo} style={{ marginRight: '10px' }}>

@@ -1172,6 +1172,7 @@
     "exportSuccess": "Export successful",
     "exportFailed": "Export failed",
     "placement": "Placement",
-    "fetchEmailsFailed": "Načtení e-mailů selhalo.",
-    "noEmailsFound": "Nebyly nalezeny žádné e-maily."
+    "fetchEmailsFailed": "Failed to fetch emails.",
+    "noEmailsFound": "No emails found.",
+    "maxRobotsReached": "Team has reached the maximum number of robots ({{max}}). Cannot create more robots."
 }

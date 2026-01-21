@@ -107,8 +107,7 @@ function SchoolSearchSelect({
       .replace(/[<>"'`\\]/g, '') // Remove dangerous characters
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/on\w+=/gi, '') // Remove event handlers like onclick=
-      .substring(0, 200) // Limit length
-      .trim();
+      .substring(0, 200); // Limit length - no trim here to allow typing spaces
   };
 
   // Pre-process schools for faster searching
