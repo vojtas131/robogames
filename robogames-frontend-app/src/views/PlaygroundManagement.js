@@ -196,6 +196,7 @@ function PlaygroundManagement() {
             }
         } catch (error) {
             toast.error(error.message || t("pgAddError"));
+            
         }
     };
 
