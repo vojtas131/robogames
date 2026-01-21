@@ -29,6 +29,7 @@ Build location: robogames/RoboCupMS/build/libs/
 ### Frontend:
 ```
 cd robogames-frontend-app
+python3 scripts/update_schools.py
 npm install
 npm run build
 ```

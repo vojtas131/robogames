@@ -1165,5 +1165,13 @@
     "clickToCopy": "Klikněte pro zkopírování",
     "copiedToClipboard": "Zkopírováno do schránky",
     "copyFailed": "Kopírování selhalo",
-    "registrationInfo": "Informace o\u00a0registraci"
+    "registrationInfo": "Informace o\u00a0registraci",
+    "exportRLL": "Export RLL",
+    "exportRoboLeague": "Exportovat Robo Lego Ligu do CSV",
+    "noRoboLeagueTeams": "Žádné týmy v Robo Lego Lize",
+    "exportSuccess": "Export úspěšný",
+    "exportFailed": "Export selhal",
+    "placement": "Umístění",
+    "fetchEmailsFailed": "Načtení e-mailů selhalo.",
+    "noEmailsFound": "Nebyly nalezeny žádné e-maily."
 }

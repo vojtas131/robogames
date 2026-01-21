@@ -1165,5 +1165,13 @@
     "clickToCopy": "Click to copy",
     "copiedToClipboard": "Copied to clipboard",
     "copyFailed": "Copy failed",
-    "registrationInfo": "Registration Information"
+    "registrationInfo": "Registration Information",
+    "exportRLL": "Export RLL",
+    "exportRoboLeague": "Export Robo Lego League to CSV",
+    "noRoboLeagueTeams": "No teams in Robo Lego League",
+    "exportSuccess": "Export successful",
+    "exportFailed": "Export failed",
+    "placement": "Placement",
+    "fetchEmailsFailed": "Načtení e-mailů selhalo.",
+    "noEmailsFound": "Nebyly nalezeny žádné e-maily."
 }

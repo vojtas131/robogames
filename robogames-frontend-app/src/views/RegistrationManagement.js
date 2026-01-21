@@ -42,6 +42,11 @@ function RegistrationManagement() {
   const [createModal, setCreateModal] = useState(false);
   const [editTeacherModal, setEditTeacherModal] = useState(false);
   const [changeCategoryModal, setChangeCategoryModal] = useState(false);
+  const [emailExportModal, setEmailExportModal] = useState(false);
+
+  // Email export states
+  const [registeredEmails, setRegisteredEmails] = useState([]);
+  const [emailsLoading, setEmailsLoading] = useState(false);
 
   // Form states
   const [newRegistration, setNewRegistration] = useState({
@@ -349,6 +354,158 @@ function RegistrationManagement() {
     return category;
   };
 
+  // Export Robo Lego Liga data to CSV
+  const [exportLoading, setExportLoading] = useState(false);
+  
+  const exportRoboLeagueCsv = async () => {
+    if (!selectedYear) return;
+    
+    setExportLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}module/competitionEvaluation/roboLeagueExport?year=${selectedYear}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      if (tokenExpired(response.status)) return;
+
+      const json = await response.json();
+      if (response.ok && json.type === 'RESPONSE') {
+        const data = json.data;
+        
+        if (!data || data.length === 0) {
+          toast.warning(t("noRoboLeagueTeams") || "Žádné týmy v Robo Lego Lize");
+          return;
+        }
+
+        // Build CSV content
+        const csvRows = [];
+        
+        // Header
+        csvRows.push([
+          t("team") || "Tým",
+          t("category") || "Kategorie",
+          t("schoolName") || "Škola",
+          t("teacherName") || "Jméno učitele",
+          t("teacherSurname") || "Příjmení učitele",
+          t("teacherContact") || "Kontakt",
+          t("robotName") || "Robot",
+          t("discipline") || "Disciplína",
+          t("placement") || "Umístění"
+        ].join(';'));
+
+        // Data rows - one row per robot
+        for (const team of data) {
+          const robots = team.robots || [];
+          if (robots.length === 0) {
+            // Team with no robots
+            csvRows.push([
+              `"${(team.teamName || '').replace(/"/g, '""')}"`,
+              team.category === 'LOW_AGE_CATEGORY' ? (t("pupils") || "Žáci") : (t("students") || "Studenti"),
+              `"${(team.schoolName || '').replace(/"/g, '""')}"`,
+              `"${(team.teacherName || '').replace(/"/g, '""')}"`,
+              `"${(team.teacherSurname || '').replace(/"/g, '""')}"`,
+              `"${(team.teacherContact || '').replace(/"/g, '""')}"`,
+              '',
+              '',
+              ''
+            ].join(';'));
+          } else {
+            for (const robot of robots) {
+              csvRows.push([
+                `"${(team.teamName || '').replace(/"/g, '""')}"`,
+                team.category === 'LOW_AGE_CATEGORY' ? (t("pupils") || "Žáci") : (t("students") || "Studenti"),
+                `"${(team.schoolName || '').replace(/"/g, '""')}"`,
+                `"${(team.teacherName || '').replace(/"/g, '""')}"`,
+                `"${(team.teacherSurname || '').replace(/"/g, '""')}"`,
+                `"${(team.teacherContact || '').replace(/"/g, '""')}"`,
+                `"${(robot.robotName || '').replace(/"/g, '""')}"`,
+                `"${(robot.disciplineName || '').replace(/"/g, '""')}"`,
+                robot.placement || ''
+              ].join(';'));
+            }
+          }
+        }
+
+        // Create and download file
+        const csvContent = '\uFEFF' + csvRows.join('\n'); // BOM for Excel UTF-8
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `robo_lego_liga_${selectedYear}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast.success(t("exportSuccess") || "Export úspěšný");
+      } else {
+        toast.error(json.data || t("exportFailed") || "Export selhal");
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error(t("exportFailed") || "Export selhal");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // Fetch registered members' emails
+  const fetchRegisteredEmails = async () => {
+    if (!selectedYear) return;
+    
+    setEmailsLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}api/admin/registration/emails?year=${selectedYear}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      if (tokenExpired(response.status)) return;
+
+      const json = await response.json();
+      if (response.ok && json.type === 'RESPONSE') {
+        setRegisteredEmails(json.data || []);
+      } else {
+        toast.error(json.data || t("fetchEmailsFailed") || "Nepodařilo se načíst emaily");
+      }
+    } catch (error) {
+      console.error('Failed to fetch emails:', error);
+      toast.error(t("fetchEmailsFailed") || "Nepodařilo se načíst emaily");
+    } finally {
+      setEmailsLoading(false);
+    }
+  };
+
+  // Open email export modal
+  const openEmailExportModal = async () => {
+    setEmailExportModal(true);
+    await fetchRegisteredEmails();
+  };
+
+  // Export emails to CSV
+  const exportEmailsToCSV = () => {
+    const csvContent = "email\n" + registeredEmails.join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `registered_emails_${selectedYear}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Copy emails to clipboard
+  const copyEmailsToClipboard = () => {
+    navigator.clipboard.writeText(registeredEmails.join('\n')).then(() => {
+      toast.success(t("emailsCopied") || "Emaily byly zkopírovány do schránky");
+    }).catch(() => {
+      toast.error(t("emailsCopyFail") || "Nepodařilo se zkopírovat emaily");
+    });
+  };
+
   const filteredRegistrations = registrations.filter(reg => {
     // First apply consent filter
     if (consentFilter === 'yes' && !reg.roboLeagueConsent) return false;
@@ -501,17 +658,37 @@ function RegistrationManagement() {
         <Col xs="12">
           <Card>
             <CardHeader>
-              <Row className="align-items-center mb-3">
-                <Col>
-                  <CardTitle tag="h4">{t("registrationManagement")} {selectedYear && `(${selectedYear})`}</CardTitle>
-                </Col>
-                <Col className="text-right">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
+                <CardTitle tag="h4" style={{ margin: 0 }}>{t("registrationManagement")} {selectedYear && `(${selectedYear})`}</CardTitle>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <Button 
+                    color="primary" 
+                    onClick={openEmailExportModal}
+                    disabled={totalRegistrations === 0}
+                    title={t("exportEmails") || "Export emailů členů"}
+                  >
+                    <i className="tim-icons icon-email-85 mr-1" />
+                    {t("exportEmails") || "Export emailů"}
+                  </Button>
+                  <Button 
+                    color="info" 
+                    onClick={exportRoboLeagueCsv}
+                    disabled={exportLoading || roboLeagueConsentCount === 0}
+                    title={t("exportRoboLeague") || "Exportovat Robo Lego Ligu do CSV"}
+                  >
+                    {exportLoading ? (
+                      <i className="tim-icons icon-refresh-02 spin mr-1" />
+                    ) : (
+                      <i className="tim-icons icon-cloud-download-93 mr-1" />
+                    )}
+                    {t("exportRLL") || "Export RLL"}
+                  </Button>
                   <Button color="success" onClick={() => setCreateModal(true)}>
                     <i className="tim-icons icon-simple-add mr-1" />
                     {t("registrationCreate")}
                   </Button>
-                </Col>
-              </Row>
+                </div>
+              </div>
               <Row className="mb-2">
                 <Col md="2">
                   <Input
@@ -607,12 +784,31 @@ function RegistrationManagement() {
                         <td>{reg.teacherContact || t("notProvided")}</td>
                         <td 
                           title={reg.schoolName ? `${reg.schoolName} - ${t("clickToCopy") || "Klikněte pro zkopírování"}` : ''}
+                          className={reg.schoolName ? 'school-name-cell' : ''}
                           style={{ 
                             maxWidth: '150px', 
                             overflow: 'hidden', 
                             textOverflow: 'ellipsis', 
                             whiteSpace: 'nowrap',
-                            cursor: reg.schoolName ? 'pointer' : 'default'
+                            cursor: reg.schoolName ? 'pointer' : 'default',
+                            transition: 'all 0.2s ease',
+                            borderRadius: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (reg.schoolName) {
+                              e.currentTarget.style.backgroundColor = 'rgba(29, 140, 248, 0.15)';
+                              e.currentTarget.style.color = '#1d8cf8';
+                              const icon = e.currentTarget.querySelector('.copy-icon');
+                              if (icon) icon.style.opacity = '0.6';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (reg.schoolName) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.color = '';
+                              const icon = e.currentTarget.querySelector('.copy-icon');
+                              if (icon) icon.style.opacity = '0';
+                            }
                           }}
                           onClick={() => {
                             if (reg.schoolName) {
@@ -624,7 +820,12 @@ function RegistrationManagement() {
                             }
                           }}
                         >
-                          {reg.schoolName || t("notProvided")}
+                          {reg.schoolName ? (
+                            <span className="school-name-content">
+                              <i className="tim-icons icon-single-copy-04 mr-1 copy-icon" style={{ fontSize: '10px', opacity: 0 }} />
+                              {reg.schoolName}
+                            </span>
+                          ) : t("notProvided")}
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           {reg.roboLeagueConsent ? (
@@ -937,6 +1138,62 @@ function RegistrationManagement() {
         <ModalFooter style={{ padding: '15px 25px' }}>
           <Button color="primary" onClick={handleChangeCategory} style={{ marginRight: '10px' }}>{t("save")}</Button>
           <Button color="secondary" onClick={() => setChangeCategoryModal(false)}>{t("cancel")}</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Email Export Modal */}
+      <Modal isOpen={emailExportModal} toggle={() => setEmailExportModal(false)} size="lg">
+        <ModalHeader toggle={() => setEmailExportModal(false)}>
+          <i className="tim-icons icon-email-85" style={{ marginRight: '8px' }} />
+          {t("exportEmails") || "Export emailů"} {selectedYear && `(${selectedYear})`}
+        </ModalHeader>
+        <ModalBody style={{ padding: '20px 25px' }}>
+          {emailsLoading ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <i className="tim-icons icon-refresh-02 spin" style={{ fontSize: '24px' }} />
+              <p style={{ marginTop: '10px' }}>{t("loading") || "Načítání..."}</p>
+            </div>
+          ) : (
+            <>
+              <div style={{ marginBottom: '15px' }}>
+                <strong>{t("totalEmails") || "Celkem emailů"}:</strong> {registeredEmails.length}
+              </div>
+              <div style={{
+                maxHeight: '300px',
+                overflowY: 'auto',
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                padding: '15px',
+                borderRadius: '8px',
+                fontFamily: 'monospace',
+                fontSize: '13px'
+              }}>
+                {registeredEmails.length > 0 ? (
+                  registeredEmails.map((email, index) => (
+                    <div key={index} style={{ padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      {email}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#888' }}>
+                    {t("noEmailsFound") || "Žádné emaily nenalezeny"}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="success" onClick={exportEmailsToCSV} disabled={emailsLoading || registeredEmails.length === 0} style={{ margin: '5px' }}>
+            <i className="tim-icons icon-cloud-download-93" style={{ marginRight: '6px' }} />
+            {t("downloadCSV") || "Stáhnout CSV"}
+          </Button>
+          <Button color="info" onClick={copyEmailsToClipboard} disabled={emailsLoading || registeredEmails.length === 0} style={{ margin: '5px' }}>
+            <i className="tim-icons icon-single-copy-04" style={{ marginRight: '6px' }} />
+            {t("copyToClipboard") || "Kopírovat do schránky"}
+          </Button>
+          <Button color="secondary" onClick={() => setEmailExportModal(false)} style={{ margin: '5px' }}>
+            {t("close") || "Zavřít"}
+          </Button>
         </ModalFooter>
       </Modal>
     </div>
