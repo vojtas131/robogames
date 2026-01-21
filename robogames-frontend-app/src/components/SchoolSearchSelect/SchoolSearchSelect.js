@@ -99,6 +99,18 @@ function SchoolSearchSelect({
       .trim();
   };
 
+  // Sanitize school name input - remove potentially dangerous characters
+  const sanitizeSchoolName = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/[<>"'`\\]/g, '') // Remove dangerous characters
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/on\w+=/gi, '') // Remove event handlers like onclick=
+      .substring(0, 200) // Limit length
+      .trim();
+  };
+
   // Pre-process schools for faster searching
   // Create searchable strings with name, short name, and city
   const searchableSchools = useMemo(() => {
@@ -213,7 +225,7 @@ function SchoolSearchSelect({
   };
 
   const handleInputChange = (e) => {
-    const newValue = e.target.value;
+    const newValue = sanitizeSchoolName(e.target.value);
     setSearchTerm(newValue);
     onChange(newValue);
     setShowResults(true);

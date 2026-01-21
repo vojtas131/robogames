@@ -322,7 +322,7 @@ function CompetitionRegistration() {
       teacherName: teacherName.trim(),
       teacherSurname: teacherSurname.trim(),
       teacherContact: teacherContact.trim(),
-      schoolName: schoolName.trim() || null,
+      schoolName: schoolName.trim() || '',
       roboLeagueConsent: roboLeagueConsent
     };
 
@@ -624,11 +624,11 @@ function CompetitionRegistration() {
                                     </Row>
                                     <Row>
                                       <Col xs="12">
-                                        <small style={{ color: registration?.roboLeagueConsent ? '#00f2c3' : '#8898aa', fontStyle: 'italic' }}>
+                                        <small style={{ color: registration?.roboLeagueConsent ? '#00a181' : '#7c8a9c', fontStyle: 'italic' }}>
                                           <i className={`tim-icons ${registration?.roboLeagueConsent ? 'icon-check-2' : 'icon-simple-remove'} mr-1`} />
                                           {registration?.roboLeagueConsent 
-                                            ? (t("roboLeagueConsentNote") || "Výsledky budou zpracovány pro účely Robo Lego Ligy")
-                                            : (t("roboLeagueNoConsentNote") || "Výsledky nebudou zpracovány pro Robo Lego Ligu")
+                                            ? (t("roboLeagueConsentNote"))
+                                            : (t("roboLeagueNoConsentNote"))
                                           }
                                         </small>
                                       </Col>

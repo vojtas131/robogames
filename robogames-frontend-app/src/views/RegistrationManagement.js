@@ -245,19 +245,22 @@ function RegistrationManagement() {
     }
 
     try {
+      const payload = {
+        teacherName: editTeacher.teacherName,
+        teacherSurname: editTeacher.teacherSurname,
+        teacherContact: editTeacher.teacherContact,
+        schoolName: editTeacher.schoolName || '',
+        roboLeagueConsent: editTeacher.roboLeagueConsent
+      };
+      console.log('Sending editTeacher payload:', JSON.stringify(payload));
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}api/admin/registration/editTeacher?id=${editTeacher.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          teacherName: editTeacher.teacherName,
-          teacherSurname: editTeacher.teacherSurname,
-          teacherContact: editTeacher.teacherContact,
-          schoolName: editTeacher.schoolName || '',
-          roboLeagueConsent: editTeacher.roboLeagueConsent
-        })
+        body: JSON.stringify(payload)
       });
       if (tokenExpired(response.status)) return;
 

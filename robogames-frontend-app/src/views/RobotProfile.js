@@ -472,7 +472,7 @@ function RobotProfile() {
               
               <div className="mb-2">
                 <div style={{ fontWeight: 500, fontSize: '0.9rem' }} title={profile.schoolName || ''}>
-                  {profile.schoolName || '-'}
+                  {profile.schoolName || (t("notProvided"))}
                 </div>
               </div>
               
