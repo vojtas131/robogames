@@ -427,6 +427,15 @@ function PlaygroundMatches() {
         }
     };
 
+    const getStateLabel = (state) => {
+        switch (state) {
+            case 'WAITING': return t('waitingStatus') || 'Čekající';
+            case 'DONE': return t('doneStatus') || 'Hotové';
+            case 'REMATCH': return t('rematchStatus') || 'Opakování';
+            default: return state || '-';
+        }
+    };
+
     const getPhaseLabel = (phase) => {
         switch (phase) {
             case 'GROUP_STAGE': return t('phaseGroupStage') || 'Skupinová fáze';
@@ -619,7 +628,7 @@ function PlaygroundMatches() {
                                             <div className="d-flex flex-wrap justify-content-between align-items-center mt-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                                                 <div className="d-flex flex-wrap align-items-center" style={{ gap: '6px' }}>
                                                     <Badge color={getStateColor(currentMatch.state?.name)} style={{ fontSize: '0.75rem' }}>
-                                                        {currentMatch.state?.name || '-'}
+                                                        {getStateLabel(currentMatch.state?.name)}
                                                     </Badge>
                                                     {currentMatch.categoryA && (
                                                         <Badge color={getCategoryColor(currentMatch.categoryA)} style={{ fontSize: '0.75rem' }}>
@@ -848,7 +857,7 @@ function PlaygroundMatches() {
                                                     </td>
                                                     <td>
                                                         <Badge color={getStateColor(match.state?.name)} style={{ fontSize: '11px' }}>
-                                                            {match.state?.name || '-'}
+                                                            {getStateLabel(match.state?.name)}
                                                         </Badge>
                                                     </td>
                                                     <td style={{ minWidth: '120px' }}>

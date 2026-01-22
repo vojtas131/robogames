@@ -664,9 +664,9 @@ function RobotProfile() {
                                 (match.state?.name || match.stateName) === 'REMATCH' ? 'info' : 'secondary'
                               }
                             >
-                              {(match.state?.name || match.stateName) === 'DONE' ? t("done") :
-                               (match.state?.name || match.stateName) === 'WAITING' ? t("waiting") :
-                               (match.state?.name || match.stateName) === 'REMATCH' ? t("rematch") :
+                              {(match.state?.name || match.stateName) === 'DONE' ? t("doneStatus") || 'Hotové' :
+                               (match.state?.name || match.stateName) === 'WAITING' ? t("waitingStatus") || 'Čekající' :
+                               (match.state?.name || match.stateName) === 'REMATCH' ? t("rematchStatus") || 'Opakování' :
                                (match.state?.name || match.stateName)}
                             </Badge>
                           </td>

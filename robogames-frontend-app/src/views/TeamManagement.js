@@ -231,6 +231,8 @@ function TeamManagement() {
         setAddUserModal(false);
         setSelectedUser(null);
         fetchTeams();
+      } else if (result.type === 'ERROR' && result.data.includes('team already has maximum')) {
+        toast.error(t("teamFull"));
       } else {
         toast.error(result.data || t("userAddToTeamFail"));
       }
