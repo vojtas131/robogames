@@ -22,7 +22,7 @@ function MatchSchedule() {
     const fetchCurrentMatches = useCallback(async () => {
         isRefreshing.current = true;
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}module/orderManagement/currentMatches`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}module/orderManagement/scheduledMatches`);
             
             // Check if response is HTML (likely nginx fallback)
             const contentType = response.headers.get('content-type');
