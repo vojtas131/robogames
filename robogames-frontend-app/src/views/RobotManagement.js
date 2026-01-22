@@ -749,16 +749,6 @@ function RobotManagement() {
                 ))}
               </Input>
             </FormGroup>
-            <FormGroup check>
-              <Label check>
-                <Input
-                  type="checkbox"
-                  checked={editRobot.confirmed}
-                  onChange={e => setEditRobot({ ...editRobot, confirmed: e.target.checked })}
-                />
-                {' '}{t("confirmed")}
-              </Label>
-            </FormGroup>
           </Form>
         </ModalBody>
         <ModalFooter style={{ padding: '15px 25px' }}>
