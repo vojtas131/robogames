@@ -143,11 +143,11 @@ function MatchSchedule() {
         return match.robotAId !== null && match.robotAId !== undefined;
     };
 
-    // Filter out matches without robots, one match per playground, only WAITING state
+    // Filter out matches without robots, one match per playground, only WAITING or REMATCH state
     const matchesWithRobots = oneMatchPerPlayground(
         currentMatches
             .filter(hasRobots)
-            .filter(m => m.matchState === 'WAITING')
+            .filter(m => m.matchState === 'WAITING' || m.matchState === 'REMATCH')
     );
 
     const totalPages = Math.ceil(matchesWithRobots.length / ITEMS_PER_PAGE);
@@ -567,8 +567,8 @@ function MatchSchedule() {
                 >
                     <Row className="justify-content-center align-items-start">
                         {paginatedMatches.map((match, idx) => {
-                            const stateColor = getMatchStateColor(match.state?.name || match.stateName);
-                            const isRematch = (match.state?.name || match.stateName) === 'REMATCH';
+                            const stateColor = getMatchStateColor(match.matchState || match.state?.name || match.stateName);
+                            const isRematch = (match.matchState || match.state?.name || match.stateName) === 'REMATCH';
 
                             // Choose card type based on whether it's a two-robot match
                             if (isTwoRobotMatch(match)) {
