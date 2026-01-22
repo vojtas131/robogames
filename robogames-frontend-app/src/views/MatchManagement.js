@@ -204,9 +204,13 @@ function MatchManagement() {
         let matchesSearch = !searchQuery;
 
         if (searchQuery) {
+            // Remove leading '#' if present for ID search
+            const cleanedQuery = searchQuery.replace(/^#/, '');
+            const cleanedQueryLower = cleanedQuery.toLowerCase();
+            
             switch (searchType) {
                 case 'id':
-                    matchesSearch = match.id.toString().includes(searchQuery);
+                    matchesSearch = match.id.toString().includes(cleanedQuery);
                     break;
                 case 'robotName':
                     matchesSearch =
@@ -226,13 +230,13 @@ function MatchManagement() {
                 case 'all':
                 default:
                     matchesSearch =
-                        (match.robotAName?.toLowerCase().includes(searchLower)) ||
-                        (match.robotBName?.toLowerCase().includes(searchLower)) ||
-                        (match.teamAName?.toLowerCase().includes(searchLower)) ||
-                        (match.teamBName?.toLowerCase().includes(searchLower)) ||
-                        (match.robotANumber?.toString().includes(searchQuery)) ||
-                        (match.robotBNumber?.toString().includes(searchQuery)) ||
-                        match.id.toString().includes(searchQuery);
+                        (match.robotAName?.toLowerCase().includes(cleanedQueryLower)) ||
+                        (match.robotBName?.toLowerCase().includes(cleanedQueryLower)) ||
+                        (match.teamAName?.toLowerCase().includes(cleanedQueryLower)) ||
+                        (match.teamBName?.toLowerCase().includes(cleanedQueryLower)) ||
+                        (match.robotANumber?.toString().includes(cleanedQuery)) ||
+                        (match.robotBNumber?.toString().includes(cleanedQuery)) ||
+                        match.id.toString().includes(cleanedQuery);
                     break;
             }
         }
