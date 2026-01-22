@@ -231,6 +231,8 @@ function TeamManagement() {
         setAddUserModal(false);
         setSelectedUser(null);
         fetchTeams();
+      } else if (result.type === 'ERROR' && result.data.includes('team already has maximum')) {
+        toast.error(t("teamFull"));
       } else {
         toast.error(result.data || t("userAddToTeamFail"));
       }
@@ -481,7 +483,7 @@ function TeamManagement() {
                     onChange={(e) => setSearchType(e.target.value)}
                   >
                     <option value="all">{t('searchAll') || 'Vše'}</option>
-                    <option value="id">{t('searchById') || 'ID'}</option>
+                    <option value="id">{t('searchTeamById') || 'ID'}</option>
                     <option value="name">{t('searchByTeamName') || 'Název týmu'}</option>
                     <option value="leader">{t('searchByLeader') || 'Vedoucí'}</option>
                     <option value="member">{t('searchByMember') || 'Člen'}</option>

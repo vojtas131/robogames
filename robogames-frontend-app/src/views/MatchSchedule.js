@@ -22,20 +22,20 @@ function MatchSchedule() {
     const fetchCurrentMatches = useCallback(async () => {
         isRefreshing.current = true;
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}module/orderManagement/currentMatches`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}module/orderManagement/scheduledMatches`);
+
+            // Check if response is HTML (likely nginx fallback)
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Failed to fetch current matches: Backend not reachable (received non-JSON response)');
+                return;
+            }
+
             const data = await response.json();
-            
+
             if (response.ok && data.type === 'RESPONSE') {
                 const newMatches = data.data || [];
-                const newTotalPages = Math.ceil(newMatches.length / ITEMS_PER_PAGE);
-                
-                // If match count changed and current page would be out of range
-                setCurrentPage(prev => {
-                    if (newTotalPages === 0) return 0;
-                    if (prev >= newTotalPages) return newTotalPages - 1;
-                    return prev;
-                });
-                
+
                 lastMatchCount.current = newMatches.length;
                 setCurrentMatches(newMatches);
                 setLastUpdate(new Date());
@@ -54,37 +54,15 @@ function MatchSchedule() {
         return () => clearInterval(intervalId);
     }, [fetchCurrentMatches]);
 
-    // Automatic page rotation
-    useEffect(() => {
-        const totalPages = Math.ceil(currentMatches.length / ITEMS_PER_PAGE);
-        
-        if (totalPages <= 1) {
-            return;
-        }
-
-        const rotateInterval = setInterval(() => {
-            // Don't switch during refresh
-            if (isRefreshing.current) return;
-            
-            setCurrentPage(prev => {
-                const currentTotal = Math.ceil(currentMatches.length / ITEMS_PER_PAGE);
-                if (currentTotal <= 1) return 0;
-                return (prev + 1) % currentTotal;
-            });
-        }, 5000); // Switch every 5 seconds
-
-        return () => clearInterval(rotateInterval);
-    }, [currentMatches.length]);
-
     // Toggle fullscreen
     const toggleFullscreen = () => {
         setIsFullscreen(!isFullscreen);
-        
+
         // Hide/show navbar and sidebar
         const sidebar = document.querySelector('.sidebar');
         const mainPanel = document.querySelector('.main-panel');
         const navbar = document.querySelector('.navbar');
-        
+
         if (!isFullscreen) {
             // Enabling fullscreen
             if (sidebar) sidebar.style.display = 'none';
@@ -110,7 +88,7 @@ function MatchSchedule() {
             const sidebar = document.querySelector('.sidebar');
             const mainPanel = document.querySelector('.main-panel');
             const navbar = document.querySelector('.navbar');
-            
+
             if (sidebar) sidebar.style.display = '';
             if (navbar) navbar.style.display = '';
             if (mainPanel) {
@@ -143,23 +121,58 @@ function MatchSchedule() {
         }
     };
 
+    // Ensure only one match per playground (the first one in the list)
+    const oneMatchPerPlayground = (matches) => {
+        const map = new Map();
+        for (const match of matches) {
+            if (!map.has(match.playgroundId)) {
+                map.set(match.playgroundId, match);
+            }
+        }
+        return Array.from(map.values());
+    };
+
+
     // Check if match is a two-robot match
     const isTwoRobotMatch = (match) => {
-        return match.robotBID !== null && match.robotBID !== undefined;
+        return match.robotBId !== null && match.robotBId !== undefined;
     };
 
     // Check if match has any robot assigned
     const hasRobots = (match) => {
-        return match.robotAID !== null && match.robotAID !== undefined;
+        return match.robotAId !== null && match.robotAId !== undefined;
     };
 
-    // Filter out matches without robots
-    const matchesWithRobots = currentMatches.filter(hasRobots);
+    // Filter out matches without robots, one match per playground, only WAITING or REMATCH state
+    const matchesWithRobots = oneMatchPerPlayground(
+        currentMatches
+            .filter(hasRobots)
+            .filter(m => m.matchState === 'WAITING' || m.matchState === 'REMATCH')
+    );
+
     const totalPages = Math.ceil(matchesWithRobots.length / ITEMS_PER_PAGE);
     const paginatedMatches = matchesWithRobots.slice(
-        currentPage * ITEMS_PER_PAGE, 
+        currentPage * ITEMS_PER_PAGE,
         (currentPage + 1) * ITEMS_PER_PAGE
     );
+
+    // Automatic page rotation
+    useEffect(() => {
+        const totalPages = Math.ceil(matchesWithRobots.length / ITEMS_PER_PAGE);
+
+        if (totalPages <= 1) {
+            setCurrentPage(0);
+            return;
+        }
+
+        const rotateInterval = setInterval(() => {
+            if (isRefreshing.current) return;
+
+            setCurrentPage(prev => (prev + 1) % totalPages);
+        }, 5000);
+
+        return () => clearInterval(rotateInterval);
+    }, [matchesWithRobots.length]);
 
     // Container styles for fullscreen
     const containerStyle = isFullscreen ? {
@@ -180,18 +193,18 @@ function MatchSchedule() {
 
     // Render single robot info
     const renderSingleRobotCard = (match, stateColor, isRematch, idx) => (
-        <Col 
-            style={{ 
-                flex: '0 0 20%', 
+        <Col
+            style={{
+                flex: '0 0 20%',
                 maxWidth: '20%',
                 animation: 'fadeIn 0.5s ease-in-out',
                 animationDelay: `${idx * 0.1}s`,
                 animationFillMode: 'both'
             }}
-            key={`${match.id}-${idx}`} 
+            key={`${match.id}-${idx}`}
             className="mb-3 px-2"
         >
-            <Card 
+            <Card
                 className="match-call-card"
                 style={{
                     border: `4px solid ${stateColor}`,
@@ -203,9 +216,9 @@ function MatchSchedule() {
                 }}
             >
                 {/* Header - Playground */}
-                <div 
+                <div
                     className="text-center py-2 px-3"
-                    style={{ 
+                    style={{
                         background: stateColor,
                         color: 'white'
                     }}
@@ -214,9 +227,9 @@ function MatchSchedule() {
                         <span className="font-weight-bold" style={{ fontSize: '14px' }}>
                             {match.playgroundName || 'Hřiště'}
                         </span>
-                        <Badge 
-                            style={{ 
-                                backgroundColor: 'rgba(255,255,255,0.25)', 
+                        <Badge
+                            style={{
+                                backgroundColor: 'rgba(255,255,255,0.25)',
                                 color: 'white',
                                 fontSize: '16px',
                                 fontWeight: '800',
@@ -229,9 +242,9 @@ function MatchSchedule() {
                 </div>
 
                 <CardBody className="text-center py-2 px-2">
-                    <div 
-                        style={{ 
-                            fontSize: isFullscreen ? '72px' : '56px', 
+                    <div
+                        style={{
+                            fontSize: isFullscreen ? '72px' : '56px',
                             fontWeight: '900',
                             lineHeight: '1',
                             color: stateColor,
@@ -242,9 +255,9 @@ function MatchSchedule() {
                     </div>
 
                     {/* Robot name */}
-                    <h3 
-                        className="mb-2 font-weight-bold text-white" 
-                        style={{ 
+                    <h3
+                        className="mb-2 font-weight-bold text-white"
+                        style={{
                             fontSize: isFullscreen ? '16px' : '14px',
                             textTransform: 'uppercase',
                             letterSpacing: '1px'
@@ -254,9 +267,9 @@ function MatchSchedule() {
                     </h3>
 
                     {/* Team - highlighted */}
-                    <div 
-                        className="text-center mb-2 py-1 px-2" 
-                        style={{ 
+                    <div
+                        className="text-center mb-2 py-1 px-2"
+                        style={{
                             background: 'rgba(255,255,255,0.1)',
                             borderRadius: '8px'
                         }}
@@ -287,7 +300,7 @@ function MatchSchedule() {
                                 {t('category')}:
                             </span>
                             <Badge color="info" style={{ fontSize: '11px' }}>
-                                {getCategoryLabel(match.categoryA)}
+                                {getCategoryLabel(match.category)}
                             </Badge>
                         </div>
 
@@ -308,15 +321,15 @@ function MatchSchedule() {
 
                 {/* Footer - match state */}
                 {isRematch && (
-                    <div 
+                    <div
                         className="text-center py-2"
-                        style={{ 
+                        style={{
                             background: 'rgba(251, 99, 64, 0.2)',
                             borderTop: `2px solid ${stateColor}`
                         }}
                     >
-                        <Badge 
-                            style={{ 
+                        <Badge
+                            style={{
                                 background: stateColor,
                                 fontSize: '14px',
                                 padding: '8px 20px'
@@ -333,18 +346,18 @@ function MatchSchedule() {
 
     // Render two-robot match card (e.g. sumo) - same width as single robot card
     const renderTwoRobotCard = (match, stateColor, isRematch, idx) => (
-        <Col 
-            style={{ 
-                flex: '0 0 20%', 
+        <Col
+            style={{
+                flex: '0 0 20%',
                 maxWidth: '20%',
                 animation: 'fadeIn 0.5s ease-in-out',
                 animationDelay: `${idx * 0.1}s`,
                 animationFillMode: 'both'
             }}
-            key={`${match.id}-${idx}`} 
+            key={`${match.id}-${idx}`}
             className="mb-3 px-2"
         >
-            <Card 
+            <Card
                 className="match-call-card"
                 style={{
                     border: `4px solid ${stateColor}`,
@@ -356,9 +369,9 @@ function MatchSchedule() {
                 }}
             >
                 {/* Header - Playground */}
-                <div 
+                <div
                     className="text-center py-2 px-3"
-                    style={{ 
+                    style={{
                         background: stateColor,
                         color: 'white'
                     }}
@@ -367,9 +380,9 @@ function MatchSchedule() {
                         <span className="font-weight-bold" style={{ fontSize: '14px' }}>
                             {match.playgroundName || 'Hřiště'}
                         </span>
-                        <Badge 
-                            style={{ 
-                                backgroundColor: 'rgba(255,255,255,0.25)', 
+                        <Badge
+                            style={{
+                                backgroundColor: 'rgba(255,255,255,0.25)',
                                 color: 'white',
                                 fontSize: '16px',
                                 fontWeight: '800',
@@ -383,16 +396,16 @@ function MatchSchedule() {
 
                 <CardBody className="text-center py-2 px-2">
                     {/* Robot A - Top */}
-                    <div 
-                        className="py-1 px-2 mb-1" 
-                        style={{ 
+                    <div
+                        className="py-1 px-2 mb-1"
+                        style={{
                             background: 'rgba(45, 206, 137, 0.15)',
                             borderRadius: '8px'
                         }}
                     >
-                        <div 
-                            style={{ 
-                                fontSize: isFullscreen ? '36px' : '28px', 
+                        <div
+                            style={{
+                                fontSize: isFullscreen ? '36px' : '28px',
                                 fontWeight: '900',
                                 lineHeight: '1',
                                 color: '#2dce89'
@@ -414,16 +427,16 @@ function MatchSchedule() {
                     </div>
 
                     {/* Robot B - Bottom */}
-                    <div 
-                        className="py-1 px-2 mt-1" 
-                        style={{ 
+                    <div
+                        className="py-1 px-2 mt-1"
+                        style={{
                             background: 'rgba(94, 114, 228, 0.15)',
                             borderRadius: '8px'
                         }}
                     >
-                        <div 
-                            style={{ 
-                                fontSize: isFullscreen ? '36px' : '28px', 
+                        <div
+                            style={{
+                                fontSize: isFullscreen ? '36px' : '28px',
                                 fontWeight: '900',
                                 lineHeight: '1',
                                 color: '#5e72e4'
@@ -445,7 +458,7 @@ function MatchSchedule() {
                             {match.disciplineName || '-'}
                         </Badge>
                         <Badge color="info" style={{ fontSize: '10px' }}>
-                            {getCategoryLabel(match.categoryA)}
+                            {getCategoryLabel(match.category)}
                         </Badge>
                     </div>
 
@@ -461,15 +474,15 @@ function MatchSchedule() {
 
                 {/* Footer - match state */}
                 {isRematch && (
-                    <div 
+                    <div
                         className="text-center py-2"
-                        style={{ 
+                        style={{
                             background: 'rgba(251, 99, 64, 0.2)',
                             borderTop: `2px solid ${stateColor}`
                         }}
                     >
-                        <Badge 
-                            style={{ 
+                        <Badge
+                            style={{
                                 background: stateColor,
                                 fontSize: '14px',
                                 padding: '8px 20px'
@@ -492,9 +505,9 @@ function MatchSchedule() {
                     <div className="d-flex align-items-center">
                         {/* Maximize button on left */}
                         <div className="mr-3">
-                            <Button 
-                                color="info" 
-                                size="sm" 
+                            <Button
+                                color="info"
+                                size="sm"
                                 onClick={toggleFullscreen}
                                 title={isFullscreen ? t('exitFullscreen') : t('fullscreen')}
                                 style={{ padding: '8px 12px' }}
@@ -502,7 +515,7 @@ function MatchSchedule() {
                                 <i className={`fa ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} style={{ fontSize: '16px' }} />
                             </Button>
                         </div>
-                        
+
                         {/* Title centered */}
                         <div className="text-center flex-grow-1">
                             <h1 className={`text-warning mb-1 ${isFullscreen ? 'display-3' : 'display-4'}`}>
@@ -510,7 +523,7 @@ function MatchSchedule() {
                                 {t('matchCallSystem')}
                             </h1>
                             <p className="text-muted mb-0">
-                                {t('matchCallSystemDesc')} 
+                                {t('matchCallSystemDesc')}
                                 <span className="ml-3">
                                     <i className="tim-icons icon-refresh-02 mr-1" />
                                     {lastUpdate.toLocaleTimeString()}
@@ -522,7 +535,7 @@ function MatchSchedule() {
                                 )}
                             </p>
                         </div>
-                        
+
                         {/* Empty space on right for centering */}
                         <div style={{ width: '52px' }}></div>
                     </div>
@@ -543,10 +556,10 @@ function MatchSchedule() {
                     </Col>
                 </Row>
             ) : (
-                <div 
-                    className="matches-carousel" 
-                    style={isFullscreen ? { 
-                        display: 'flex', 
+                <div
+                    className="matches-carousel"
+                    style={isFullscreen ? {
+                        display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
                         minHeight: 'calc(100vh - 180px)'
@@ -554,9 +567,9 @@ function MatchSchedule() {
                 >
                     <Row className="justify-content-center align-items-start">
                         {paginatedMatches.map((match, idx) => {
-                            const stateColor = getMatchStateColor(match.state?.name || match.stateName);
-                            const isRematch = (match.state?.name || match.stateName) === 'REMATCH';
-                            
+                            const stateColor = getMatchStateColor(match.matchState || match.state?.name || match.stateName);
+                            const isRematch = (match.matchState || match.state?.name || match.stateName) === 'REMATCH';
+
                             // Choose card type based on whether it's a two-robot match
                             if (isTwoRobotMatch(match)) {
                                 return renderTwoRobotCard(match, stateColor, isRematch, idx);
@@ -570,7 +583,7 @@ function MatchSchedule() {
                     {totalPages > 1 && (
                         <div className="text-center mt-3">
                             {[...Array(totalPages)].map((_, i) => (
-                                <span 
+                                <span
                                     key={i}
                                     onClick={() => setCurrentPage(i)}
                                     style={{
@@ -595,10 +608,10 @@ function MatchSchedule() {
                 <Col>
                     <div className="text-center">
                         <span className="mr-4">
-                            <span style={{ 
-                                display: 'inline-block', 
-                                width: '20px', 
-                                height: '20px', 
+                            <span style={{
+                                display: 'inline-block',
+                                width: '20px',
+                                height: '20px',
                                 background: '#f5365c',
                                 borderRadius: '4px',
                                 marginRight: '8px',
@@ -607,10 +620,10 @@ function MatchSchedule() {
                             {t('matchWaiting')}
                         </span>
                         <span>
-                            <span style={{ 
-                                display: 'inline-block', 
-                                width: '20px', 
-                                height: '20px', 
+                            <span style={{
+                                display: 'inline-block',
+                                width: '20px',
+                                height: '20px',
                                 background: '#fb6340',
                                 borderRadius: '4px',
                                 marginRight: '8px',

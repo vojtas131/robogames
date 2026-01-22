@@ -31,10 +31,10 @@ import TablePagination from "components/TablePagination";
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [editModal, setEditModal] = useState(false);
   const [addModal, setAddModal] = useState(false);
   const [userEditModal, setUserEditModal] = useState(false);
-  const [emailExportModal, setEmailExportModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [newRole, setNewRole] = useState('');
@@ -76,6 +76,13 @@ function UserManagement() {
   const { confirm } = useConfirm();
   const roles = ['ADMIN', 'COMPETITOR', 'REFEREE', 'ASSISTANT', 'LEADER'];
 
+  // Získání názvu týmu podle ID
+  const getTeamName = (teamId) => {
+    if (!teamId) return '-';
+    const team = teams.find(t => t.id === teamId);
+    return team ? team.name : `#${teamId}`;
+  };
+
   // Překlad role na základě jejího jména
   const getRoleTranslation = (roleName) => {
     switch (roleName) {
@@ -112,6 +119,17 @@ function UserManagement() {
           setUsers(result.data);
         } else {
           console.error('Failed to fetch users:', result.message);
+        }
+
+        // Fetch all teams for displaying team names
+        const teamsRes = await fetch(`${process.env.REACT_APP_API_URL}api/team/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (teamsRes.ok) {
+          const teamsData = await teamsRes.json();
+          if (teamsData.data) {
+            setTeams(teamsData.data);
+          }
         }
 
         // Fetch super admin IDs
@@ -294,36 +312,6 @@ function UserManagement() {
     setDropdownOpen(false);
   };
 
-  // Get all emails from users
-  const getAllEmails = () => {
-    return users.map(user => user.email).filter(email => email);
-  };
-
-  // Export emails to CSV
-  const exportEmailsToCSV = () => {
-    const emails = getAllEmails();
-    const csvContent = "email\n" + emails.join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `emails_export_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Copy emails to clipboard
-  const copyEmailsToClipboard = () => {
-    const emails = getAllEmails();
-    navigator.clipboard.writeText(emails.join('\n')).then(() => {
-      toast.success(t("emailsCopied") || "Emaily byly zkopírovány do schránky");
-    }).catch(() => {
-      toast.error(t("emailsCopyFail") || "Nepodařilo se zkopírovat emaily");
-    });
-  };
-
   // edit user info by admin
   const handleUserEditSubmit = async (e) => {
     e.preventDefault();
@@ -374,12 +362,6 @@ function UserManagement() {
             <CardHeader>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
                 <h4 className="card-title" style={{ margin: 0 }}>{t("manageUser")}</h4>
-                {isAdminOrLeader && (
-                  <Button color="info" size="sm" onClick={() => setEmailExportModal(true)}>
-                    <i className="tim-icons icon-email-85" style={{ marginRight: '6px' }} />
-                    {t("exportEmails") || "Export emailů"}
-                  </Button>
-                )}
               </div>
               {isAdminOrLeader && (
                 <Row className="mb-2">
@@ -390,7 +372,7 @@ function UserManagement() {
                       onChange={(e) => setSearchType(e.target.value)}
                     >
                       <option value="all">{t('searchAll') || 'Vše'}</option>
-                      <option value="id">{t('searchById') || 'ID'}</option>
+                      <option value="id">{t('searchUserById') || 'ID'}</option>
                       <option value="name">{t('searchByName') || 'Jméno'}</option>
                       <option value="surname">{t('searchBySurname') || 'Příjmení'}</option>
                       <option value="fullname">{t('searchByFullname') || 'Jméno + Příjmení'}</option>
@@ -452,7 +434,7 @@ function UserManagement() {
                     <th>{t("mail")}</th>
                     <th>{t("birthDate")}</th>
                     <th>{t("role")}</th>
-                    <th>{t("teamID")}</th>
+                    <th>{t("team")}</th>
                     <th>{t("status")}</th>
                     {isAdmin && (
                       <th style={{ textAlign: 'center' }}>{t("action")}</th>
@@ -527,7 +509,7 @@ function UserManagement() {
                           <td>
                             {user.roles.map(role => getRoleTranslation(role.name)).join(', ')}
                           </td>
-                          <td>{user.teamID}</td>
+                          <td>{getTeamName(user.teamID)}</td>
                           <td>
                             {user.banned ? (
                               <span style={{ color: '#f5365c', fontWeight: 'bold' }}>
@@ -762,47 +744,6 @@ function UserManagement() {
             <Button color="secondary" onClick={() => setUserEditModal(false)} style={{ margin: '10px' }}>{t("cancel")}</Button>
           </Form>
         </ModalBody>
-      </Modal>
-
-      {/* Email Export Modal */}
-      <Modal isOpen={emailExportModal} toggle={() => setEmailExportModal(false)} size="lg">
-        <ModalHeader toggle={() => setEmailExportModal(false)}>
-          <i className="tim-icons icon-email-85" style={{ marginRight: '8px' }} />
-          {t("exportEmails") || "Export emailů"}
-        </ModalHeader>
-        <ModalBody style={{ padding: '20px 25px' }}>
-          <div style={{ marginBottom: '15px' }}>
-            <strong>{t("totalEmails") || "Celkem emailů"}:</strong> {getAllEmails().length}
-          </div>
-          <div style={{
-            maxHeight: '300px',
-            overflowY: 'auto',
-            backgroundColor: 'rgba(0,0,0,0.1)',
-            padding: '15px',
-            borderRadius: '8px',
-            fontFamily: 'monospace',
-            fontSize: '13px'
-          }}>
-            {getAllEmails().map((email, index) => (
-              <div key={index} style={{ padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                {email}
-              </div>
-            ))}
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button color="success" onClick={exportEmailsToCSV} style={{ margin: '5px' }}>
-            <i className="tim-icons icon-cloud-download-93" style={{ marginRight: '6px' }} />
-            {t("downloadCSV") || "Stáhnout CSV"}
-          </Button>
-          <Button color="info" onClick={copyEmailsToClipboard} style={{ margin: '5px' }}>
-            <i className="tim-icons icon-single-copy-04" style={{ marginRight: '6px' }} />
-            {t("copyToClipboard") || "Kopírovat do schránky"}
-          </Button>
-          <Button color="secondary" onClick={() => setEmailExportModal(false)} style={{ margin: '5px' }}>
-            {t("close")}
-          </Button>
-        </ModalFooter>
       </Modal>
     </div>
   );

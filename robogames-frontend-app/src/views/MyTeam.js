@@ -40,14 +40,16 @@ function MyTeam() {
   const [searchModal, setSearchModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
-  
+
   // Stavy pro procházení týmů (když uživatel není v týmu)
   const [allTeams, setAllTeams] = useState([]);
   const [myJoinRequests, setMyJoinRequests] = useState([]);
   const [teamsSearchTerm, setTeamsSearchTerm] = useState('');
   const [teamsLoading, setTeamsLoading] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(null);
-  
+
+  const MAX_TEAM_MEMBERS = process.env.REACT_APP_MAX_TEAM_MEMBERS;
+
   const userID = localStorage.getItem('UserID');
 
   const { token, tokenExpired } = useUser();
@@ -75,7 +77,7 @@ function MyTeam() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (tokenExpired(response.status)) return;
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.type !== 'ERROR') {
@@ -95,7 +97,7 @@ function MyTeam() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (tokenExpired(response.status)) return;
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.type !== 'ERROR') {
@@ -115,7 +117,7 @@ function MyTeam() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (tokenExpired(response.status)) return;
-      
+
       const data = await response.json();
       if (response.ok && data.type !== 'ERROR') {
         toast.success(t("joinRequestSent"));
@@ -137,7 +139,7 @@ function MyTeam() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (tokenExpired(response.status)) return;
-      
+
       const data = await response.json();
       if (response.ok && data.type !== 'ERROR') {
         toast.success(t("joinRequestCancelled"));
@@ -152,16 +154,16 @@ function MyTeam() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('cs-CZ', { 
-      day: '2-digit', 
-      month: '2-digit', 
+    return date.toLocaleDateString('cs-CZ', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  const filteredTeams = allTeams.filter(team => 
+  const filteredTeams = allTeams.filter(team =>
     team.name.toLowerCase().includes(teamsSearchTerm.toLowerCase())
   );
 
@@ -572,9 +574,9 @@ function MyTeam() {
                             <td>{request.teamName}</td>
                             <td>{formatDate(request.createdAt)}</td>
                             <td>
-                              <Button 
-                                color="danger" 
-                                size="sm" 
+                              <Button
+                                color="danger"
+                                size="sm"
                                 onClick={() => cancelJoinRequest(request.id)}
                               >
                                 {t("cancel")}
@@ -637,38 +639,40 @@ function MyTeam() {
                       </thead>
                       <tbody>
                         {filteredTeams.map(t_item => {
-                          const pendingRequest = myJoinRequests.find(r => r.teamId === t_item.id);
-                          return (
-                            <tr key={t_item.id}>
-                              <td>{t_item.name}</td>
-                              <td>
-                                <Badge color="info" pill>
-                                  {t_item.memberCount} {t_item.memberCount === 1 ? t("memberSingular") : t("members")}
-                                </Badge>
-                              </td>
-                              <td>
-                                {pendingRequest ? (
-                                  <Badge color="warning">{t("requestPending")}</Badge>
-                                ) : (
-                                  <Button
-                                    color="success"
-                                    size="sm"
-                                    onClick={() => sendJoinRequest(t_item.id)}
-                                    disabled={sendingRequest === t_item.id}
-                                  >
-                                    {sendingRequest === t_item.id ? (
-                                      <Spinner size="sm" />
-                                    ) : (
-                                      <>
-                                        <i className="tim-icons icon-send mr-1" />
-                                        {t("sendRequest")}
-                                      </>
-                                    )}
-                                  </Button>
-                                )}
-                              </td>
-                            </tr>
-                          );
+                          if (t_item.memberCount < MAX_TEAM_MEMBERS) {
+                            const pendingRequest = myJoinRequests.find(r => r.teamId === t_item.id);
+                            return (
+                              <tr key={t_item.id}>
+                                <td>{t_item.name}</td>
+                                <td>
+                                  <Badge color="info" pill>
+                                    {t_item.memberCount} {t_item.memberCount === 1 ? t("memberSingular") : t("members")}
+                                  </Badge>
+                                </td>
+                                <td>
+                                  {pendingRequest ? (
+                                    <Badge color="warning">{t("requestPending")}</Badge>
+                                  ) : (
+                                    <Button
+                                      color="success"
+                                      size="sm"
+                                      onClick={() => sendJoinRequest(t_item.id)}
+                                      disabled={sendingRequest === t_item.id}
+                                    >
+                                      {sendingRequest === t_item.id ? (
+                                        <Spinner size="sm" />
+                                      ) : (
+                                        <>
+                                          <i className="tim-icons icon-send mr-1" />
+                                          {t("sendRequest")}
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          }
                         })}
                       </tbody>
                     </Table>
@@ -703,10 +707,10 @@ function MyTeam() {
                       <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         {team.name}
                         {isLeader && (
-                          <Button 
-                            color="link" 
-                            className="p-0" 
-                            onClick={() => { setNewTeamName(team.name); setCreationError(''); setCreateModal(true); }} 
+                          <Button
+                            color="link"
+                            className="p-0"
+                            onClick={() => { setNewTeamName(team.name); setCreationError(''); setCreateModal(true); }}
                             title={t("rename")}
                             style={{ color: 'rgba(255,255,255,0.5)' }}
                           >
@@ -772,8 +776,8 @@ function MyTeam() {
             </Col>
             <Col xs="6" md="3">
               {isLeader ? (
-                <Card 
-                  className="h-100 mb-0" 
+                <Card
+                  className="h-100 mb-0"
                   style={{ cursor: 'pointer', border: '1px solid rgba(239,96,0,0.3)', transition: 'all 0.3s ease' }}
                   onClick={() => navigate('/admin/competition-registration')}
                   onMouseEnter={(e) => {
@@ -814,9 +818,14 @@ function MyTeam() {
                       {t("teamMembers")}
                     </CardTitle>
                     {isLeader && (
-                      <Button color="success" size="sm" onClick={() => setSearchModal(true)}>
+                      <Button
+                        color="success"
+                        size="sm"
+                        onClick={() => setSearchModal(true)}
+                        disabled={team.memberNames.length >= MAX_TEAM_MEMBERS}
+                      >
                         <i className="tim-icons icon-simple-add mr-1" />
-                        {t("teamAddUser")}
+                        {team.memberNames.length >= MAX_TEAM_MEMBERS ? t("teamFull") || "Tým je plný" : t("teamAddUser")}
                       </Button>
                     )}
                   </div>
@@ -841,50 +850,53 @@ function MyTeam() {
                             return 0;
                           })
                           .map(member => (
-                          <tr key={member.id}>
-                            <td>
-                              <strong>{member.name} {member.surname}</strong>
-                            </td>
-                            <td>
-                              <a href={`mailto:${member.email}`} style={{ color: '#ef6000' }}>{member.email}</a>
-                            </td>
-                            <td>
-                              {member.id === team.leaderID ? (
-                                <Badge color="warning" style={{ fontSize: '0.75rem' }}>
-                                  <i className="tim-icons icon-badge mr-1" />
-                                  {t("leader")}
-                                </Badge>
-                              ) : (
-                                <Badge color="secondary" style={{ fontSize: '0.75rem' }}>{t("member") || "Člen"}</Badge>
-                              )}
-                            </td>
-                            {isLeader && (
-                              <td style={{ textAlign: 'center' }}>
-                                {member.id !== team.leaderID && (
-                                  <>
-                                    <Button 
-                                      color="info" 
-                                      size="sm" 
-                                      className="mr-1"
-                                      onClick={() => changeLeader(member.id)} 
-                                      title={t("makeLeader") || "Předat vedení"}
-                                    >
-                                      <i className="tim-icons icon-badge" />
-                                    </Button>
-                                    <Button 
-                                      color="danger" 
-                                      size="sm"
-                                      onClick={() => removeMember(member.id)} 
-                                      title={t("remove")}
-                                    >
-                                      <i className="tim-icons icon-trash-simple" />
-                                    </Button>
-                                  </>
+                            <tr key={member.id}>
+                              <td>
+                                <strong>{member.name} {member.surname}</strong>
+                              </td>
+                              <td>
+                                <a href={`mailto:${member.email}`} style={{ color: '#ef6000' }}>{member.email}</a>
+                              </td>
+                              <td>
+                                {member.id === team.leaderID ? (
+                                  <Badge color="warning" style={{ fontSize: '0.75rem' }}>
+                                    <i className="tim-icons icon-badge mr-1" />
+                                    {t("leader")}
+                                  </Badge>
+                                ) : (
+                                  <Badge color="secondary" style={{ fontSize: '0.75rem' }}>{t("member") || "Člen"}</Badge>
                                 )}
                               </td>
-                            )}
-                          </tr>
-                        ))}
+                              {isLeader && (
+                                <td style={{ textAlign: 'center' }}>
+                                  {member.id !== team.leaderID && (
+                                    <>
+                                      <Button
+                                        color="warning"
+                                        size="sm"
+                                        className="mr-1 btn-icon"
+                                        style={{ padding: '6px 8px', borderRadius: '4px', background: '#ff8d72' }}
+                                        onClick={() => changeLeader(member.id)}
+                                        title={t("makeLeader") || "Předat vedení"}
+                                      >
+                                        <i className="tim-icons icon-badge" />
+                                      </Button>
+                                      <Button
+                                        color="danger"
+                                        size="sm"
+                                        className="btn-icon"
+                                        style={{ padding: '6px 8px', borderRadius: '4px', background: '#fd5d93' }}
+                                        onClick={() => removeMember(member.id)}
+                                        title={t("remove")}
+                                      >
+                                        <i className="tim-icons icon-trash-simple" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </td>
+                              )}
+                            </tr>
+                          ))}
                       </tbody>
                     </Table>
                   </div>
@@ -898,42 +910,46 @@ function MyTeam() {
                         return 0;
                       })
                       .map(member => (
-                      <div key={member.id} style={styles.memberCard}>
-                        <div style={{ flex: 1, minWidth: '150px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                            <strong>{member.name} {member.surname}</strong>
-                            {member.id === team.leaderID && (
-                              <Badge color="warning" style={{ fontSize: '0.65rem' }}>
+                        <div key={member.id} style={styles.memberCard}>
+                          <div style={{ flex: 1, minWidth: '150px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                              <strong>{member.name} {member.surname}</strong>
+                              {member.id === team.leaderID && (
+                                <Badge color="warning" style={{ fontSize: '0.65rem' }}>
+                                  <i className="tim-icons icon-badge" />
+                                </Badge>
+                              )}
+                            </div>
+                            <a href={`mailto:${member.email}`} style={{ color: '#ef6000', fontSize: '0.85rem' }}>
+                              {member.email}
+                            </a>
+                          </div>
+                          {isLeader && member.id !== team.leaderID && (
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                              <Button
+                                color="warning"
+                                size="sm"
+                                className="btn-icon"
+                                style={{ padding: '6px 8px', borderRadius: '4px', background: '#ff8d72' }}
+                                onClick={() => changeLeader(member.id)}
+                                title={t("makeLeader")}
+                              >
                                 <i className="tim-icons icon-badge" />
-                              </Badge>
-                            )}
-                          </div>
-                          <a href={`mailto:${member.email}`} style={{ color: '#ef6000', fontSize: '0.85rem' }}>
-                            {member.email}
-                          </a>
+                              </Button>
+                              <Button
+                                color="danger"
+                                size="sm"
+                                className="btn-icon"
+                                style={{ padding: '6px 8px', borderRadius: '4px', background: '#fd5d93' }}
+                                onClick={() => removeMember(member.id)}
+                                title={t("remove")}
+                              >
+                                <i className="tim-icons icon-trash-simple" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                        {isLeader && member.id !== team.leaderID && (
-                          <div style={{ display: 'flex', gap: '5px' }}>
-                            <Button 
-                              color="info" 
-                              size="sm"
-                              onClick={() => changeLeader(member.id)} 
-                              title={t("makeLeader")}
-                            >
-                              <i className="tim-icons icon-badge" />
-                            </Button>
-                            <Button 
-                              color="danger" 
-                              size="sm"
-                              onClick={() => removeMember(member.id)} 
-                              title={t("remove")}
-                            >
-                              <i className="tim-icons icon-trash-simple" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </CardBody>
               </Card>
@@ -949,9 +965,9 @@ function MyTeam() {
                   </CardTitle>
                 </CardHeader>
                 <CardBody style={{ padding: '20px' }}>
-                  <div style={{ 
-                    padding: '15px', 
-                    background: 'rgba(239,96,0,0.08)', 
+                  <div style={{
+                    padding: '15px',
+                    background: 'rgba(239,96,0,0.08)',
                     borderRadius: '10px',
                     border: '1px solid rgba(239,96,0,0.2)',
                     marginBottom: '15px'
@@ -967,9 +983,9 @@ function MyTeam() {
                       <li>{t("leaderPerm4") || "Upravovat vedoucího učitele"}</li>
                     </ul>
                   </div>
-                  <div style={{ 
-                    padding: '15px', 
-                    background: 'rgba(94,114,228,0.08)', 
+                  <div style={{
+                    padding: '15px',
+                    background: 'rgba(94,114,228,0.08)',
                     borderRadius: '10px',
                     border: '1px solid rgba(94,114,228,0.2)'
                   }}>
@@ -1002,8 +1018,8 @@ function MyTeam() {
                     .sort((a, b) => b.year - a.year)
                     .map(reg => (
                       <Col lg="3" md="4" sm="6" key={reg.id} className="mb-3">
-                        <Card 
-                          className="mb-0" 
+                        <Card
+                          className="mb-0"
                           style={styles.yearCard}
                           onClick={() => navigate(`/admin/robot-registration?year=${reg.year}`)}
                           onMouseEnter={(e) => {
@@ -1018,8 +1034,8 @@ function MyTeam() {
                           }}
                         >
                           <CardBody className="text-center" style={{ padding: '25px 15px' }}>
-                            <div style={{ 
-                              fontSize: '2rem', 
+                            <div style={{
+                              fontSize: '2rem',
                               fontWeight: 'bold',
                               background: 'linear-gradient(135deg, #ef6000 0%, #ff8533 100%)',
                               WebkitBackgroundClip: 'text',
@@ -1081,6 +1097,11 @@ function MyTeam() {
           {t("inviteByEmail") || "Pozvat uživatele podle e-mailu"}
         </ModalHeader>
         <ModalBody>
+          {team && team.memberNames.length >= MAX_TEAM_MEMBERS && (
+            <Alert color="danger" className="mb-3">
+              <strong>{t("teamFull") || "Tým je plný"}</strong> - {t("maxMembersReached") || `Tým dosáhl maximálního počtu ${MAX_TEAM_MEMBERS} členů`}
+            </Alert>
+          )}
           <FormGroup>
             <Label for="inviteEmail">E-mail</Label>
             <Input
@@ -1102,7 +1123,7 @@ function MyTeam() {
           </small>
         </ModalBody>
         <ModalFooter>
-          <Button color="success" onClick={handleInviteByEmail} disabled={!inviteEmail.trim() || !isValidEmail(inviteEmail.trim()) || inviteLoading}>
+          <Button color="success" onClick={handleInviteByEmail} disabled={!inviteEmail.trim() || !isValidEmail(inviteEmail.trim()) || inviteLoading || (team && team.memberNames.length >= MAX_TEAM_MEMBERS)}>
             {inviteLoading ? (
               <><i className="fa fa-spinner fa-spin mr-2" />{t("sending") || "Odesílání..."}</>
             ) : (

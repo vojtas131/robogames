@@ -337,6 +337,15 @@ function MatchGroup() {
         }
     };
 
+    const getStateLabel = (state) => {
+        switch (state) {
+            case 'WAITING': return t('waitingStatus') || 'Čekající';
+            case 'DONE': return t('doneStatus') || 'Hotové';
+            case 'REMATCH': return t('rematchStatus') || 'Opakování';
+            default: return state || '-';
+        }
+    };
+
     const getPhaseLabel = (phase) => {
         switch (phase) {
             case 'GROUP_STAGE': return t('phaseGroupStage') || 'Skupinová fáze';
@@ -453,7 +462,7 @@ function MatchGroup() {
                                         onChange={(e) => setSearchType(e.target.value)}
                                     >
                                         <option value="all">{t('searchAll') || 'Hledat vše'}</option>
-                                        <option value="id">{t('searchById') || 'ID zápasu'}</option>
+                                        <option value="id">{t('searchMatchById') || 'ID zápasu'}</option>
                                         <option value="robotName">{t('searchByRobotName') || 'Jméno robota'}</option>
                                         <option value="robotNumber">{t('searchByRobotNumber') || 'Číslo robota'}</option>
                                         <option value="teamName">{t('searchByTeamName') || 'Název týmu'}</option>
@@ -616,7 +625,7 @@ function MatchGroup() {
                                                 </td>
                                                 <td>
                                                     <Badge color={getStateColor(match.state?.name)} style={{ fontSize: '11px' }}>
-                                                        {match.state?.name || '-'}
+                                                        {getStateLabel(match.state?.name)}
                                                     </Badge>
                                                 </td>
                                                 <td style={{ minWidth: '120px' }}>

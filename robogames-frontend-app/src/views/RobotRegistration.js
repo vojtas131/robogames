@@ -588,7 +588,7 @@ function RobotRegistration() {
                 value={robotName} onChange={(e) => setRobotName(e.target.value)} style={{ color: 'black' }}
               />
             </FormGroup>
-            {creationError && <p className="text-danger">{creationError}</p>}
+            {creationError && <Alert color="danger" className="mb-0">{creationError}</Alert>}
           </Form>
         </ModalBody>
         <ModalFooter>

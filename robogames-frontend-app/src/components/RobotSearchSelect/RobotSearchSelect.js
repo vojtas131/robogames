@@ -278,7 +278,7 @@ function RobotSearchSelect({
                           pill 
                           style={{ fontSize: '9px' }}
                         >
-                          {robot.category === 'LOW_AGE_CATEGORY' ? (t('youngCategory') || 'Mladší') : (t('adultCategory') || 'Starší')}
+                          {robot.category === 'LOW_AGE_CATEGORY' ? t('pupils') : t('students')}
                         </Badge>
                       )}
                     </div>

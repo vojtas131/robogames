@@ -261,303 +261,331 @@ function RobotProfile() {
 
   return (
     <div className="content">
-      <Row>
-        <Col md="12">
-          <Button
-            color="info"
-            size="sm"
-            onClick={handleGoBack}
-            className='mb-3'
-          >
-            <i className="tim-icons icon-minimal-left mb-1" />
-            {t("back")}
-          </Button>
-        </Col>
-      </Row>
+      {/* Back button */}
+      <Button
+        color="link"
+        size="sm"
+        onClick={handleGoBack}
+        className='mb-2 p-0'
+        style={{ color: '#1d8cf8' }}
+      >
+        <i className="tim-icons icon-minimal-left mr-1" />
+        {t("back")}
+      </Button>
 
       {/* Warning for empty team */}
       {profile.teamMemberCount === 0 && (
-        <Row>
-          <Col xs="12">
-            <Alert color="danger" style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '15px',
-              padding: '15px 20px',
-              borderRadius: '8px',
-              marginBottom: '20px'
-            }}>
-              <i className="tim-icons icon-alert-circle-exc" style={{ fontSize: '24px' }} />
-              <div>
-                <strong>{t("warningEmptyTeam")}</strong>
-                <p className="mb-0" style={{ opacity: 0.9 }}>{t("warningEmptyTeamDesc")}</p>
-              </div>
-            </Alert>
-          </Col>
-        </Row>
+        <Alert color="danger" style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          marginBottom: '16px'
+        }}>
+          <i className="tim-icons icon-alert-circle-exc" style={{ fontSize: '20px' }} />
+          <div>
+            <strong>{t("warningEmptyTeam")}</strong>
+            <span className="ml-2" style={{ opacity: 0.9 }}>{t("warningEmptyTeamDesc")}</span>
+          </div>
+        </Alert>
       )}
 
-      {/* Robot Confirmation Card - only for admins/leaders/assistants */}
-      {canConfirm && (
-        <Row>
-          <Col xs="12">
-            <Card>
-              <CardBody style={{ padding: '15px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <span style={{ fontWeight: 500 }}>{t("robotConfirmStatus")}:</span>
-                    <Badge 
-                      color={profile.confirmed ? 'success' : 'warning'} 
-                      style={{ fontSize: '14px', padding: '8px 15px' }}
-                    >
-                      {profile.confirmed ? t("confirmed") : t("notConfirmed")}
-                    </Badge>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {!profile.confirmed ? (
-                      <Button 
-                        color="success" 
-                        size="sm"
-                        onClick={() => handleConfirmRobot(true)}
-                        disabled={isConfirming}
-                      >
-                        <i className="tim-icons icon-check-2 mr-1" />
-                        {t("confirmRobot")}
-                      </Button>
-                    ) : (
-                      <Button 
-                        color="warning" 
-                        size="sm"
-                        onClick={() => handleConfirmRobot(false)}
-                        disabled={isConfirming}
-                      >
-                        <i className="tim-icons icon-simple-remove mr-1" />
-                        {t("unconfirmRobot")}
-                      </Button>
-                    )}
-                  </div>
+      {/* Hero Card - Robot main info */}
+      <Card className="mb-3" style={{ background: 'linear-gradient(135deg, rgba(94,114,228,0.1) 0%, rgba(130,94,228,0.1) 100%)' }}>
+        <CardBody style={{ padding: '20px' }}>
+          <Row className="align-items-center">
+            {/* Robot name and number */}
+            <Col xs="12" md="6" lg="4" className="mb-3 mb-md-0">
+              <div className="d-flex align-items-center">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-3"
+                  style={{ 
+                    width: '56px', 
+                    height: '56px', 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)',
+                    flexShrink: 0
+                  }}
+                >
+                  <i className="tim-icons icon-settings" style={{ fontSize: '24px', color: '#fff' }} />
                 </div>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-      )}
-
-      <Row>
-        {/* Main Robot Information Card */}
-        <Col lg="6" md="12">
-          <Card className="card-chart">
-            <CardHeader>
-              <Row>
-                <Col className="text-left">
-                  <CardTitle tag="h2">
-                    <i className="tim-icons icon-settings text-primary mr-2" />
-                    {profile.robotName}
-                  </CardTitle>
-                  <h4 className="card-category" style={{ fontSize: '1.1rem' }}>
-                    {t("robotNum")}:
-                    <Badge color="warning" className='ml-2' style={{ fontSize: '1.2rem', padding: '8px 16px', fontWeight: 'bold' }}>{profile.robotNumber}</Badge>
-                  </h4>
-                </Col>
-                {/*
-                <Col sm="6">
-                  <div className="text-right" style={{ paddingTop: '10px' }}>
-                    <Badge color="success" pill style={{ fontSize: '14px', padding: '8px 15px' }}>
-                      {profile.category}
+                <div>
+                  <h2 className="mb-0" style={{ fontSize: '1.4rem', fontWeight: 600 }}>{profile.robotName}</h2>
+                  <div className="d-flex align-items-center mt-1">
+                    <Badge color="warning" style={{ fontSize: '1rem', padding: '4px 10px', fontWeight: 'bold' }}>
+                      {t("robotNum") || "Číslo"}: {profile.robotNumber}
                     </Badge>
-                  </div>
-                </Col>
-                */}
-              </Row>
-            </CardHeader>
-            <CardBody>
-              <div style={{ padding: '3px 15px' }}>
-                <Row style={{ marginBottom: '15px' }}>
-                  <Col xs="4">
-                    <strong>{t("discipline")}:</strong>
-                  </Col>
-                  <Col xs="8">
-                    <Badge color="primary" style={{ fontSize: '13px' }}>
+                    <Badge color="primary" className="ml-2" style={{ fontSize: '11px' }}>
                       {profile.discipline}
                     </Badge>
-                  </Col>
-                </Row>
+                  </div>
+                </div>
+              </div>
+            </Col>
 
-                <Row style={{ marginBottom: '15px' }}>
-                  <Col xs="4">
-                    <strong>{t("category")}:</strong>
-                  </Col>
-                  <Col xs="8">
+            {/* Category and Team */}
+            <Col xs="6" md="3" lg="4" className="mb-3 mb-md-0">
+              <div className="d-flex flex-column flex-lg-row align-items-start align-items-lg-center" style={{ gap: '12px' }}>
+                <div>
+                  <small className="text-muted d-block">{t("category")}</small>
+                  <strong>
                     {profile.category === 'HIGH_AGE_CATEGORY' ? t("students") : 
                      profile.category === 'LOW_AGE_CATEGORY' ? t("pupils") : 
                      profile.category}
-                  </Col>
-                </Row>
+                  </strong>
+                </div>
+                <div className="d-none d-lg-block" style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
+                <div>
+                  <small className="text-muted d-block">{t("team")}</small>
+                  <strong>{profile.teamName}</strong>
+                </div>
               </div>
-            </CardBody>
-          </Card>
-        </Col>
+            </Col>
 
-        {/* Team Information Card */}
-        <Col lg="6" md="12">
-          <Card className="card-chart">
-            <CardHeader>
-              <CardTitle tag="h3">
-                <i className="tim-icons icon-molecule-40 text-info mr-2" />
-                {t("teamInfo")}
-              </CardTitle>
-            </CardHeader>
-            <CardBody>
-              <div style={{ padding: '15px 15px' }}>
-                <Row style={{ marginBottom: '15px' }}>
-                  <Col xs="4">
-                    <strong>{t("team")}:</strong>
-                  </Col>
-                  <Col xs="8">
-                    <span
-                    // style={{ cursor: 'pointer', color: '#1d8cf8', textDecoration: 'underline' }}
-                    // onClick={handleTeamClick}
-                    >
-                      {profile.teamName}
-                    </span>
-                  </Col>
-                </Row>
-
-                {/* <Row style={{ marginBottom: '15px' }}>
-                  <Col xs="4">
-                    <strong>{t("teamId")}:</strong>
-                  </Col>
-                  <Col xs="8">
-                    #{profile.teamId}
-                  </Col>
-                </Row> */}
-
-                <Row style={{ marginBottom: '15px' }}>
-                <Col xs="4">
-                  <strong>{t("teamLeader")}</strong>
-                </Col>
-                <Col xs="8">
-                  {profile.leaderName ? `${profile.leaderName} ${profile.leaderSurname}` : t("leaderUnknown")}
-                </Col> 
-                </Row>
+            {/* Confirmation status and actions */}
+            <Col xs="6" md="3" lg="4">
+              <div className="d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-md-end" style={{ gap: '10px' }}>
+                <div className="text-md-right">
+                  <small className="text-muted d-block">{t("status")}</small>
+                  <Badge 
+                    color={profile.confirmed ? 'success' : 'warning'} 
+                    style={{ fontSize: '12px', padding: '5px 12px' }}
+                  >
+                    {profile.confirmed ? t("confirmed") : t("notConfirmed")}
+                  </Badge>
+                </div>
+                {canConfirm && (
+                  <Button 
+                    color={profile.confirmed ? "warning" : "success"}
+                    size="sm"
+                    onClick={() => handleConfirmRobot(!profile.confirmed)}
+                    disabled={isConfirming}
+                    style={{ whiteSpace: 'nowrap' }}
+                  >
+                    <i className={`tim-icons ${profile.confirmed ? 'icon-simple-remove' : 'icon-check-2'} mr-1`} />
+                    {profile.confirmed ? t("unconfirmRobot") : t("confirmRobot")}
+                  </Button>
+                )}
               </div>
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
+            </Col>
+          </Row>
+        </CardBody>
+      </Card>
 
+      {/* Info Cards Row */}
       <Row>
-        {/* Team Members Card */}
-        <Col lg="6" md="12">
-          <Card>
-            <CardHeader>
-              <CardTitle tag="h3">
-                <i className="tim-icons icon-single-02 text-warning mr-2" />
-                {t("teamMembers")}
-              </CardTitle>
-            </CardHeader>
-            <CardBody>
-              {profile.teamMembers && profile.teamMembers.length > 0 ? (
-                <Table responsive>
-                  <thead className="text-primary">
-                    <tr>
-                      {/* <th>#</th> */}
-                      <th>{t("name")}</th>
-                      <th>{t("surname")}</th>
-                      <th>E-mail</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {profile.teamMembers.map((member, index) => (
-                      <tr key={index}>
-                        {/* <td>{index + 1}</td> */}
-                        <td>{member.name}</td>
-                        <td>{member.surname}</td>
-                        <td><a href={`mailto:${member.email}`} style={{ color: '#ef6000' }}>{member.email}</a></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <p className="text-muted">{t("noMembers")}</p>
-              )}
+        {/* Team & Leader Info */}
+        <Col lg="4" md="6" className="mb-3">
+          <Card className="h-100 mb-0">
+            <CardBody style={{ padding: '16px' }}>
+              <div className="d-flex align-items-center mb-3">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-2"
+                  style={{ 
+                    width: '32px', 
+                    height: '32px', 
+                    borderRadius: '8px',
+                    background: 'rgba(17,205,239,0.15)'
+                  }}
+                >
+                  <i className="tim-icons icon-molecule-40" style={{ fontSize: '16px', color: '#11cdef' }} />
+                </div>
+                <h5 className="mb-0" style={{ fontSize: '0.95rem' }}>{t("teamInfo")}</h5>
+              </div>
+              
+              <div className="mb-2">
+                <small className="text-muted">{t("teamLeader")}</small>
+                <div style={{ fontWeight: 500 }}>
+                  {profile.leaderName ? `${profile.leaderName} ${profile.leaderSurname}` : t("leaderUnknown")}
+                </div>
+              </div>
+              
+              <div>
+                <small className="text-muted">{t("teamMembers")}</small>
+                <div style={{ fontWeight: 500 }}>{profile.teamMemberCount} {t("members").toLowerCase()}</div>
+              </div>
             </CardBody>
           </Card>
         </Col>
 
-        {/* Teacher Information Card */}
-        <Col lg="6" md="12">
-          <Card>
-            <CardHeader>
-              <CardTitle tag="h3">
-                <i className="tim-icons icon-badge text-success mr-2" />
-                {t("teacherInfo")}
-              </CardTitle>
-            </CardHeader>
-            <CardBody>
-              <div style={{ padding: '10px 0' }}>
-                <Row style={{ marginBottom: '15px' }}>
-                  <Col xs="4">
-                    <strong>{t("name")}:</strong>
-                  </Col>
-                  <Col xs="8">
-                    {profile.teacherName || '-'}
-                  </Col>
-                </Row>
+        {/* Teacher Info */}
+        <Col lg="4" md="6" className="mb-3">
+          <Card className="h-100 mb-0">
+            <CardBody style={{ padding: '16px' }}>
+              <div className="d-flex align-items-center mb-3">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-2"
+                  style={{ 
+                    width: '32px', 
+                    height: '32px', 
+                    borderRadius: '8px',
+                    background: 'rgba(45,206,137,0.15)'
+                  }}
+                >
+                  <i className="tim-icons icon-single-02" style={{ fontSize: '16px', color: '#2dce89' }} />
+                </div>
+                <h5 className="mb-0" style={{ fontSize: '0.95rem' }}>{t("teacherInfo")}</h5>
+              </div>
+              
+              <div className="mb-2">
+                <small className="text-muted">{t("name")}</small>
+                <div style={{ fontWeight: 500 }}>
+                  {profile.teacherName && profile.teacherSurname 
+                    ? `${profile.teacherName} ${profile.teacherSurname}` 
+                    : profile.teacherName || profile.teacherSurname || '-'}
+                </div>
+              </div>
+              
+              <div>
+                <small className="text-muted">{t("contact")}</small>
+                <div style={{ fontWeight: 500 }}>
+                  {profile.teacherContact ? (
+                    <a href={`mailto:${profile.teacherContact}`} style={{ color: '#1d8cf8' }}>
+                      {profile.teacherContact}
+                    </a>
+                  ) : '-'}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </Col>
 
-                <Row style={{ marginBottom: '15px' }}>
-                  <Col xs="4">
-                    <strong>{t("surname")}:</strong>
-                  </Col>
-                  <Col xs="8">
-                    {profile.teacherSurname || '-'}
-                  </Col>
-                </Row>
-
-                <Row style={{ marginBottom: '15px' }}>
-                  <Col xs="4">
-                    <strong>{t("contact")}:</strong>
-                  </Col>
-                  <Col xs="8">
-                    {profile.teacherContact ? (
-                      <a href={`mailto:${profile.teacherContact}`} style={{ color: '#1d8cf8' }}>
-                        {profile.teacherContact}
-                      </a>
-                    ) : '-'}
-                  </Col>
-                </Row>
+        {/* School & RLL Info */}
+        <Col lg="4" md="12" className="mb-3">
+          <Card className="h-100 mb-0">
+            <CardBody style={{ padding: '16px' }}>
+              <div className="d-flex align-items-center mb-3">
+                <div 
+                  className="d-flex align-items-center justify-content-center mr-2"
+                  style={{ 
+                    width: '32px', 
+                    height: '32px', 
+                    borderRadius: '8px',
+                    background: 'rgba(251,99,64,0.15)'
+                  }}
+                >
+                  <i className="tim-icons icon-bank" style={{ fontSize: '16px', color: '#fb6340' }} />
+                </div>
+                <h5 className="mb-0" style={{ fontSize: '0.95rem' }}>{t("schoolName")}</h5>
+              </div>
+              
+              <div className="mb-2">
+                <div style={{ fontWeight: 500, fontSize: '0.9rem' }} title={profile.schoolName || ''}>
+                  {profile.schoolName || (t("notProvided"))}
+                </div>
+              </div>
+              
+              <div className="d-flex align-items-center justify-content-between">
+                <div>
+                  <small className="text-muted">Robo Lego Liga</small>
+                </div>
+                <Badge color={profile.roboLeagueConsent ? "success" : "secondary"} style={{ fontSize: '11px' }}>
+                  {profile.roboLeagueConsent ? (t("yes") || "Ano") : (t("no") || "Ne")}
+                </Badge>
               </div>
             </CardBody>
           </Card>
         </Col>
       </Row>
+
+      {/* Team Members */}
+      {profile.teamMembers && profile.teamMembers.length > 0 && (
+        <Card className="mb-3">
+          <CardHeader style={{ padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center">
+                <i className="tim-icons icon-single-02 text-warning mr-2" />
+                <h5 className="mb-0" style={{ fontSize: '1rem' }}>{t("teamMembers")}</h5>
+              </div>
+              <Badge color="warning" style={{ fontSize: '11px' }}>{profile.teamMembers.length}</Badge>
+            </div>
+          </CardHeader>
+          <CardBody style={{ padding: '12px 20px' }}>
+            <Row>
+              {profile.teamMembers.map((member, index) => (
+                <Col key={index} xs="12" sm="6" lg="4" className="mb-2">
+                  <div 
+                    className="d-flex align-items-center p-2" 
+                    style={{ 
+                      background: 'rgba(255,255,255,0.03)', 
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255,255,255,0.08)'
+                    }}
+                  >
+                    <div 
+                      className="d-flex align-items-center justify-content-center mr-2"
+                      style={{ 
+                        width: '32px', 
+                        height: '32px', 
+                        borderRadius: '50%',
+                        background: member.id === profile.leaderId 
+                          ? 'linear-gradient(135deg, #f5365c 0%, #f56036 100%)' 
+                          : 'rgba(255,255,255,0.1)',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#fff',
+                        flexShrink: 0
+                      }}
+                    >
+                      {member.id === profile.leaderId 
+                        ? <i className="tim-icons icon-trophy" style={{ fontSize: '14px' }} />
+                        : `${member.name?.[0] || ''}${member.surname?.[0] || ''}`
+                      }
+                    </div>
+                    <div style={{ overflow: 'hidden' }}>
+                      <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>
+                        {member.name} {member.surname}
+                        {member.id === profile.leaderId && (
+                          <Badge color="danger" className="ml-1" style={{ fontSize: '9px', padding: '2px 5px' }}>
+                            {t("leader")}
+                          </Badge>
+                        )}
+                      </div>
+                      <a 
+                        href={`mailto:${member.email}`} 
+                        style={{ color: '#8898aa', fontSize: '0.8rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block' }}
+                      >
+                        {member.email}
+                      </a>
+                    </div>
+                  </div>
+                </Col>
+              ))}
+            </Row>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Robot Matches Card */}
-      <Row>
-        <Col xs="12">
-          <Card>
-            <CardHeader>
-              <CardTitle tag="h3">
-                <i className="tim-icons icon-trophy text-warning mr-2" />
-                {t("robotMatches")}
-              </CardTitle>
-            </CardHeader>
-            <CardBody>
-              {matches && matches.length > 0 ? (
-                <>
-                <Table responsive>
-                  <thead className="text-primary">
-                    <tr>
-                      <th>ID</th>
-                      <th>{t("playground")}</th>
-                      <th>{t("opponent") || 'Soupeř'}</th>
-                      <th>{t("score")}</th>
-                      <th>{t("phase") || 'Fáze'}</th>
-                      <th>{t("groupName") || 'Skupina'}</th>
-                      <th>{t("status")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+      <Card>
+        <CardHeader style={{ padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div className="d-flex align-items-center justify-content-between">
+            <div className="d-flex align-items-center">
+              <i className="tim-icons icon-trophy text-warning mr-2" />
+              <h5 className="mb-0" style={{ fontSize: '1rem' }}>{t("robotMatches")}</h5>
+            </div>
+            {matches && matches.length > 0 && (
+              <Badge color="info" style={{ fontSize: '11px' }}>{matches.length}</Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardBody style={{ padding: matches && matches.length > 0 ? '0' : '20px' }}>
+          {matches && matches.length > 0 ? (
+            <>
+            <Table responsive className="mb-0">
+              <thead className="text-primary">
+                <tr>
+                  <th style={{ padding: '12px 20px' }}>ID</th>
+                  <th>{t("playground")}</th>
+                  <th>{t("opponent") || 'Soupeř'}</th>
+                  <th>{t("score")}</th>
+                  <th>{t("phase") || 'Fáze'}</th>
+                  <th>{t("groupName") || 'Skupina'}</th>
+                  <th>{t("status")}</th>
+                </tr>
+              </thead>
+              <tbody>
                     {matches
                       .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                       .map((match, index) => {
@@ -636,9 +664,9 @@ function RobotProfile() {
                                 (match.state?.name || match.stateName) === 'REMATCH' ? 'info' : 'secondary'
                               }
                             >
-                              {(match.state?.name || match.stateName) === 'DONE' ? t("done") :
-                               (match.state?.name || match.stateName) === 'WAITING' ? t("waiting") :
-                               (match.state?.name || match.stateName) === 'REMATCH' ? t("rematch") :
+                              {(match.state?.name || match.stateName) === 'DONE' ? t("doneStatus") || 'Hotové' :
+                               (match.state?.name || match.stateName) === 'WAITING' ? t("waitingStatus") || 'Čekající' :
+                               (match.state?.name || match.stateName) === 'REMATCH' ? t("rematchStatus") || 'Opakování' :
                                (match.state?.name || match.stateName)}
                             </Badge>
                           </td>
@@ -663,8 +691,6 @@ function RobotProfile() {
               )}
             </CardBody>
           </Card>
-        </Col>
-      </Row>
     </div>
   );
 }
