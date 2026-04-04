@@ -106,14 +106,14 @@ var routes = [
     component: <TournamentView />,
     layout: "/admin",
   },
-//  {
-//    path: "/competition-results",
-//    name: t("result"),
-//    rtlName: "",
-//    icon: "tim-icons icon-book-bookmark",
-//    component: <CompetitionResults />,
-//    layout: "/admin",
-//  },
+  {
+    path: "/competition-results",
+    name: t("result"),
+    rtlName: "",
+    icon: "tim-icons icon-book-bookmark",
+    component: <CompetitionResults />,
+    layout: "/admin",
+  },
   {
     path: "/match-schedule",
     name: t("matchSchedule"),

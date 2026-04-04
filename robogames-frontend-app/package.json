@@ -5,12 +5,12 @@
   "homepage": "/",
   "dependencies": {
     "@fortawesome/fontawesome-free": "6.4.0",
-    "@react-pdf/renderer": "^4.3.2",
     "ajv": "^8.11.0",
     "bootstrap": "4.6.2",
     "chart.js": "3.9.1",
     "classnames": "2.3.2",
     "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.14.0",
     "perfect-scrollbar": "1.5.5",
     "prop-types": "15.8.1",
     "react": "^18.2.0",
@@ -20,7 +20,9 @@
     "react-notification-alert": "0.0.13",
     "react-router-dom": "6.11.1",
     "react-scripts": "^5.0.1",
-    "sass": "1.62.1"
+    "sass": "1.62.1",
+    "suneditor": "^2.47.8",
+    "suneditor-react": "^3.6.1"
   },
   "scripts": {
     "start": "react-scripts start",
