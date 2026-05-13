@@ -101,19 +101,13 @@ export const DiplomaButton = ({ data, children, ...props }) => {
 
 			console.log(elementToPrint);
 
-			// 4. Nastavení pro html2pdf
+			// Nastavení pro html2pdf
 			const pdfOptions = {
-				margin: 0, // Okraje si řešíš uvnitř HTML šablony přes padding, tady dáme 0
+				margin: 0,
 				filename: 'diplomy-export.pdf',
 				image: { type: 'jpeg', quality: 0.98 },
-				
-				// Extrémně důležité: řekneme knihovně, ať respektuje naše CSS stránkování
 				pagebreak: { mode: ['css', 'legacy'] },
-				
-				// Scale 2 zajistí, že texty a obrázky nebudou rozmazané
 				html2canvas: { scale: 2, useCORS: true },
-				
-				// Formát papíru - landscape pro diplom na šířku, portrait na výšku
 				jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
 			};
 			
@@ -128,22 +122,6 @@ export const DiplomaButton = ({ data, children, ...props }) => {
 			setIsLoading(false);
 		}
 	};
-
-	/*
-	async function generatePdf() {
-		setIsLoading(true);
-		try {
-			const styles = await fetchStyles();
-			const blob = await pdf(<PdfDocument diploms={propsData} propsStyles={styles} />).toBlob();
-			const url = URL.createObjectURL(blob);
-			window.open(url, '_blank').focus();
-		} catch (err) {
-			console.log(err);
-		} finally {
-			setIsLoading(false);
-		}
-	}
-	*/
 
 	return (
 		<Button {...props} disabled={isLoading || props.disabled} onClick={generateBulkPDF}>
