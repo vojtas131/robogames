@@ -13,14 +13,6 @@ const TemplateEditor = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reference na instanci SunEditoru pro vkládání proměnných
-  const editorRef = useRef();
-
-  // Získání instance editoru při načtení
-  const getSunEditorInstance = (sunEditor) => {
-    editorRef.current = sunEditor;
-  };
-
 	const fetchDiplomaTemplate = async () => {
 		setIsLoading(true);
 		try {
@@ -80,7 +72,6 @@ const TemplateEditor = () => {
       <SunEditor
         disable={isLoading}
         lang="cs"
-        getSunEditorInstance={getSunEditorInstance}
         setContents={content}
         onChange={setContent}
         width="210mm"
